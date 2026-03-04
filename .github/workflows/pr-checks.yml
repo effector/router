@@ -1,0 +1,57 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
+  typecheck:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: ./packages
+
+      - run: pnpm run typecheck
+
+  lint:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: ./packages
+
+      - run: pnpm run lint
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: ./packages
+
+      - run: pnpm run test

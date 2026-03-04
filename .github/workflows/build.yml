@@ -1,0 +1,31 @@
+# .github/workflows/build.yml
+name: Build
+
+on:
+  workflow_call:
+    outputs:
+      build-status:
+        description: 'Build status'
+        value: ${{ jobs.build.outputs.status }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ job.status }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+
+      - name: Build
+        run: pnpm build
+
+      - name: Upload dist artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            packages/**/dist
+          if-no-files-found: error

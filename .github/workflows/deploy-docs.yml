@@ -1,0 +1,37 @@
+name: Deploy docs
+
+on:
+  push:
+    paths: ['docs/**/*']
+    branches: [main]
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+
+      - name: Install dependencies
+        working-directory: ./docs
+        run: pnpm i --frozen-lockfile
+
+      - name: Build
+        working-directory: ./docs
+        run: pnpm run docs:build
+
+      - name: Deploy
+        run: echo 1

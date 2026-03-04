@@ -1,0 +1,15 @@
+name: 'Setup pnpm and install dependencies'
+description: 'Checks out code, sets up pnpm, Node.js, and runs pnpm install'
+runs:
+  using: 'composite'
+  steps:
+    - uses: pnpm/action-setup@v4
+      with:
+        version: '10'
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+        cache: 'pnpm'
+    - name: Install dependencies
+      shell: bash
+      run: pnpm i --frozen-lockfile

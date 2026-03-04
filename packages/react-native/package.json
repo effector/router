@@ -1,0 +1,62 @@
+{
+  "name": "@effector/router-react-native",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "private": false,
+  "version": "1.0.0",
+  "description": "React Native bindings for effector router with React Navigation integration",
+  "keywords": [
+    "effector",
+    "argon",
+    "atomic",
+    "router",
+    "effector/router",
+    "react-native",
+    "react-navigation"
+  ],
+  "author": "movpushmov",
+  "homepage": "https://github.com/movpushmov/effector/router#readme",
+  "license": "MIT",
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/movpushmov/effector/router.git"
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": ""
+  },
+  "bugs": {
+    "url": "https://github.com/movpushmov/effector/router/issues"
+  },
+  "dependencies": {
+    "@effector/router": "workspace:*",
+    "@effector/router-react": "workspace:*"
+  },
+  "peerDependencies": {
+    "@react-navigation/bottom-tabs": ">=6",
+    "@react-navigation/native": ">=6",
+    "@react-navigation/stack": ">=6",
+    "effector": ">=23",
+    "effector-react": ">=23",
+    "react": "18 || 19",
+    "react-native": ">=0.70"
+  },
+  "gitHead": "9832d6cd282d6abd33c26ba4d03b9a1176110fc4"
+}
