@@ -15,7 +15,7 @@
     "effector/router"
   ],
   "author": "movpushmov",
-  "homepage": "https://github.com/movpushmov/effector/router#readme",
+  "homepage": "https://router.effector.dev/core",
   "license": "MIT",
   "directories": {
     "lib": "lib"
@@ -34,14 +34,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/movpushmov/effector/router.git"
+    "url": "git+https://github.com/effector/router.git",
+    "directory": "packages/core"
   },
   "scripts": {
     "build": "vite build",
     "test": "vitest run"
   },
   "bugs": {
-    "url": "https://github.com/movpushmov/effector/router/issues"
+    "url": "https://github.com/effector/router/issues"
   },
   "peerDependencies": {
     "effector": ">=23",

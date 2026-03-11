@@ -17,7 +17,7 @@
     "react-navigation"
   ],
   "author": "movpushmov",
-  "homepage": "https://github.com/movpushmov/effector/router#readme",
+  "homepage": "https://router.effector.dev/react-native",
   "license": "MIT",
   "type": "module",
   "module": "./dist/index.js",
@@ -36,14 +36,15 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/movpushmov/effector/router.git"
+    "url": "git+https://github.com/effector/router.git",
+    "directory": "packages/react-native"
   },
   "scripts": {
     "build": "vite build",
     "test": ""
   },
   "bugs": {
-    "url": "https://github.com/movpushmov/effector/router/issues"
+    "url": "https://github.com/effector/router/issues"
   },
   "dependencies": {
     "@effector/router": "workspace:*",

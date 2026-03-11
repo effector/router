@@ -13,7 +13,7 @@
     "effector/router"
   ],
   "author": "movpushmov",
-  "homepage": "https://github.com/effector/router/blob/master/packages/paths/README.md#readme",
+  "homepage": "https://router.effector.dev/paths",
   "license": "MIT",
   "directories": {
     "lib": "lib"
@@ -32,7 +32,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/effector/router.git"
+    "url": "git+https://github.com/effector/router.git",
+    "directory": "packages/paths"
   },
   "scripts": {
     "build": "vite build",

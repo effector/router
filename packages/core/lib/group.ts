@@ -26,16 +26,18 @@ export function group(routes: (Route<any> | VirtualRoute<any, any>)[]) {
     $isPending: or(...routes.map((route) => route.$isPending)),
   });
 
+  const $hasOpenedRoutes = or(...routes.map((route) => route.$isOpened));
+
   sample({
     clock: routes.map((route) => route.$isOpened),
-    filter: or(...routes.map((route) => route.$isOpened)),
+    filter: $hasOpenedRoutes,
     fn: () => undefined,
     target: virtual.open,
   });
 
   sample({
     clock: routes.map((route) => route.$isOpened),
-    filter: not(or(...routes.map((route) => route.$isOpened))),
+    filter: not($hasOpenedRoutes),
     fn: () => undefined,
     target: virtual.close,
   });
