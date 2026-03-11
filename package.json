@@ -46,6 +46,11 @@
     "build": "pnpm run -recursive -filter \"./packages/*\" build",
     "test": "pnpm run -recursive -filter \"./packages/*\" test -- --silent",
     "typecheck": "tsc --noEmit",
-    "release": "pnpm -r publish"
+    "release": "pnpm -r publish",
+    ":docs": "pnpm --filter @effector/router-docs",
+    ":react": "pnpm --filter @effector/router-react",
+    ":react-native": "pnpm --filter @effector/router-react-native",
+    ":paths": "pnpm --filter @effector/router-paths",
+    ":core": "pnpm --filter @effector/router"
   }
 }

@@ -15,6 +15,11 @@
     "effector/router"
   ],
   "author": "movpushmov",
+  "contributors": [
+    "Sergey Sova <mail@sergeysova.com>",
+    "Anton Kosykh",
+    "Zero Bias <ribkatt@gmail.com>"
+  ],
   "homepage": "https://router.effector.dev/core",
   "license": "MIT",
   "directories": {
