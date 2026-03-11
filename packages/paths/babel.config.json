@@ -13,11 +13,7 @@
     [
       "effector/babel-plugin",
       {
-        "factories": [
-          "lib/create-route",
-          "lib/create-router",
-          "lib/form/form"
-        ],
+        "factories": ["lib/create-route", "lib/create-router", "lib/form/form"],
         "addNames": true
       }
     ]
