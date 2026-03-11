@@ -415,13 +415,16 @@ describe('build path', () => {
     const { build } = compile('/profile/:id<hello|world>+');
 
     expect(build({ id: ['hello', 'world'] })).toBe('/profile/hello/world');
+    expect(build({ id: ['hello', 'hello'] })).toBe('/profile/hello/hello');
     expect(build({ id: ['hello'] })).toBe('/profile/hello');
+    expect(build({ id: [] })).toBe('/profile');
   });
 
   test('build path with generic parameter (union) and modificator *', () => {
     const { build } = compile('/profile/:id<hello|world>*');
 
     expect(build({ id: ['hello', 'world'] })).toBe('/profile/hello/world');
+    expect(build({ id: ['hello', 'hello'] })).toBe('/profile/hello/hello');
     expect(build({ id: ['hello'] })).toBe('/profile/hello');
     expect(build({ id: [] })).toBe('/profile');
   });
@@ -430,6 +433,7 @@ describe('build path', () => {
     const { build } = compile('/profile/:id<hello|world>?');
 
     expect(build({ id: 'hello' })).toBe('/profile/hello');
+    expect(build({ id: 'world' })).toBe('/profile/world');
     expect(build({ id: undefined })).toBe('/profile');
   });
 });
