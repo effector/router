@@ -1,0 +1,63 @@
+{
+  "name": "@effector/router",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "private": false,
+  "version": "1.0.0",
+  "description": "Router with power of effector",
+  "keywords": [
+    "effector",
+    "router",
+    "argon",
+    "atomic",
+    "effector/router"
+  ],
+  "author": "movpushmov",
+  "contributors": [
+    "Sergey Sova <mail@sergeysova.com>",
+    "Anton Kosykh",
+    "Zero Bias <ribkatt@gmail.com>"
+  ],
+  "homepage": "https://router.effector.dev/core",
+  "license": "MIT",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/effector/router.git",
+    "directory": "packages/core"
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run"
+  },
+  "bugs": {
+    "url": "https://github.com/effector/router/issues"
+  },
+  "peerDependencies": {
+    "effector": ">=23",
+    "effector-action": ">=1.2.2",
+    "patronum": ">=2.2",
+    "query-string": "^9.1.1",
+    "zod": ">=4"
+  },
+  "dependencies": {
+    "@effector/router-paths": "workspace:*"
+  },
+  "gitHead": "9832d6cd282d6abd33c26ba4d03b9a1176110fc4"
+}
