@@ -1,11 +1,11 @@
 {
   "name": "@effector/router-react",
+  "version": "1.0.0-rc.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
   "private": false,
-  "version": "1.0.0",
   "description": "React bindings for effector router",
   "keywords": [
     "effector",
@@ -15,11 +15,11 @@
     "effector/router",
     "react"
   ],
-  "author": "movpushmov",
   "contributors": [
     "Sergey Sova <mail@sergeysova.com>",
     "Anton Kosykh",
-    "Zero Bias <ribkatt@gmail.com>"
+    "Zero Bias <ribkatt@gmail.com>",
+    "movpushmov"
   ],
   "homepage": "https://router.effector.dev/react",
   "license": "MIT",

@@ -21,10 +21,10 @@ import { prepareBuilder } from './prepare-builder';
  * // with params
  * const { parse, build } = compile('/:id');
  *
- * console.log(parse('/movpushmov')) // { path: '/profile', params: { id: 'movpushmov' } }
+ * console.log(parse('/johndoe')) // { path: '/profile', params: { id: 'johndoe' } }
  * console.log(parse('/')) // null
  *
- * console.log(build({ id: 'movpushmov' })) // '/movpushmov'
+ * console.log(build({ id: 'johndoe' })) // '/johndoe'
  * ```
  */
 export function compile<T extends string, Params = ParseUrlParams<T>>(path: T) {

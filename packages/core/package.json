@@ -1,12 +1,12 @@
 {
   "name": "@effector/router",
+  "version": "1.0.0-rc.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
   "private": false,
-  "version": "1.0.0",
-  "description": "Router with power of effector",
+  "description": "Flexible type-safe routing for apps",
   "keywords": [
     "effector",
     "router",
@@ -14,11 +14,11 @@
     "atomic",
     "effector/router"
   ],
-  "author": "movpushmov",
   "contributors": [
     "Sergey Sova <mail@sergeysova.com>",
     "Anton Kosykh",
-    "Zero Bias <ribkatt@gmail.com>"
+    "Zero Bias <ribkatt@gmail.com>",
+    "movpushmov"
   ],
   "homepage": "https://router.effector.dev/core",
   "license": "MIT",

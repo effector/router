@@ -4,7 +4,7 @@ layout: home
 
 hero:
   name: '@effector/router'
-  text: 'official effector library for routing'
+  text: 'with type-safety'
   image:
     src: ./logo.svg
   actions:

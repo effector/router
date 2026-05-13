@@ -8,16 +8,16 @@ title: Getting started
 
 ::: code-group
 
+```bash [pnpm]
+pnpm add @effector/router history
+```
+
 ```bash [npm]
 npm install @effector/router history
 ```
 
 ```bash [yarn]
 yarn add @effector/router history
-```
-
-```bash [pnpm]
-pnpm add @effector/router history
 ```
 
 :::
@@ -31,16 +31,16 @@ list in [effector babel plugin](https://effector.dev/en/api/effector/babel-plugi
 
 ::: code-group
 
+```bash [pnpm]
+pnpm add @effector/router-react
+```
+
 ```bash [npm]
 npm install @effector/router-react
 ```
 
 ```bash [yarn]
 yarn add @effector/router-react
-```
-
-```bash [pnpm]
-pnpm add @effector/router-react
 ```
 
 :::

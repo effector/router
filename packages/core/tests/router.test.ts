@@ -109,7 +109,7 @@ describe('router', () => {
       params: historyAdapter(history),
     });
 
-    history.push('/auth?login=movpushmov&password=123&retry=1&retry=1');
+    history.push('/auth?login=johndoe&password=123&retry=1&retry=1');
 
     await vi.waitFor(
       () => expect(scope.getState(router.$activeRoutes)[0]).toEqual(route),
@@ -117,7 +117,7 @@ describe('router', () => {
     );
 
     expect(scope.getState(router.$query)).toStrictEqual({
-      login: 'movpushmov',
+      login: 'johndoe',
       password: '123',
       retry: ['1', '1'],
     });
@@ -139,13 +139,13 @@ describe('router', () => {
     await allSettled(route.open, {
       scope,
       params: {
-        query: { login: 'movpushmov', password: '123', retry: ['1', '1'] },
+        query: { login: 'johndoe', password: '123', retry: ['1', '1'] },
       },
     });
 
     expect(history.location.pathname).toBe('/auth');
     expect(history.location.search).toBe(
-      '?login=movpushmov&password=123&retry=1&retry=1',
+      '?login=johndoe&password=123&retry=1&retry=1',
     );
   });
 

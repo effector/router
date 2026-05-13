@@ -140,7 +140,7 @@ blogRoute.open({
 });
 ```
 
-See [@effector/router-paths](https://github.com/movpushmov/effector/router/tree/main/packages/effector/router-paths#supported-types) for all supported parameter types and modifiers.
+See [@effector/router-paths](https://github.com/effector/router/tree/main/packages/router-paths#supported-types) for all supported parameter types and modifiers.
 
 ### Nested Routes (Parent)
 
@@ -325,4 +325,4 @@ const settingsRoute = createRoute({
 - [createRouter](/core/create-router) - Create router with routes
 - [createVirtualRoute](/core/create-virtual-route) - Create virtual routes
 - [chainRoute](/core/chain-route) - Wrap routes with guards
-- [@effector/router-paths](https://github.com/movpushmov/effector/router/tree/main/packages/effector/router-paths) - Path parameter syntax
+- [@effector/router-paths](https://github.com/effector/router/tree/main/packages/router-paths) - Path parameter syntax

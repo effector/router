@@ -30,16 +30,16 @@ describe('paths generation', () => {
     const nested3 = createRoute({ path: '/ss', parent: nested1 });
 
     const { knownRoutes } = createRouter({
-      base: '/movpushmov',
+      base: '/base',
       routes: [route1, route2, nested1, nested2, nested3],
     });
 
     expect(knownRoutes.map((route) => route.path)).toStrictEqual([
-      '/movpushmov/hi',
-      '/movpushmov/hello',
-      '/movpushmov/hi/ff',
-      '/movpushmov/hello/ss',
-      '/movpushmov/hi/ff/ss',
+      '/base/hi',
+      '/base/hello',
+      '/base/hi/ff',
+      '/base/hello/ss',
+      '/base/hi/ff/ss',
     ]);
   });
 });

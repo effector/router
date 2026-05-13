@@ -1,11 +1,11 @@
 {
   "name": "@effector/router-react-native",
+  "version": "1.0.0-rc.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
   "private": false,
-  "version": "1.0.0",
   "description": "React Native bindings for effector router with React Navigation integration",
   "keywords": [
     "effector",
@@ -16,11 +16,11 @@
     "react-native",
     "react-navigation"
   ],
-  "author": "movpushmov",
   "contributors": [
     "Sergey Sova <mail@sergeysova.com>",
     "Anton Kosykh",
-    "Zero Bias <ribkatt@gmail.com>"
+    "Zero Bias <ribkatt@gmail.com>",
+    "movpushmov"
   ],
   "homepage": "https://router.effector.dev/react-native",
   "license": "MIT",
