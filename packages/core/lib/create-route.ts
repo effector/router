@@ -182,7 +182,10 @@ export function createRoute<Params>(
       // Strip internal navigate flag before exposing through the public opened event,
       // so samplings like `sample({ clock: route.opened, target: otherRoute.open })`
       // don't accidentally suppress navigation in the target route.
-      const { navigate: _, ...openedPayload } = (payload ?? {}) as Record<string, unknown>;
+      const { navigate: _, ...openedPayload } = (payload ?? {}) as Record<
+        string,
+        unknown
+      >;
       const eventPayload = openedPayload as OpenPayload;
 
       if (typeof window === 'undefined') {
