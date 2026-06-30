@@ -1,6 +1,6 @@
 {
   "name": "@effector/router-react",
-  "version": "1.0.0-rc.0",
+  "version": "1.0.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
