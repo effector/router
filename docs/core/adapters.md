@@ -132,15 +132,36 @@ router.setHistory(queryAdapter(history));
 
 // Navigation changes query params, not pathname
 settingsModal.open();
-// URL: /app?page=/settings
+// URL: /app?%2Fsettings
 ```
+
+**Navigation target (`To`):**
+
+Both adapters accept the same `To` value and interpret it identically — they differ only in **where** the target is stored:
+
+```ts
+type To = string | Partial<RouterLocation>;
+```
+
+- A **string** is a full path, following the [`history`](https://github.com/remix-run/history) convention: `pathname[?search][#hash]` (e.g. `'/user/1?tab=info'`). It is equivalent to the matching object form `{ pathname: '/user/1', search: '?tab=info' }`.
+- An **object** is a `Partial<RouterLocation>`; omitted fields fall back to `/` (pathname) or empty strings.
+
+`queryAdapter` stores the **entire** target path — pathname, search and hash together — URL-encoded into a single `location.search` value, while leaving the host `pathname` and `hash` untouched:
+
+```ts
+modalRouter.push('/user/1?tab=info');
+// host URL: /users?%2Fuser%2F1%3Ftab%3Dinfo
+//                  └ encodeURIComponent('/user/1?tab=info')
+```
+
+Because the adapter owns the whole search string, a `queryAdapter` router and the host application cannot share other query parameters on the same URL.
 
 **Comparison:**
 
 | Feature      | historyAdapter  | queryAdapter          |
 | ------------ | --------------- | --------------------- |
 | URL Location | Pathname        | Query parameters      |
-| Example URL  | `/user/123`     | `/app?page=/user/123` |
+| Example URL  | `/user/123`     | `/app?%2Fuser%2F123`  |
 | Use Case     | Main navigation | Modal/tab navigation  |
 | SEO          | ✅ Good         | ⚠️ Limited            |
 
@@ -165,7 +186,7 @@ aboutRoute.open();
 
 // Open modal
 loginModal.open();
-// URL: /about?modal=/login
+// URL: /about?%2Flogin
 
 // Main route stays /about while modal changes
 ```
@@ -181,14 +202,14 @@ tabRouter.setHistory(queryAdapter(createBrowserHistory()));
 
 // Switch tabs
 overviewTab.open();
-// URL: /app?tab=/overview
+// URL: /app?%2Foverview
 
 analyticsTab.open();
-// URL: /app?tab=/analytics
+// URL: /app?%2Fanalytics
 
 // Back button works!
 history.back();
-// URL: /app?tab=/overview
+// URL: /app?%2Foverview
 ```
 
 ## Custom Adapters
