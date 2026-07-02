@@ -1,6 +1,6 @@
 import { createMemoryHistory } from 'history';
 import { describe, expect, test } from 'vitest';
-import { queryAdapter } from '../lib';
+import { historyAdapter, queryAdapter } from '../lib';
 
 describe('queryAdapter', () => {
   test('does not throw on empty search', () => {
@@ -192,6 +192,59 @@ describe('queryAdapter', () => {
         search: '?tab=info',
         hash: '#top',
       });
+    });
+
+    test('two query routers with different keys coexist on one history', () => {
+      const history = createMemoryHistory({ initialEntries: ['/users'] });
+      const modal = queryAdapter(history, { key: 'modal' });
+      const tab = queryAdapter(history, { key: 'tab' });
+
+      modal.push('/user/1');
+      tab.push('/analytics');
+
+      // both keys live side by side
+      const params = new URLSearchParams(history.location.search);
+      expect(params.get('modal')).toBe('/user/1');
+      expect(params.get('tab')).toBe('/analytics');
+
+      // each adapter reads only its own route
+      expect(queryAdapter(history, { key: 'modal' }).location.pathname).toBe(
+        '/user/1',
+      );
+      expect(queryAdapter(history, { key: 'tab' }).location.pathname).toBe(
+        '/analytics',
+      );
+
+      // closing one leaves the other intact
+      modal.push('');
+      const after = new URLSearchParams(history.location.search);
+      expect(after.has('modal')).toBe(false);
+      expect(after.get('tab')).toBe('/analytics');
+    });
+  });
+
+  describe('combined with historyAdapter', () => {
+    test('a pathname router and a query router share one history', () => {
+      const history = createMemoryHistory({ initialEntries: ['/'] });
+      const main = historyAdapter(history);
+      const modal = queryAdapter(history, { key: 'modal' });
+
+      // main router owns the pathname
+      main.push({ pathname: '/about' });
+      expect(history.location.pathname).toBe('/about');
+
+      // modal layers on top without touching the pathname
+      modal.push('/user/1');
+      expect(history.location.pathname).toBe('/about');
+      expect(new URLSearchParams(history.location.search).get('modal')).toBe(
+        '/user/1',
+      );
+
+      // each adapter reads only its own concern from the shared location
+      expect(historyAdapter(history).location.pathname).toBe('/about');
+      expect(queryAdapter(history, { key: 'modal' }).location.pathname).toBe(
+        '/user/1',
+      );
     });
   });
 });
