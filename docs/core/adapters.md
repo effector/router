@@ -189,28 +189,34 @@ The parameter's value is the nested route path, so slashes are percent-encoded (
 **Modal Routing Example:**
 
 ```ts
+// A single shared history — the modal layers on top of the main URL
+const history = createBrowserHistory();
+
 // Main router (pathname)
 const mainRouter = createRouter({
   routes: [homeRoute, aboutRoute],
 });
-mainRouter.setHistory(historyAdapter(createBrowserHistory()));
+mainRouter.setHistory(historyAdapter(history));
 
-// Modal router (query params)
+// Modal router (isolated query key)
 const modalRouter = createRouter({
   routes: [loginModal, settingsModal],
 });
-modalRouter.setHistory(queryAdapter(createBrowserHistory()));
+modalRouter.setHistory(queryAdapter(history, { key: 'modal' }));
 
 // Navigate main route
 aboutRoute.open();
 // URL: /about
 
-// Open modal
+// Open modal — the main pathname stays, the modal lives in ?modal
 loginModal.open();
-// URL: /about?%2Flogin
+// URL: /about?modal=%2Flogin
 
 // Main route stays /about while modal changes
 ```
+
+> Both routers must share the **same** `history` instance — that is how the
+> query router layers its state on top of the main URL.
 
 **Tab Navigation Example:**
 
@@ -219,18 +225,19 @@ const tabRouter = createRouter({
   routes: [overviewTab, analyticsTab, settingsTab],
 });
 
-tabRouter.setHistory(queryAdapter(createBrowserHistory()));
+const history = createBrowserHistory();
+tabRouter.setHistory(queryAdapter(history, { key: 'tab' }));
 
 // Switch tabs
 overviewTab.open();
-// URL: /app?%2Foverview
+// URL: /app?tab=%2Foverview
 
 analyticsTab.open();
-// URL: /app?%2Fanalytics
+// URL: /app?tab=%2Fanalytics
 
 // Back button works!
 history.back();
-// URL: /app?%2Foverview
+// URL: /app?tab=%2Foverview
 ```
 
 ## Custom Adapters
@@ -557,13 +564,23 @@ return {
 
 ### 2. Handle String and Object Navigation
 
-Support both formats:
+Support both formats. Per the `To` contract a **string is a full path**
+(`pathname[?search][#hash]`), not just a pathname — parse it (e.g. with
+`parsePath` from the `history` package) so `'/about?id=1#top'` is handled the
+same as its object form:
 
 ```ts
+import { parsePath } from 'history';
+
 push: (to) => {
   if (typeof to === 'string') {
-    // Handle string: '/about'
-    navigate({ pathname: to, search: '', hash: '' });
+    // '/about?id=1#top' → { pathname: '/about', search: '?id=1', hash: '#top' }
+    const { pathname, search, hash } = parsePath(to);
+    navigate({
+      pathname: pathname ?? current.pathname,
+      search: search ?? '',
+      hash: hash ?? '',
+    });
   } else {
     // Handle object: { pathname: '/about', search: '?id=1' }
     navigate({
@@ -693,8 +710,8 @@ test('custom adapter', async () => {
 // ✅ Recommended for web apps
 router.setHistory(historyAdapter(createBrowserHistory()));
 
-// ✅ Recommended for modals/tabs
-modalRouter.setHistory(queryAdapter(createBrowserHistory()));
+// ✅ Recommended for modals/tabs (share the host's history instance)
+modalRouter.setHistory(queryAdapter(history, { key: 'modal' }));
 
 // ⚠️ Only create custom adapters when necessary
 router.setHistory(customAdapter());
