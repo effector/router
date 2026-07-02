@@ -119,6 +119,81 @@ describe('queryAdapter', () => {
       });
     });
   });
+
+  describe('named key mode', () => {
+    test('stores the nested route in the configured query parameter', () => {
+      const history = createMemoryHistory({ initialEntries: ['/users'] });
+      const adapter = queryAdapter(history, { key: 'modal' });
+
+      adapter.push('/user/1');
+
+      expect(history.location.pathname).toBe('/users');
+      expect(history.location.search).toBe('?modal=%2Fuser%2F1');
+    });
+
+    test('extracts the nested route from the configured query parameter', () => {
+      const history = createMemoryHistory({
+        initialEntries: ['/users?modal=%2Fuser%2F1'],
+      });
+
+      expect(queryAdapter(history, { key: 'modal' }).location).toEqual({
+        pathname: '/user/1',
+        search: '',
+        hash: '',
+      });
+    });
+
+    test('preserves other query parameters when pushing', () => {
+      const history = createMemoryHistory({
+        initialEntries: ['/users?sort=asc'],
+      });
+      const adapter = queryAdapter(history, { key: 'modal' });
+
+      adapter.push('/user/1');
+
+      const params = new URLSearchParams(history.location.search);
+      expect(params.get('sort')).toBe('asc');
+      expect(params.get('modal')).toBe('/user/1');
+    });
+
+    test('ignores unrelated query parameters when extracting', () => {
+      const history = createMemoryHistory({
+        initialEntries: ['/users?sort=asc'],
+      });
+
+      expect(queryAdapter(history, { key: 'modal' }).location).toEqual({
+        pathname: '/',
+        search: '',
+        hash: '',
+      });
+    });
+
+    test('empty target removes only the configured parameter', () => {
+      const history = createMemoryHistory({
+        initialEntries: ['/users?sort=asc&modal=%2Fuser%2F1'],
+      });
+      const adapter = queryAdapter(history, { key: 'modal' });
+
+      adapter.push('');
+
+      const params = new URLSearchParams(history.location.search);
+      expect(params.get('sort')).toBe('asc');
+      expect(params.has('modal')).toBe(false);
+    });
+
+    test('round-trips nested search and hash through the parameter', () => {
+      const history = createMemoryHistory({ initialEntries: ['/users'] });
+      const adapter = queryAdapter(history, { key: 'modal' });
+
+      adapter.push('/user/1?tab=info#top');
+
+      expect(queryAdapter(history, { key: 'modal' }).location).toEqual({
+        pathname: '/user/1',
+        search: '?tab=info',
+        hash: '#top',
+      });
+    });
+  });
 });
 
 // Reads back what queryAdapter would expose for the current history location.

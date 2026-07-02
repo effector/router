@@ -146,7 +146,7 @@ type To = string | Partial<RouterLocation>;
 - A **string** is a full path, following the [`history`](https://github.com/remix-run/history) convention: `pathname[?search][#hash]` (e.g. `'/user/1?tab=info'`). It is equivalent to the matching object form `{ pathname: '/user/1', search: '?tab=info' }`.
 - An **object** is a `Partial<RouterLocation>`; omitted fields fall back to `/` (pathname) or empty strings.
 
-`queryAdapter` stores the **entire** target path — pathname, search and hash together — URL-encoded into a single `location.search` value, while leaving the host `pathname` and `hash` untouched:
+By default `queryAdapter` stores the **entire** target path — pathname, search and hash together — URL-encoded into a single `location.search` value, while leaving the host `pathname` and `hash` untouched:
 
 ```ts
 modalRouter.push('/user/1?tab=info');
@@ -154,7 +154,28 @@ modalRouter.push('/user/1?tab=info');
 //                  └ encodeURIComponent('/user/1?tab=info')
 ```
 
-Because the adapter owns the whole search string, a `queryAdapter` router and the host application cannot share other query parameters on the same URL.
+Because this mode owns the whole search string, such a router and the host application cannot share other query parameters on the same URL.
+
+**Isolated query key (`{ key }`):**
+
+Pass a `key` to store the nested route in a single named query parameter instead of the whole search string. Every other query parameter on the host URL is preserved, so the router and the host application (or several `queryAdapter` routers) can coexist:
+
+```ts
+const modalRouter = createRouter({ routes: [userModal] });
+modalRouter.setHistory(queryAdapter(history, { key: 'modal' }));
+
+// host URL before: /users?sort=asc
+userModal.open({ params: { id: '1' } });
+// host URL after:  /users?sort=asc&modal=%2Fuser%2F1
+//                                  └ the `sort` param is kept intact
+```
+
+The parameter's value is the nested route path, so slashes are percent-encoded (`%2F`) — the readable part is the `key`, not the slashes. Closing the route removes only that one parameter.
+
+| Mode | Example URL | Coexists with other query params |
+| ---- | ----------- | -------------------------------- |
+| Default (whole search) | `/users?%2Fuser%2F1` | ❌ |
+| `{ key: 'modal' }` | `/users?sort=asc&modal=%2Fuser%2F1` | ✅ |
 
 **Comparison:**
 
@@ -739,13 +760,14 @@ Creates a standard pathname-based adapter.
 
 **Returns:** `RouterAdapter`
 
-### `queryAdapter(history: History): RouterAdapter`
+### `queryAdapter(history: History, options?: { key?: string }): RouterAdapter`
 
 Creates a query parameter-based adapter.
 
 **Parameters:**
 
 - `history: History` - History instance from `history` package
+- `options.key?: string` - When set, the nested route is stored in a single query parameter with this name (e.g. `?modal=%2Fuser%2F1`) and all other query parameters are preserved. When omitted, the adapter owns the whole `location.search` (e.g. `?%2Fuser%2F1`).
 
 **Returns:** `RouterAdapter`
 
