@@ -6,6 +6,14 @@ export interface RouterLocation {
   hash: string;
 }
 
+/**
+ * Navigation target.
+ *
+ * A string is a full path following the `history` convention —
+ * `pathname[?search][#hash]` — and is equivalent to the matching
+ * `Partial<RouterLocation>` object. Omitted object fields fall back to
+ * `/` (pathname) or empty strings.
+ */
 export type To = string | Partial<RouterLocation>;
 
 type ListenCallback = (location: RouterLocation) => void;

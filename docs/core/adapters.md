@@ -132,43 +132,91 @@ router.setHistory(queryAdapter(history));
 
 // Navigation changes query params, not pathname
 settingsModal.open();
-// URL: /app?page=/settings
+// URL: /app?%2Fsettings
 ```
+
+**Navigation target (`To`):**
+
+Both adapters accept the same `To` value and interpret it identically — they differ only in **where** the target is stored:
+
+```ts
+type To = string | Partial<RouterLocation>;
+```
+
+- A **string** is a full path, following the [`history`](https://github.com/remix-run/history) convention: `pathname[?search][#hash]` (e.g. `'/user/1?tab=info'`). It is equivalent to the matching object form `{ pathname: '/user/1', search: '?tab=info' }`.
+- An **object** is a `Partial<RouterLocation>`; omitted fields fall back to `/` (pathname) or empty strings.
+
+By default `queryAdapter` stores the **entire** target path — pathname, search and hash together — URL-encoded into a single `location.search` value, while leaving the host `pathname` and `hash` untouched:
+
+```ts
+modalRouter.push('/user/1?tab=info');
+// host URL: /users?%2Fuser%2F1%3Ftab%3Dinfo
+//                  └ encodeURIComponent('/user/1?tab=info')
+```
+
+Because this mode owns the whole search string, such a router and the host application cannot share other query parameters on the same URL.
+
+**Isolated query key (`{ key }`):**
+
+Pass a `key` to store the nested route in a single named query parameter instead of the whole search string. Every other query parameter on the host URL is preserved, so the router and the host application (or several `queryAdapter` routers) can coexist:
+
+```ts
+const modalRouter = createRouter({ routes: [userModal] });
+modalRouter.setHistory(queryAdapter(history, { key: 'modal' }));
+
+// host URL before: /users?sort=asc
+userModal.open({ params: { id: '1' } });
+// host URL after:  /users?sort=asc&modal=%2Fuser%2F1
+//                                  └ the `sort` param is kept intact
+```
+
+The parameter's value is the nested route path, so slashes are percent-encoded (`%2F`) — the readable part is the `key`, not the slashes. Closing the route removes only that one parameter.
+
+| Mode | Example URL | Coexists with other query params |
+| ---- | ----------- | -------------------------------- |
+| Default (whole search) | `/users?%2Fuser%2F1` | ❌ |
+| `{ key: 'modal' }` | `/users?sort=asc&modal=%2Fuser%2F1` | ✅ |
 
 **Comparison:**
 
 | Feature      | historyAdapter  | queryAdapter          |
 | ------------ | --------------- | --------------------- |
 | URL Location | Pathname        | Query parameters      |
-| Example URL  | `/user/123`     | `/app?page=/user/123` |
+| Example URL  | `/user/123`     | `/app?%2Fuser%2F123`  |
 | Use Case     | Main navigation | Modal/tab navigation  |
 | SEO          | ✅ Good         | ⚠️ Limited            |
 
 **Modal Routing Example:**
 
 ```ts
+// A single shared history — the modal layers on top of the main URL
+const history = createBrowserHistory();
+
 // Main router (pathname)
 const mainRouter = createRouter({
   routes: [homeRoute, aboutRoute],
 });
-mainRouter.setHistory(historyAdapter(createBrowserHistory()));
+mainRouter.setHistory(historyAdapter(history));
 
-// Modal router (query params)
+// Modal router (isolated query key)
 const modalRouter = createRouter({
   routes: [loginModal, settingsModal],
 });
-modalRouter.setHistory(queryAdapter(createBrowserHistory()));
+modalRouter.setHistory(queryAdapter(history, { key: 'modal' }));
 
 // Navigate main route
 aboutRoute.open();
 // URL: /about
 
-// Open modal
+// Open modal — the main pathname stays, the modal lives in ?modal
 loginModal.open();
-// URL: /about?modal=/login
+// URL: /about?modal=%2Flogin
 
 // Main route stays /about while modal changes
 ```
+
+> Both routers must share the **same** `history` instance — that is how the
+> query router layers its state on top of the main URL.
 
 **Tab Navigation Example:**
 
@@ -177,18 +225,19 @@ const tabRouter = createRouter({
   routes: [overviewTab, analyticsTab, settingsTab],
 });
 
-tabRouter.setHistory(queryAdapter(createBrowserHistory()));
+const history = createBrowserHistory();
+tabRouter.setHistory(queryAdapter(history, { key: 'tab' }));
 
 // Switch tabs
 overviewTab.open();
-// URL: /app?tab=/overview
+// URL: /app?tab=%2Foverview
 
 analyticsTab.open();
-// URL: /app?tab=/analytics
+// URL: /app?tab=%2Fanalytics
 
 // Back button works!
 history.back();
-// URL: /app?tab=/overview
+// URL: /app?tab=%2Foverview
 ```
 
 ## Custom Adapters
@@ -515,13 +564,23 @@ return {
 
 ### 2. Handle String and Object Navigation
 
-Support both formats:
+Support both formats. Per the `To` contract a **string is a full path**
+(`pathname[?search][#hash]`), not just a pathname — parse it (e.g. with
+`parsePath` from the `history` package) so `'/about?id=1#top'` is handled the
+same as its object form:
 
 ```ts
+import { parsePath } from 'history';
+
 push: (to) => {
   if (typeof to === 'string') {
-    // Handle string: '/about'
-    navigate({ pathname: to, search: '', hash: '' });
+    // '/about?id=1#top' → { pathname: '/about', search: '?id=1', hash: '#top' }
+    const { pathname, search, hash } = parsePath(to);
+    navigate({
+      pathname: pathname ?? current.pathname,
+      search: search ?? '',
+      hash: hash ?? '',
+    });
   } else {
     // Handle object: { pathname: '/about', search: '?id=1' }
     navigate({
@@ -651,8 +710,8 @@ test('custom adapter', async () => {
 // ✅ Recommended for web apps
 router.setHistory(historyAdapter(createBrowserHistory()));
 
-// ✅ Recommended for modals/tabs
-modalRouter.setHistory(queryAdapter(createBrowserHistory()));
+// ✅ Recommended for modals/tabs (share the host's history instance)
+modalRouter.setHistory(queryAdapter(history, { key: 'modal' }));
 
 // ⚠️ Only create custom adapters when necessary
 router.setHistory(customAdapter());
@@ -718,13 +777,14 @@ Creates a standard pathname-based adapter.
 
 **Returns:** `RouterAdapter`
 
-### `queryAdapter(history: History): RouterAdapter`
+### `queryAdapter(history: History, options?: { key?: string }): RouterAdapter`
 
 Creates a query parameter-based adapter.
 
 **Parameters:**
 
 - `history: History` - History instance from `history` package
+- `options.key?: string` - When set, the nested route is stored in a single query parameter with this name (e.g. `?modal=%2Fuser%2F1`) and all other query parameters are preserved. When omitted, the adapter owns the whole `location.search` (e.g. `?%2Fuser%2F1`).
 
 **Returns:** `RouterAdapter`
 
