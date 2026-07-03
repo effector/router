@@ -7,6 +7,9 @@ on:
 jobs:
   changeset:
     name: Changeset present
+    # The "Version Packages" PR opened by changesets/action consumes all
+    # changeset files, so it never has one — skip the check there.
+    if: github.head_ref != 'changeset-release/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
