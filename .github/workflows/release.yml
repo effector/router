@@ -1,11 +1,14 @@
 name: Release version on npm
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
 
 permissions:
-  id-token: write
-  pull-requests: write
-  contents: write
+  id-token: write # OIDC trusted publishing to npm (no NPM_TOKEN needed)
+  pull-requests: write # create/update the "Version Packages" PR
+  contents: write # push git tags and create GitHub Releases
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -15,13 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup environment
         uses: ./.github/actions/setup
-
-      - name: Install Dependencies
-        run: pnpm i --frozen-lockfile
 
       - name: Building libraries
         run: pnpm build
@@ -32,8 +32,11 @@ jobs:
       - name: Running tests workflow
         run: pnpm run test
 
-      - name: Create Pull request & Publish to npm
+      - name: Create Release PR or Publish to npm
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: pnpm release
+          version: pnpm changeset version
+          publish: pnpm changeset publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
