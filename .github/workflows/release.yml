@@ -37,9 +37,15 @@ jobs:
         uses: changesets/action@v1
         with:
           version: pnpm changeset version
-          publish: pnpm changeset publish
-          # Generate a GitHub Release per published package tag, using the
-          # changelog-github entries as the release notes.
-          createGithubReleases: true
+          # `--no-git-tag` disables the default `@scope/name@version` tags so we
+          # can create clean, scope-stripped tags in the next step instead.
+          publish: pnpm changeset publish --no-git-tag
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create tags and GitHub Releases
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+        run: node .github/scripts/github-releases.mjs
