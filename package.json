@@ -1,5 +1,5 @@
 {
-  "name": "@effect/router-root",
+  "name": "@effector/router-root",
   "private": true,
   "type": "module",
   "scripts": {
