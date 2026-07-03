@@ -52,7 +52,6 @@ body:
     id: logs
     attributes:
       label: Logs / screenshots
-      description: Any relevant error output. Automatically formatted, no backticks needed.
-      render: shell
+      description: Paste any relevant error output (wrap logs in ``` code fences), or drag & drop screenshots here.
     validations:
       required: false
