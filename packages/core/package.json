@@ -1,6 +1,6 @@
 {
   "name": "@effector/router",
-  "version": "1.0.0-rc.0",
+  "version": "1.0.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -29,10 +29,12 @@
     "dist"
   ],
   "type": "module",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
@@ -57,7 +59,6 @@
     "zod": ">=4"
   },
   "dependencies": {
-    "@effector/router-paths": "workspace:*"
-  },
-  "gitHead": "9832d6cd282d6abd33c26ba4d03b9a1176110fc4"
+    "@effector/router-paths": "workspace:^"
+  }
 }

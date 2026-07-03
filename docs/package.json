@@ -16,5 +16,6 @@
   },
   "dependencies": {
     "vue": "^3.5.29"
-  }
+  },
+  "version": "0.0.1"
 }

@@ -1,6 +1,6 @@
 {
   "name": "@effector/router-react",
-  "version": "1.0.0-rc.0",
+  "version": "1.0.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -24,10 +24,12 @@
   "homepage": "https://router.effector.dev/react",
   "license": "MIT",
   "type": "module",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     }
@@ -51,12 +53,11 @@
     "url": "https://github.com/effector/router/issues"
   },
   "dependencies": {
-    "@effector/router": "workspace:*"
+    "@effector/router": "workspace:^"
   },
   "peerDependencies": {
     "effector": ">=23",
     "effector-react": ">=23",
     "react": "18 || 19"
-  },
-  "gitHead": "9832d6cd282d6abd33c26ba4d03b9a1176110fc4"
+  }
 }

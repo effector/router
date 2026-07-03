@@ -284,6 +284,37 @@ describe('router', () => {
     ).toBeTrueWithMessage('settings modal security route should be opened');
   });
 
+  test('opened can open another route', async () => {
+    const scope = fork();
+
+    const routes = {
+      home: createRoute({ path: '/' }),
+      flightSearch: createRoute({ path: '/search' }),
+    };
+
+    const router = createRouter({
+      routes: [routes.home, routes.flightSearch],
+    });
+
+    const history = createMemoryHistory();
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    sample({
+      clock: routes.home.opened,
+      target: routes.flightSearch.open,
+    });
+
+    await allSettled(routes.home.open, { scope, params: {} });
+
+    expect(history.location.pathname).toBe('/search');
+    expect(scope.getState(routes.home.$isOpened)).toBeFalsy();
+    expect(scope.getState(routes.flightSearch.$isOpened)).toBeTruthy();
+  });
+
   test('route opened only once', async () => {
     const scope = fork();
     const appStarted = createEvent();
