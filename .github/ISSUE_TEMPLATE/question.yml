@@ -1,0 +1,25 @@
+name: ❓ Question
+description: Ask a question about using the router.
+title: '[Question]: '
+type: 'Question'
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For open-ended discussion, the [Effector community](https://effector.dev/en/community/) is often the fastest
+        place to get help. Use this template for questions specific to `@effector/router`.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What are you trying to do, and what's unclear?
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Relevant code, package version, and what you've already tried.
+      render: shell
+    validations:
+      required: false

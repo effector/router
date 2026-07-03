@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://router.effector.dev
+    about: Read the docs before opening an issue.
+  - name: 💬 Effector community
+    url: https://effector.dev/en/community/
+    about: Ask questions and chat with the Effector community.

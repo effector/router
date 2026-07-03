@@ -1,0 +1,28 @@
+name: 📝 Documentation
+description: Report an issue with the docs, or request new/improved documentation.
+title: '[Docs]: '
+type: 'Task'
+labels: ['documentation']
+body:
+  - type: textarea
+    id: issue
+    attributes:
+      label: What's wrong or missing?
+      description: Describe the documentation problem — unclear, outdated, incorrect, or missing content.
+    validations:
+      required: true
+  - type: input
+    id: location
+    attributes:
+      label: Location
+      description: Link to the page on router.effector.dev or the file under docs/.
+      placeholder: https://router.effector.dev/...
+    validations:
+      required: false
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested change
+      description: How would you word or structure it instead?
+    validations:
+      required: false
