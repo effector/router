@@ -38,5 +38,8 @@ jobs:
         with:
           version: pnpm changeset version
           publish: pnpm changeset publish
+          # Generate a GitHub Release per published package tag, using the
+          # changelog-github entries as the release notes.
+          createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
