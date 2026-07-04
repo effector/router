@@ -104,6 +104,11 @@ export default defineConfig({
           },
         ],
       },
+      {
+        text: 'Solid β',
+        collapsed: false,
+        items: [{ text: 'Overview', link: '/solid/' }],
+      },
     ],
 
     footer: {
