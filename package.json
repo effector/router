@@ -13,6 +13,7 @@
     ":docs": "pnpm --filter @effector/router-docs",
     ":react": "pnpm --filter @effector/router-react",
     ":react-native": "pnpm --filter @effector/router-react-native",
+    ":vue": "pnpm --filter @effector/router-vue",
     ":paths": "pnpm --filter @effector/router-paths",
     ":core": "pnpm --filter @effector/router"
   },
@@ -34,8 +35,11 @@
     "@types/react": "19.2.14",
     "@typescript-eslint/parser": "8.56.1",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "@vue/test-utils": "^2.4.6",
     "effector": "^23.4.4",
     "effector-react": "^23.3.0",
+    "effector-vue": "^23.1.1",
     "eslint": "10.0.2",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-prettier": "5.5.5",
@@ -55,6 +59,7 @@
     "vite-plugin-dts": "4.5.4",
     "vitepress": "1.6.4",
     "vitest": "4.0.18",
+    "vue": "^3.5.17",
     "zod": "^4.3.6"
   },
   "packageManager": "pnpm@11.9.0"
