@@ -54,7 +54,7 @@
     "vite-plugin-babel": "1.5.1",
     "vite-plugin-dts": "4.5.4",
     "vitepress": "1.6.4",
-    "vitest": "4.0.18",
+    "vitest": "4.1.9",
     "zod": "^4.3.6"
   },
   "packageManager": "pnpm@11.9.0"
