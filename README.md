@@ -13,6 +13,7 @@ A type-safe, framework-agnostic router built on top of [Effector](https://effect
 | [`@effector/router-paths`](packages/paths)             | Path parsing and matching utilities.                 |
 | [`@effector/router-react`](packages/react)             | React bindings for the router.                       |
 | [`@effector/router-react-native`](packages/react-native) | React Native bindings for the router.              |
+| [`@effector/router-vue`](packages/vue)                 | Vue 3 bindings for the router (β).                   |
 
 ## Contributing
 
@@ -56,7 +57,7 @@ Run from the repository root:
 | `pnpm changeset`   | Create a changeset describing your change.               |
 
 To work on a single package, use the workspace shortcuts, e.g. `pnpm :core build` or `pnpm :react test`
-(shortcuts: `:core`, `:paths`, `:react`, `:react-native`, `:docs`).
+(shortcuts: `:core`, `:paths`, `:react`, `:react-native`, `:vue`, `:docs`).
 
 ### Running tests
 
@@ -91,7 +92,8 @@ router/
 │   ├── core/          # @effector/router — core router
 │   ├── paths/         # @effector/router-paths — path utilities
 │   ├── react/         # @effector/router-react — React bindings
-│   └── react-native/  # @effector/router-react-native — React Native bindings
+│   ├── react-native/  # @effector/router-react-native — React Native bindings
+│   └── vue/           # @effector/router-vue — Vue 3 bindings
 ├── docs/              # VitePress documentation site
 ├── .changeset/        # pending changesets + config
 └── .github/
