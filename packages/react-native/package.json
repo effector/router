@@ -51,7 +51,7 @@
     "test": ""
   },
   "bugs": {
-    "url": "https://github.com/effector/router/issues"
+    "url": "https://github.com/effector/router/issues?q=is%3Aissue%20label%3Ascope%3Areact-native"
   },
   "dependencies": {
     "@effector/router": "workspace:^",
