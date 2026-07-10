@@ -195,21 +195,26 @@ export function createRouter(config: RouterConfig): Router {
   const openRoutesByPathFx = attach({
     source: { query: $query, path: $path },
     effect: ({ query, path }) => {
+      const matchedRoutes: Array<{
+        route: InternalRoute<any>;
+        params: Record<string, string>;
+      }> = [];
+
       for (const { route, parse } of ownRoutes) {
         const matchResult = parse(path);
-        const [routeClosed, routeNavigated] = [
-          scopeBind(route.internal.close),
-          scopeBind(route.internal.navigated),
-        ];
 
         if (!matchResult) {
-          routeClosed();
+          scopeBind(route.internal.close)();
         } else {
-          routeNavigated({
-            query,
-            params: matchResult.params,
-          });
+          matchedRoutes.push({ route, params: matchResult.params });
         }
+      }
+
+      for (const { route, params } of matchedRoutes) {
+        scopeBind(route.internal.navigated)({
+          query,
+          params,
+        });
       }
     },
   });
