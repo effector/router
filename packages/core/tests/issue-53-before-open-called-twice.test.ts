@@ -12,7 +12,7 @@ import { createMemoryHistory } from 'history';
  * window the route is not yet `$isOpened`, which is what surfaces the spurious
  * "404" flash reported in the issue.
  */
-describe('issue #30: beforeOpen is called twice during link navigation', () => {
+describe('issue #53: beforeOpen is called twice during link navigation', () => {
   test('beforeOpen runs exactly once when opening via route.open (Link click)', async () => {
     const beforeOpenFn = vi.fn();
 
@@ -70,5 +70,32 @@ describe('issue #30: beforeOpen is called twice during link navigation', () => {
     expect(scope.getState(profile.$isOpened)).toBe(true);
     expect(scope.getState(profile.$isPending)).toBe(false);
     expect(scope.getState(router.$activeRoutes)).toContain(profile);
+  });
+
+  test('external navigation (history.push) still runs beforeOpen exactly once', async () => {
+    const beforeOpenFn = vi.fn();
+
+    const scope = fork();
+
+    const profile = createRoute({
+      path: '/profile',
+      beforeOpen: [createEffect(beforeOpenFn)],
+    });
+    const feed = createRoute({ path: '/' });
+
+    const router = createRouter({ routes: [feed, profile] });
+    const history = createMemoryHistory();
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    // Not an imperative `open` — the echo-suppression must not swallow this.
+    history.push('/profile');
+    await allSettled(scope);
+
+    expect(scope.getState(profile.$isOpened)).toBe(true);
+    expect(beforeOpenFn).toBeCalledTimes(1);
   });
 });

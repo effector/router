@@ -1,5 +1,6 @@
 import {
   attach,
+  combine,
   createEffect,
   createEvent,
   createStore,
@@ -74,6 +75,28 @@ export function createRoute<Params>(
 
   const beforeOpen = config.beforeOpen ?? [];
 
+  type OpenPayload = RouteOpenedPayload<Params>;
+
+  const waitForAsyncBundleFx = createEffect(() => asyncImport?.());
+
+  const beforeOpenFx = createEffect(async () => {
+    for (const fx of beforeOpen) {
+      await fx();
+    }
+  });
+
+  // Serializes the params/query of an `open` call so the location update it
+  // triggers can be recognized as this route's own echo.
+  const keyOf = (payload: OpenPayload) =>
+    JSON.stringify({
+      params: (payload as { params?: unknown } | undefined)?.params ?? {},
+      query: (payload as { query?: unknown } | undefined)?.query ?? {},
+    });
+
+  // Holds the key of an in-flight imperative `open`, so the navigation echo it
+  // produces opens the route without running `beforeOpen` a second time.
+  const $selfOpenKey = createStore<string | null>(null);
+
   const openFx = createEffect<OpenPayload, OpenPayload>(async (payload) => {
     await waitForAsyncBundleFx();
     await beforeOpenFx();
@@ -105,14 +128,40 @@ export function createRoute<Params>(
     },
   );
 
-  const navigatedFx = attach({ effect: openFx });
+  const navigatedFx = attach({
+    source: $selfOpenKey,
+    effect: async (selfKey, payload: OpenPayload) => {
+      await waitForAsyncBundleFx();
 
-  type OpenPayload = RouteOpenedPayload<Params>;
+      const isSelfEcho = selfKey !== null && selfKey === keyOf(payload);
+
+      // External navigation runs the guards here; the echo of this route's own
+      // `open` already ran them, so it just settles the route open.
+      if (!isSelfEcho) {
+        await beforeOpenFx();
+
+        const parent = config.parent as InternalRoute | undefined;
+
+        if (parent) {
+          await parent.internal.openFx({
+            ...(payload ?? { params: {} }),
+            navigate: false,
+          });
+        }
+      }
+
+      return payload;
+    },
+  });
 
   const $params = createStore<Params>({} as Params);
 
   const $isOpened = createStore(false);
-  const $isPending = openFx.pending;
+  const $isPending = combine(
+    openFx.pending,
+    navigatedFx.pending,
+    (openPending, navigatedPending) => openPending || navigatedPending,
+  );
 
   const open = createEvent<OpenPayload>();
   const close = createEvent();
@@ -125,15 +174,12 @@ export function createRoute<Params>(
 
   const closed = createEvent();
 
-  const waitForAsyncBundleFx = createEffect(() => asyncImport?.());
-
-  const beforeOpenFx = createEffect(async () => {
-    for (const fx of beforeOpen) {
-      await fx();
-    }
-  });
-
   const defaultParams = {} as Params;
+
+  // Mark the route's own imperative open so its navigation echo is recognized,
+  // and clear the mark once that echo settles (or the open is rejected).
+  $selfOpenKey.on(open, (_, payload) => keyOf(payload));
+  $selfOpenKey.reset(navigatedFx.finally, openFx.fail);
 
   sample({
     clock: open,
