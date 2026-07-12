@@ -1,5 +1,11 @@
 # @effector/router
 
+## 1.1.1
+
+### Patch Changes
+
+- [#58](https://github.com/effector/router/pull/58) [`0145f29`](https://github.com/effector/router/commit/0145f29a16f73c4537a490da52816ea935061ab3) Thanks [@sergeysova](https://github.com/sergeysova)! - Close previously matched routes before opening newly matched routes during path changes.
+
 ## 1.1.0
 
 ### Minor Changes
