@@ -50,7 +50,7 @@
     "test": "vitest run"
   },
   "bugs": {
-    "url": "https://github.com/effector/router/issues"
+    "url": "https://github.com/effector/router/issues?q=is%3Aissue%20label%3Ascope%3Areact"
   },
   "dependencies": {
     "@effector/router": "workspace:^"
