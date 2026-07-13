@@ -74,3 +74,30 @@ jobs:
           path: ./packages
 
       - run: pnpm run test
+
+  solid-e2e:
+    name: Solid router integration
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: ./packages
+
+      - name: Install Chromium
+        run: pnpm --filter @effector/router-solid-example exec playwright install --with-deps chromium
+
+      - name: Build Solid example
+        run: pnpm --filter @effector/router-solid-example build
+
+      - name: Typecheck Solid example
+        run: pnpm --filter @effector/router-solid-example typecheck
+
+      - name: Run Solid browser tests
+        run: pnpm --filter @effector/router-solid-example test:e2e

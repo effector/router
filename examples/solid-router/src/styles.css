@@ -1,0 +1,58 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  color: #19212b;
+  background: #eef2f5;
+  font-synthesis: none;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+button, input { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+a { color: #176b87; text-decoration: none; }
+a:hover, a.active { color: #0b4358; text-decoration: underline; }
+button { border: 1px solid #b8c5cc; border-radius: 5px; background: #fff; color: #19212b; padding: 8px 11px; cursor: pointer; }
+button:hover { border-color: #176b87; }
+.shell { min-height: 100vh; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 18px 28px; background: #19323d; color: #fff; }
+.brand { color: #fff; font-weight: 700; letter-spacing: .02em; }
+.topnav { display: flex; flex-wrap: wrap; gap: 18px; }
+.topnav a { color: #dcecf0; }
+.topnav a.active { color: #fff; font-weight: 700; }
+.content { max-width: 860px; margin: 0 auto; padding: 44px 28px 100px; }
+.inspector { position: fixed; right: 18px; bottom: 18px; width: 280px; padding: 15px; border: 1px solid #c6d2d8; border-radius: 7px; background: rgba(255, 255, 255, .97); box-shadow: 0 8px 30px rgba(25, 50, 61, .12); font-size: 13px; }
+.inspector-heading, .inspector-row, .inspector-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.inspector-heading { padding-bottom: 10px; border-bottom: 1px solid #e1e7ea; font-weight: 700; }
+.inspector-row { padding-top: 9px; }
+.inspector-row strong { max-width: 175px; overflow-wrap: anywhere; text-align: right; font-weight: 600; }
+.inspector-actions { justify-content: flex-start; padding-top: 12px; }
+.status-chip, .card-label, .eyebrow { color: #607581; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.status-chip { padding: 3px 6px; border: 1px solid #c6d2d8; border-radius: 4px; letter-spacing: .02em; }
+h1, h2, p { margin-top: 0; }
+h1 { margin-bottom: 10px; font-size: 38px; line-height: 1.1; }
+h2 { margin-bottom: 8px; font-size: 22px; }
+.lede { color: #607581; font-size: 17px; }
+.project-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 28px; }
+.project-card { padding: 18px; border: 1px solid #c6d2d8; border-radius: 7px; background: #fff; }
+.project-card p { color: #607581; }
+.project-card a { display: inline-block; margin-top: 10px; }
+.action-row, .tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 24px; }
+.tabs { border-bottom: 1px solid #c6d2d8; padding-bottom: 10px; }
+.tabs a { padding: 5px 0; }
+.section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.outlet, .project-layout { min-height: 120px; }
+.outlet { padding-top: 25px; }
+.search-form { display: flex; flex-wrap: wrap; gap: 8px; margin: 28px 0 16px; }
+.search-form input { min-width: 240px; border: 1px solid #b8c5cc; border-radius: 5px; padding: 8px 10px; }
+.muted { display: block; margin-top: 14px; color: #607581; font-family: ui-monospace, monospace; font-size: 12px; }
+  .drawer { position: fixed; left: 18px; bottom: 78px; display: flex; gap: 12px; align-items: center; padding: 14px; border: 1px solid #9bb7c2; border-radius: 6px; background: #e5f2f5; }
+.guard-controls { position: fixed; left: 18px; bottom: 18px; z-index: 3; display: flex; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid #c6d2d8; border-radius: 6px; background: #fff; font-size: 12px; }
+.modal-launcher { position: fixed; left: 18px; top: 78px; z-index: 2; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 5; display: grid; place-items: center; background: rgba(25, 50, 61, .35); }
+.modal { width: min(420px, calc(100vw - 32px)); padding: 24px; border-radius: 7px; background: #fff; box-shadow: 0 18px 50px rgba(25, 50, 61, .25); }
+@media (max-width: 760px) {
+  .topbar { align-items: flex-start; flex-direction: column; padding: 16px 18px; }
+  .content { padding: 32px 18px 180px; }
+  .project-grid { grid-template-columns: 1fr; }
+  .inspector { right: 12px; bottom: 12px; left: 12px; width: auto; }
+  .modal-launcher { left: 18px; top: 128px; }
+}
