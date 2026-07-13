@@ -35,7 +35,7 @@ export function createLazyRouteView<T extends object | void = void>(
   }
 
   const View = lazy(props.view);
-  const { layout: Layout, fallback: Fallback } = props;
+  const { layout: Layout, fallback: Fallback, children } = props;
 
   const inner = () => (
     <Suspense fallback={Fallback ? <Fallback /> : null}>
@@ -48,5 +48,6 @@ export function createLazyRouteView<T extends object | void = void>(
   return {
     route: props.route,
     view,
+    children,
   };
 }

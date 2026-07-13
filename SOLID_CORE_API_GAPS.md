@@ -46,14 +46,15 @@ nested `Outlet` tree.
 Suggested direction: preserve `children` when mapping the views and add a
 regression test for a layout-wrapped parent with an active child route.
 
-### 4. `createLazyRouteView` drops nested route children
+### 4. `createLazyRouteView` dropped nested route children (resolved)
 
-`createLazyRouteView` returns only `route` and `view`, even though its input
-type allows `children`. Lazy parent routes therefore lose their nested outlet
-configuration.
+`CreateLazyRouteViewProps` allowed `children`, but the Solid implementation
+returned only `route` and `view`. Lazy parent routes therefore lost their
+nested outlet configuration. The Solid binding now returns `children` and has a
+regression test covering the contract.
 
-Suggested direction: return `children` alongside `route` and `view`, and test a
-lazy parent with a nested child route.
+The same runtime gap remains in the React binding and should be fixed there
+separately.
 
 ### 5. `Link.href` does not include the query payload
 

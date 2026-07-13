@@ -5,7 +5,13 @@ import { render } from '@solidjs/testing-library';
 import { createRoute, createRouter, historyAdapter } from '@effector/router';
 import { createMemoryHistory } from 'history';
 
-import { createRoutesView, Link, RouterProvider } from '../lib';
+import {
+  createLazyRouteView,
+  createRouteView,
+  createRoutesView,
+  Link,
+  RouterProvider,
+} from '../lib';
 
 describe('solid bindings', () => {
   test('component changes when path changes', async () => {
@@ -72,5 +78,22 @@ describe('solid bindings', () => {
     ));
 
     expect(container.querySelector('a')?.getAttribute('href')).toBe('/faq/42');
+  });
+
+  test('lazy route view preserves nested route views', () => {
+    const parentRoute = createRoute({ path: '/parent' });
+    const childRoute = createRoute({ path: '/child', parent: parentRoute });
+    const childView = createRouteView({
+      route: childRoute,
+      view: () => <p>child</p>,
+    });
+
+    const lazyView = createLazyRouteView({
+      route: parentRoute,
+      view: () => Promise.resolve({ default: () => <p>parent</p> }),
+      children: [childView],
+    });
+
+    expect(lazyView.children).toEqual([childView]);
   });
 });
