@@ -1,5 +1,5 @@
 import { defineAsyncComponent, defineComponent, h } from 'vue';
-import type { InternalRoute } from '@effector/router';
+import { is, type InternalRoute } from '@effector/router';
 import type { CreateLazyRouteViewProps, RouteView } from './types';
 
 /**
@@ -26,7 +26,9 @@ export function createLazyRouteView<T extends object | void = void>(
 ): RouteView {
   const { route, view, layout, fallback, children } = props;
 
-  (route as InternalRoute<T>).internal.setAsyncImport(view);
+  if (!is.router(route)) {
+    (route as InternalRoute<T>).internal.setAsyncImport(view);
+  }
 
   const AsyncView = defineAsyncComponent({
     loader: view,
