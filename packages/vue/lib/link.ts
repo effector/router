@@ -63,7 +63,7 @@ export const Link = defineComponent({
         {
           ...attrs,
           target: props.target,
-          href: link.build(props.params ?? undefined),
+          href: link.build(props.params ?? undefined, props.query),
           onClick: handleClick,
         },
         slots.default?.(),

@@ -54,7 +54,8 @@
     "url": "https://github.com/effector/router/issues"
   },
   "dependencies": {
-    "@effector/router": "workspace:^"
+    "@effector/router": "workspace:^",
+    "query-string": "^9.3.1"
   },
   "peerDependencies": {
     "effector": ">=23",

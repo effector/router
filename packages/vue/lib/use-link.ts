@@ -1,5 +1,6 @@
-import type { Route, InternalRoute } from '@effector/router';
+import type { InternalRoute, Query, Route } from '@effector/router';
 import { useUnit } from 'effector-vue/composition';
+import queryString from 'query-string';
 import { toRaw } from 'vue';
 import { useRouterContext } from './use-router';
 
@@ -31,7 +32,12 @@ export function useLink<T extends object | void = void>(to: Route<T>) {
   const { onOpen } = useUnit(route);
 
   return {
-    build: (params?: T) => target.build(params ?? undefined),
+    build: (params?: T, query?: Query) => {
+      const path = target.build(params ?? undefined);
+      const search = query ? queryString.stringify(query) : '';
+
+      return search ? `${path}?${search}` : path;
+    },
     onOpen,
   };
 }

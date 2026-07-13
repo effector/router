@@ -239,6 +239,9 @@ importers:
       effector-vue:
         specifier: '>=23'
         version: 23.1.1(@vue/reactivity@3.5.29)(@vue/runtime-core@3.5.29)(effector@23.4.4)(vue@3.5.29(typescript@5.8.2))
+      query-string:
+        specifier: ^9.3.1
+        version: 9.3.1
       vue:
         specifier: ^3.5.0
         version: 3.5.29(typescript@5.8.2)
