@@ -1,6 +1,6 @@
 {
   "name": "@effector/router",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -49,7 +49,7 @@
     "test": "vitest run"
   },
   "bugs": {
-    "url": "https://github.com/effector/router/issues"
+    "url": "https://github.com/effector/router/issues?q=is%3Aissue%20label%3Ascope%3Acore"
   },
   "peerDependencies": {
     "effector": ">=23",

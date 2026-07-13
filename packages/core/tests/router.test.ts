@@ -1,4 +1,11 @@
-import { allSettled, createEffect, createEvent, fork, sample } from 'effector';
+import {
+  allSettled,
+  createEffect,
+  createEvent,
+  createWatch,
+  fork,
+  sample,
+} from 'effector';
 import { describe, expect, test, vi } from 'vitest';
 import { createRoute, createRouter, historyAdapter } from '../lib';
 import { createMemoryHistory } from 'history';
@@ -58,6 +65,48 @@ describe('router', () => {
 
     expect(scope.getState(router.$activeRoutes)[0]).toEqual(route2);
     expect(scope.getState(route2.$isOpened)).toBeTruthy();
+  });
+
+  test('closes previous route before opening next route', async () => {
+    const route1 = createRoute({ path: '/one' });
+    const route2 = createRoute({ path: '/two' });
+    const events: string[] = [];
+
+    const scope = fork();
+    const history = createMemoryHistory();
+
+    createWatch({
+      unit: route1.closed,
+      scope,
+      fn: () => events.push('route1.closed'),
+    });
+
+    createWatch({
+      unit: route2.opened,
+      scope,
+      fn: () => events.push('route2.opened'),
+    });
+
+    const router = createRouter({
+      // Keep the target route before the currently opened route to verify that
+      // lifecycle order does not depend on the declaration order.
+      routes: [route2, route1],
+    });
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    history.push('/one');
+    await allSettled(scope);
+
+    events.length = 0;
+
+    history.push('/two');
+    await allSettled(scope);
+
+    expect(events).toEqual(['route1.closed', 'route2.opened']);
   });
 
   test('routes changed path when opened', async () => {
