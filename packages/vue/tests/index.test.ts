@@ -116,7 +116,12 @@ describe('vue bindings', () => {
           view: () =>
             h(
               Link,
-              { to: route2, params: { id: '123' }, id: 'link' },
+              {
+                to: route2,
+                params: { id: '123' },
+                query: { tab: 'details' },
+                id: 'link',
+              },
               () => 'to route2',
             ),
         },
@@ -132,12 +137,17 @@ describe('vue bindings', () => {
     await allSettled(route1.open, { scope, params: undefined });
     await flushPromises();
 
+    expect(wrapper.find('#link').attributes('href')).toBe(
+      '/faq/123?tab=details',
+    );
+
     await wrapper.find('#link').trigger('click');
     await allSettled(scope);
     await flushPromises();
 
     expect(scope.getState(route2.$isOpened)).toBeTruthy();
     expect(scope.getState(route2.$params)).toStrictEqual({ id: '123' });
+    expect(scope.getState(router.$query)).toStrictEqual({ tab: 'details' });
   });
 
   test('with layout', async () => {
