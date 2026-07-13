@@ -10,6 +10,7 @@ import { createMemoryHistory } from 'history';
 import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent, h, type Plugin } from 'vue';
 import {
+  createLazyRouteView,
   createRouteView,
   createRoutesView,
   Link,
@@ -43,6 +44,18 @@ function mountRoutes(
 }
 
 describe('vue bindings', () => {
+  test('lazy route view accepts a nested router', () => {
+    const childRoute = createRoute({ path: '/child' });
+    const nestedRouter = createRouter({ routes: [childRoute] });
+
+    expect(() =>
+      createLazyRouteView({
+        route: nestedRouter,
+        view: () => Promise.resolve({ default: () => h('p', 'lazy') }),
+      }),
+    ).not.toThrow();
+  });
+
   test('component changed when path changed', async () => {
     const route1 = createRoute({ path: '/app' });
     const route2 = createRoute({ path: '/faq' });
