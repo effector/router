@@ -42,7 +42,7 @@
 - [x] Исправить fork-scope setup: `app.use(EffectorScopePlugin({ scope }))` вместо передачи factory как Vue plugin.
 - [x] Исправить params-пример: `useUnit(route.$params)` возвращает `Ref`, поэтому читать нужно через template unwrapping или `.value`.
 - [x] Дополнить текущие контракты `useLink` и `useRouter`: query-аргумент `build`, ошибку неизвестного route, полный unit shape и правила распаковки Vue refs.
-- [ ] Уточнить уже реализованный двухступенчатый приоритет `useOpenedViews`: сначала активный child вытесняет parent, затем побеждает последний view в declaration order.
+- [x] Уточнить уже реализованный двухступенчатый приоритет `useOpenedViews`: сначала активный child вытесняет parent, затем побеждает последний view в declaration order.
 
 ## Однозначные исправления поведения
 

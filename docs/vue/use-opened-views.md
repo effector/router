@@ -2,7 +2,15 @@
 
 Low-level composable that reactively resolves which of the passed views should be
 rendered for the current router state. Returns a `ComputedRef<RouteView[]>`.
-Nested (parent) routes are filtered out in favor of their children.
+
+The returned array preserves declaration order and applies route priority in two
+stages:
+
+1. From the active views, an active parent is removed when its child is also
+   active. The child wins regardless of declaration order.
+2. All remaining active views stay in the array in their original order.
+   `createRoutesView` and `Outlet` render the last one, so declaration order is
+   the tie-breaker only after parent filtering.
 
 `createRoutesView` and `Outlet` are built on top of it; use it directly only for
 custom rendering.
