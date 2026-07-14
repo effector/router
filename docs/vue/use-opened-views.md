@@ -9,11 +9,11 @@ stages:
 1. From the active views, an active parent is removed when its child is also
    active. The child wins regardless of declaration order.
 2. All remaining active views stay in the array in their original order.
-   `createRoutesView` and `Outlet` render the last one, so declaration order is
-   the tie-breaker only after parent filtering.
+   [`createRoutesView`] and [`Outlet`] render the last one, so declaration order
+   is the tie-breaker only after parent filtering.
 
-`createRoutesView` and `Outlet` are built on top of it; use it directly only for
-custom rendering.
+[`createRoutesView`] and [`Outlet`] are built on top of it; use it directly only
+for custom rendering.
 
 ### Example
 
@@ -25,3 +25,6 @@ import { FeedScreen, ProfileScreen } from './screens';
 const openedViews = useOpenedViews([FeedScreen, ProfileScreen]);
 </script>
 ```
+
+[`createRoutesView`]: /vue/create-routes-view
+[`Outlet`]: /vue/outlet
