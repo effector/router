@@ -10,7 +10,7 @@ Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-rel
 
 - [ ] Use one accurate `Query` type everywhere. `docs/core/create-router-controls.md` documents `Record<string, string | string[] | undefined>`, while the exported type is `Record<string, string | null | Array<string | null>>`. Core JSDoc/examples also use numeric arrays (`[1, 2]`) that the public type rejects. Update all signatures and examples together.
 
-- [ ] Replace the obsolete `controls.trackQuery('q', { defaultValue })` example. The implementation only accepts `{ parameters: ZodType, check? }`; use the Zod-based API shown on the dedicated `trackQuery` page and document the optional `check` field in the config table.
+- [x] Replace the obsolete `controls.trackQuery('q', { defaultValue })` example. The implementation only accepts `{ parameters: ZodType, check? }`; use the Zod-based API shown on the dedicated `trackQuery` page and document the optional `check` field in the config table.
 
 - [ ] Correct `trackQuery` lifecycle and removal semantics. The guide describes `entered` as a transition when parameters appear, but the implementation/test suite emits it again for every valid query change. `exit()` clears the entire query, not only the schema's keys, unless `ignoreParams` explicitly lists keys to preserve. Document these behaviors or change the implementation, with tests for unrelated query parameters.
 

@@ -137,19 +137,33 @@ function CurrentLocation() {
 ### Track Query Parameters
 
 ```ts
-const $searchQuery = controls.trackQuery('q');
-const $pageNumber = controls.trackQuery('page', {
-  defaultValue: '1',
+import { createEvent } from 'effector';
+import { z } from 'zod';
+
+const appStarted = createEvent();
+
+const searchTracker = controls.trackQuery({
+  parameters: z.object({
+    q: z.string(),
+    page: z.string().default('1'),
+  }),
+  check: appStarted,
 });
 
-// Use in components
-function SearchResults() {
-  const query = useUnit($searchQuery);
-  const page = useUnit($pageNumber);
+searchTracker.entered.watch(({ q, page }) => {
+  console.log(`Searching for "${q}" (page ${page})`);
+});
 
-  return <div>Searching for "{query}" (page {page})</div>;
-}
+// Add or update the tracked parameters
+searchTracker.enter({ q: 'router', page: '2' });
 ```
+
+| Config field | Type          | Description                                                        |
+| ------------ | ------------- | ------------------------------------------------------------------ |
+| `parameters` | `ZodType`     | Schema used to validate and parse the tracked query parameters     |
+| `check`      | `Event<void>` | Optional event that triggers validation instead of automatic check |
+
+Unlike `router.trackQuery`, the controls version does not accept `forRoutes`, because standalone controls do not own a route list. See [trackQuery](/core/track-query) for the returned events and route-scoped usage.
 
 ### Server-Side Rendering
 

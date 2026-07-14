@@ -11,7 +11,7 @@
 ### Core
 
 - [x] Исправить getting-started: передавать в `router.setHistory` результат `historyAdapter(createBrowserHistory())`, добавить необходимые импорты и typecheck примера.
-- [ ] Заменить устаревший пример `controls.trackQuery('q', { defaultValue })` на фактический Zod-конфиг `{ parameters, check? }`.
+- [x] Заменить устаревший пример `controls.trackQuery('q', { defaultValue })` на фактический Zod-конфиг `{ parameters, check? }`.
 - [ ] Исправить некомпилируемые примеры `chainRoute`: полагаться на inference пути и не читать `.result` у `effect.doneData`.
 - [ ] Привести документацию `group` к текущему API: поддерживаются `Route` и `VirtualRoute`, но у обычного `Route` нет публичного `close()`.
 - [ ] Починить примеры кастомных адаптеров: корректно разбирать строковый `To`, не использовать `this` из arrow-функций и поддерживать синхронное обновление location.
