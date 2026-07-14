@@ -2,8 +2,6 @@
 '@effector/router-vue': minor
 ---
 
-Add `@effector/router-vue` — Vue 3 bindings for effector router (draft). Mirrors
-the `@effector/router-react` API: `RouterProvider`, `createRouteView`,
-`createLazyRouteView`, `createRoutesView`, `Link`, `Outlet`, `withLayout`, and the
-`useRouter`, `useLink`, `useIsOpened`, `useOpenedViews` composables. Only the
-latest Vue 3 (`^3.5`) is supported.
+Add `@effector/router-vue` with Vue 3 components and composables for rendering
+routes, navigating with links, lazy loading, and nested outlets. Supports Vue
+3.5 and newer.
