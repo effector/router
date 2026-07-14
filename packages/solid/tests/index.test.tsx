@@ -42,6 +42,22 @@ describe('solid bindings', () => {
     );
   });
 
+  test('lazy route view accepts a router target without starting import', () => {
+    const child = createRoute({ path: '/child' });
+    const nestedRouter = createRouter({ routes: [child] });
+    const importer = vi.fn(() =>
+      Promise.resolve({ default: () => <p>nested</p> }),
+    );
+
+    const lazyView = createLazyRouteView({
+      route: nestedRouter,
+      view: importer,
+    });
+
+    expect(lazyView.route).toBe(nestedRouter);
+    expect(importer).not.toHaveBeenCalled();
+  });
+
   test('component changes when path changes', async () => {
     const route1 = createRoute({ path: '/app' });
     const route2 = createRoute({ path: '/faq' });

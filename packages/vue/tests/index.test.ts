@@ -82,13 +82,17 @@ describe('vue bindings', () => {
   test('lazy route view accepts a nested router', () => {
     const childRoute = createRoute({ path: '/child' });
     const nestedRouter = createRouter({ routes: [childRoute] });
+    const importer = vi.fn(() =>
+      Promise.resolve({ default: () => h('p', 'lazy') }),
+    );
 
     expect(() =>
       createLazyRouteView({
         route: nestedRouter,
-        view: () => Promise.resolve({ default: () => h('p', 'lazy') }),
+        view: importer,
       }),
     ).not.toThrow();
+    expect(importer).not.toHaveBeenCalled();
   });
 
   test('component changed when path changed', async () => {

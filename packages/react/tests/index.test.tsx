@@ -1,4 +1,11 @@
-import { allSettled, createEvent, createStore, fork, sample } from 'effector';
+import {
+  allSettled,
+  createEffect,
+  createEvent,
+  createStore,
+  fork,
+  sample,
+} from 'effector';
 import { Provider } from 'effector-react';
 import {
   createRoutesView,
@@ -47,6 +54,22 @@ describe('react bindings', () => {
     await waitFor(() => expect(getByTestId('lazy').textContent).toBe('loaded'));
   });
 
+  test('lazy route view accepts a router target without starting import', () => {
+    const child = createRoute({ path: '/child' });
+    const nestedRouter = createRouter({ routes: [child] });
+    const importer = vi.fn(() =>
+      Promise.resolve({ default: () => <p>nested</p> }),
+    );
+
+    const lazyView = createLazyRouteView({
+      route: nestedRouter,
+      view: importer,
+    });
+
+    expect(lazyView.route).toBe(nestedRouter);
+    expect(importer).not.toHaveBeenCalled();
+  });
+
   test('component changed when path changed', async () => {
     const route1 = createRoute({ path: '/app' });
     const route2 = createRoute({ path: '/faq' });
@@ -92,8 +115,12 @@ describe('react bindings', () => {
   });
 
   test('link', async () => {
+    const beforeOpen = vi.fn();
     const route1 = createRoute({ path: '/app' });
-    const route2 = createRoute({ path: '/faq/:id' });
+    const route2 = createRoute({
+      path: '/faq/:id',
+      beforeOpen: [createEffect(beforeOpen)],
+    });
 
     const scope = fork();
     const router = createRouter({ routes: [route1, route2] });
@@ -143,6 +170,7 @@ describe('react bindings', () => {
 
     expect(scope.getState(route2.$isOpened)).toBeTruthy();
     expect(scope.getState(route2.$params)).toStrictEqual({ id: '123' });
+    expect(beforeOpen).toHaveBeenCalledTimes(1);
 
     await userEvent.click(container.querySelector('#link')!);
 
