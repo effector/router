@@ -142,6 +142,33 @@ blogRoute.open({
 
 See [@effector/router-paths](https://github.com/effector/router/tree/main/packages/router-paths#supported-types) for all supported parameter types and modifiers.
 
+### Observe Navigation and Applied Parameters
+
+Use `opened` to react after a route opens on either the client or server. At that point `$params` contains the parameters applied to the route:
+
+```ts
+import { sample } from 'effector';
+
+const userRoute = createRoute({ path: '/user/:id' });
+
+sample({
+  clock: userRoute.opened,
+  source: userRoute.$params,
+  fn: (params, openPayload) => ({ params, openPayload }),
+  target: routeOpenedFx,
+});
+```
+
+Subscribe to `$params` directly when every parameter update matters, including updates while the route remains open:
+
+```ts
+userRoute.$params.watch((params) => {
+  console.log('Applied user id:', params.id);
+});
+```
+
+For platform-specific SSR handling, use `openedOnServer` or `openedOnClient` instead of the combined `opened` event.
+
 ### Nested Routes (Parent)
 
 Create route hierarchies where child routes inherit their parent's path and lifecycle:

@@ -4,9 +4,13 @@ Creates the routes view — the entry point for all routes. Works only inside
 `<RouterProvider>`.
 
 ::: warning
-**Be careful**: if several routes are active at once, the view will display the
-last one listed in the `routes` array.
-:::
+When several routes are active, selection happens in two stages:
+
+1. An active child route removes its active parent from the candidates,
+   regardless of their order in `routes`.
+2. If several candidates remain, the view displays the last one listed in the
+   `routes` array.
+   :::
 
 ### Example
 

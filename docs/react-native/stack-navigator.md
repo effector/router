@@ -69,24 +69,22 @@ export default function App() {
 
 ### `router` (required)
 
-effector/router Router instance created with `createRouter`.
+effector/router Router instance created with [`createRouter`].
 
 ```tsx
 const router = createRouter({
   routes: [homeRoute, profileRoute],
 });
 
-const StackNavigator =
-  createeffector /
-  routerStackNavigator({
-    router,
-    routes: [HomeScreen, ProfileScreen],
-  });
+const StackNavigator = createStackNavigator({
+  router,
+  routes: [HomeScreen, ProfileScreen],
+});
 ```
 
 ### `routes` (required)
 
-Array of route views created with `createRouteView` or `createLazyRouteView`.
+Array of route views created with [`createRouteView`] or [`createLazyRouteView`].
 
 ```tsx
 const HomeScreen = createRouteView({
@@ -94,12 +92,10 @@ const HomeScreen = createRouteView({
   view: () => <Text>Home</Text>,
 });
 
-const StackNavigator =
-  createeffector /
-  routerStackNavigator({
-    router,
-    routes: [HomeScreen, ProfileScreen],
-  });
+const StackNavigator = createStackNavigator({
+  router,
+  routes: [HomeScreen, ProfileScreen],
+});
 ```
 
 ### `screenOptions`
@@ -107,31 +103,29 @@ const StackNavigator =
 Options applied to all screens. Accepts all React Navigation Stack Navigator options.
 
 ```tsx
-const StackNavigator =
-  createeffector /
-  routerStackNavigator({
-    router,
-    routes: [HomeScreen, ProfileScreen],
-    screenOptions: {
-      // Header
-      headerShown: true,
-      headerTitle: 'My App',
-      headerStyle: { backgroundColor: '#f4511e' },
-      headerTintColor: '#fff',
-      headerTitleStyle: { fontWeight: 'bold' },
+const StackNavigator = createStackNavigator({
+  router,
+  routes: [HomeScreen, ProfileScreen],
+  screenOptions: {
+    // Header
+    headerShown: true,
+    headerTitle: 'My App',
+    headerStyle: { backgroundColor: '#f4511e' },
+    headerTintColor: '#fff',
+    headerTitleStyle: { fontWeight: 'bold' },
 
-      // Gestures
-      gestureEnabled: true,
-      gestureDirection: 'horizontal',
+    // Gestures
+    gestureEnabled: true,
+    gestureDirection: 'horizontal',
 
-      // Card
-      cardStyle: { backgroundColor: '#fff' },
-      presentation: 'card', // or 'modal', 'transparentModal'
+    // Card
+    cardStyle: { backgroundColor: '#fff' },
+    presentation: 'card', // or 'modal', 'transparentModal'
 
-      // Animation
-      animationEnabled: true,
-    },
-  });
+    // Animation
+    animationEnabled: true,
+  },
+});
 ```
 
 See [React Navigation Stack Navigator documentation](https://reactnavigation.org/docs/stack-navigator) for all available options.
@@ -141,13 +135,11 @@ See [React Navigation Stack Navigator documentation](https://reactnavigation.org
 Name of the route to render on initial render.
 
 ```tsx
-const StackNavigator =
-  createeffector /
-  routerStackNavigator({
-    router,
-    routes: [HomeScreen, ProfileScreen],
-    initialRouteName: '/home',
-  });
+const StackNavigator = createStackNavigator({
+  router,
+  routes: [HomeScreen, ProfileScreen],
+  initialRouteName: '/home',
+});
 ```
 
 ## Navigation
@@ -182,3 +174,7 @@ userRoute.open({
 
 userRoute.open({ params: { id: 123 } }); // ❌ Error: id must be string
 ```
+
+[`createLazyRouteView`]: /react/create-lazy-route-view
+[`createRouteView`]: /react/create-route-view
+[`createRouter`]: /core/create-router

@@ -1,0 +1,34 @@
+# Link
+
+Renders an anchor whose intercepted primary click opens an effector/router route.
+
+## API
+
+```tsx
+function Link<Params extends object | void = void>(
+  props: LinkProps<Params>,
+): JSX.Element;
+```
+
+| Property  | Type            | Description                                       |
+| --------- | --------------- | ------------------------------------------------- |
+| `to`      | `Route<Params>` | Registered target route                           |
+| `params`  | `Params`        | Required when the route has required parameters   |
+| `query`   | `Query`         | Query passed to `route.open` on intercepted click |
+| `replace` | `boolean`       | Replace rather than push on intercepted click     |
+| `onClick` | anchor handler  | Runs before router navigation                     |
+| `target`  | anchor target   | Non-`_self` targets use native browser behavior   |
+
+All other Solid anchor attributes are forwarded.
+
+```tsx
+import { Link } from '@effector/router-solid';
+
+<Link to={userRoute} params={{ id: '42' }} query={{ tab: 'activity' }} replace>
+  Open user
+</Link>;
+```
+
+Calling `preventDefault()` in `onClick` cancels router navigation. Modified clicks and non-`_self` targets are left to the browser. The rendered `href` is built from route params; `query` and `replace` are applied only to the intercepted route opening.
+
+`Link` uses router context and throws when `to` is not registered in the provided router.

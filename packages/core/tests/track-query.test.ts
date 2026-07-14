@@ -1,4 +1,4 @@
-import { allSettled, createEvent, fork } from 'effector';
+import { allSettled, createEvent, createStore, fork, sample } from 'effector';
 import { createMemoryHistory } from 'history';
 import { describe, expect, test } from 'vitest';
 import { createRouter, createRoute, historyAdapter } from '../lib';
@@ -392,5 +392,29 @@ describe('trackQuery', () => {
     await allSettled(check, { scope });
 
     expect(enteredCalls).toBeCalledWith({ id: '123' });
+  });
+
+  test('maps parsed query parameters into a store', async () => {
+    const { router, routes, scope } = await prepare();
+    const tracker = router.trackQuery({
+      parameters: z.object({
+        q: z.string(),
+        page: z.coerce.number().default(1),
+      }),
+      forRoutes: [routes.home],
+    });
+    const $searchQuery = createStore({ q: '', page: 1 });
+
+    sample({
+      clock: tracker.entered,
+      target: $searchQuery,
+    });
+
+    await allSettled(router.navigate, {
+      scope,
+      params: { path: '/', query: { q: 'router', page: '2' } },
+    });
+
+    expect(scope.getState($searchQuery)).toEqual({ q: 'router', page: 2 });
   });
 });

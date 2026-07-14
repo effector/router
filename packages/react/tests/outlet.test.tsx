@@ -10,6 +10,7 @@ import { describe, expect, test } from 'vitest';
 import { createRoute, createRouter, historyAdapter } from '@effector/router';
 import { createBrowserHistory, createMemoryHistory } from 'history';
 import { act, render } from '@testing-library/react';
+import { useEffect } from 'react';
 
 describe('Outlet Component', () => {
   test('renders child route in outlet', async () => {
@@ -454,5 +455,88 @@ describe('Outlet Component', () => {
         </div>
       </div>
     `);
+  });
+
+  test('keeps parent view mounted when switching child routes', async () => {
+    const profileRoute = createRoute({ path: '/profile' });
+    const settingsRoute = createRoute({
+      path: '/settings',
+      parent: profileRoute,
+    });
+    const friendsRoute = createRoute({
+      path: '/friends',
+      parent: profileRoute,
+    });
+    const scope = fork();
+    const router = createRouter({
+      routes: [profileRoute, settingsRoute, friendsRoute],
+    });
+    const history = createMemoryHistory({
+      initialEntries: ['/profile/settings'],
+    });
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    let parentMounts = 0;
+    let parentUnmounts = 0;
+
+    function ProfileView() {
+      useEffect(() => {
+        parentMounts += 1;
+        return () => {
+          parentUnmounts += 1;
+        };
+      }, []);
+
+      return (
+        <main>
+          <h1>Profile</h1>
+          <Outlet />
+        </main>
+      );
+    }
+
+    const RoutesView = createRoutesView({
+      routes: [
+        createRouteView({
+          route: profileRoute,
+          view: ProfileView,
+          children: [
+            createRouteView({
+              route: settingsRoute,
+              view: () => <p data-testid="settings">Settings</p>,
+            }),
+            createRouteView({
+              route: friendsRoute,
+              view: () => <p data-testid="friends">Friends</p>,
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const { getByTestId, queryByTestId } = render(
+      <Provider value={scope}>
+        <RouterProvider router={router}>
+          <RoutesView />
+        </RouterProvider>
+      </Provider>,
+    );
+
+    expect(getByTestId('settings')).toBeTruthy();
+    expect(parentMounts).toBe(1);
+    expect(parentUnmounts).toBe(0);
+
+    await act(() =>
+      allSettled(friendsRoute.open, { scope, params: undefined }),
+    );
+
+    expect(queryByTestId('settings')).toBeFalsy();
+    expect(getByTestId('friends')).toBeTruthy();
+    expect(parentMounts).toBe(1);
+    expect(parentUnmounts).toBe(0);
   });
 });

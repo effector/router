@@ -71,7 +71,7 @@ sample({
 import { createRoute, chainRoute } from '@effector/router';
 import { createEffect, sample } from 'effector';
 
-const userRoute = createRoute<{ userId: string }>({ path: '/user/:userId' });
+const userRoute = createRoute({ path: '/user/:userId' });
 
 const loadUserDataFx = createEffect(
   async ({ params }: { params: { userId: string } }) => {
@@ -88,7 +88,6 @@ const userRouteWithData = chainRoute({
 // Use the loaded data
 sample({
   clock: loadUserDataFx.doneData,
-  fn: (data) => data.result,
   target: $currentUser,
 });
 ```

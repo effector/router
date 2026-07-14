@@ -66,11 +66,11 @@ Read route params in a view with `effector-vue`:
 import { useUnit } from 'effector-vue/composition';
 import { userRoute } from './router'; // createRoute({ path: '/user/:id' })
 
-const { id } = useUnit(userRoute.$params);
+const params = useUnit(userRoute.$params);
 </script>
 
 <template>
-  <div>User {{ id }}</div>
+  <div>User {{ params.id }}</div>
 </template>
 ```
 
@@ -106,7 +106,7 @@ its scope plugin in your app (or tests) to run inside a forked scope:
 ```ts
 import { EffectorScopePlugin } from 'effector-vue';
 
-app.use(EffectorScopePlugin, { scope });
+app.use(EffectorScopePlugin({ scope }));
 ```
 
 ## Documentation

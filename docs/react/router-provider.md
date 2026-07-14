@@ -27,7 +27,7 @@ function App() {
 
 ### `router` (required)
 
-The router instance created with `createRouter`:
+The router instance created with [`createRouter`]:
 
 ```tsx
 import { createRouter, createRoute } from '@effector/router';
@@ -63,7 +63,8 @@ React components to render:
 For SSR or testing, wrap with Effector's Provider:
 
 ```tsx
-import { fork, Provider } from 'effector-react';
+import { fork } from 'effector';
+import { Provider } from 'effector-react';
 import { RouterProvider } from '@effector/router-react';
 
 function App() {
@@ -179,3 +180,5 @@ render();
 - [useRouter](./use-router) - Access router in components
 - [createRouter](/core/create-router) - Create router instance
 - [createRoutesView](./create-routes-view) - Render active routes
+
+[`createRouter`]: /core/create-router

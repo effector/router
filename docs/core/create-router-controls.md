@@ -1,6 +1,6 @@
 # createRouterControls
 
-Create the core navigation controls for managing browser history, URL paths, and query parameters. These controls are typically used internally by `createRouter`, but can also be used independently for custom routing solutions.
+Create the core navigation controls for managing browser history, URL paths, and query parameters. These controls are typically used internally by [`createRouter`], but can also be used independently for custom routing solutions.
 
 ## API
 
@@ -23,7 +23,7 @@ function createRouterControls(): RouterControls;
 | `back`            | `Event<void>`                  | Navigate back in history                 |
 | `forward`         | `Event<void>`                  | Navigate forward in history              |
 | `locationUpdated` | `Event<{ pathname, query }>`   | Fires when location changes              |
-| `trackQuery`      | `function`                     | Create query parameter trackers          |
+| [`trackQuery`]    | `function`                     | Create query parameter trackers          |
 
 ## Usage
 
@@ -137,19 +137,33 @@ function CurrentLocation() {
 ### Track Query Parameters
 
 ```ts
-const $searchQuery = controls.trackQuery('q');
-const $pageNumber = controls.trackQuery('page', {
-  defaultValue: '1',
+import { createEvent } from 'effector';
+import { z } from 'zod';
+
+const appStarted = createEvent();
+
+const searchTracker = controls.trackQuery({
+  parameters: z.object({
+    q: z.string(),
+    page: z.string().default('1'),
+  }),
+  check: appStarted,
 });
 
-// Use in components
-function SearchResults() {
-  const query = useUnit($searchQuery);
-  const page = useUnit($pageNumber);
+searchTracker.entered.watch(({ q, page }) => {
+  console.log(`Searching for "${q}" (page ${page})`);
+});
 
-  return <div>Searching for "{query}" (page {page})</div>;
-}
+// Add or update the tracked parameters
+searchTracker.enter({ q: 'router', page: '2' });
 ```
+
+| Config field | Type          | Description                                                        |
+| ------------ | ------------- | ------------------------------------------------------------------ |
+| `parameters` | `ZodType`     | Schema used to validate and parse the tracked query parameters     |
+| `check`      | `Event<void>` | Optional event that triggers validation instead of automatic check |
+
+Unlike `router.trackQuery`, the controls version does not accept `forRoutes`, because standalone controls do not own a route list. See [trackQuery](/core/track-query) for the returned events and route-scoped usage.
 
 ### Server-Side Rendering
 
@@ -175,7 +189,7 @@ await allSettled(controls.setHistory, {
 ### Custom History Adapter
 
 ```ts
-import { createRouterControls } from '@effector/router';
+import { createRouterControls, type RouterAdapter } from '@effector/router';
 
 const controls = createRouterControls();
 
@@ -184,6 +198,7 @@ const customAdapter = {
   location: {
     pathname: '/current-path',
     search: '?query=value',
+    hash: '',
   },
   push: (location) => {
     console.log('Navigate to:', location);
@@ -201,7 +216,7 @@ const customAdapter = {
       },
     };
   },
-};
+} satisfies RouterAdapter;
 
 controls.setHistory(customAdapter);
 ```
@@ -291,7 +306,7 @@ Examples:
 
 ### Use createRouter Instead
 
-For most applications, use `createRouter` which includes controls automatically:
+For most applications, use [`createRouter`] which includes controls automatically:
 
 ```ts
 // ✅ Recommended for most cases
@@ -335,3 +350,6 @@ controls.navigate({
 - [createRouter](/core/create-router) - Create complete router with controls
 - [Adapters](/core/adapters) - History adapters and custom adapter creation
 - [trackQuery](/core/track-query) - Track individual query parameters
+
+[`createRouter`]: /core/create-router
+[`trackQuery`]: /core/track-query

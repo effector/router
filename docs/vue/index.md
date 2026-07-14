@@ -11,7 +11,7 @@ This package is a **draft (β)**. Only the latest Vue 3 (`^3.5`) is supported.
 `@effector/router-vue` mirrors the [`@effector/router-react`](/react/) API for Vue 3:
 
 - **Route Views** — connect routes to Vue components
-- **Navigation Components** — `Link` and navigation helpers
+- **Navigation Components** — [`Link`] and navigation helpers
 - **Composables** — access router state in components
 - **Layouts** — wrap multiple routes with shared layouts
 
@@ -54,5 +54,7 @@ plugin at the app root when you need a forked scope:
 ```ts
 import { EffectorScopePlugin } from 'effector-vue';
 
-app.use(EffectorScopePlugin, { scope });
+app.use(EffectorScopePlugin({ scope }));
 ```
+
+[`Link`]: /vue/link

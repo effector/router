@@ -1,7 +1,7 @@
 # withLayout
 
 Group routes by layout, so you don't need to pass the `layout` property manually
-in every route. Works for `createRouteView` and `createLazyRouteView`.
+in every route. Works for [`createRouteView`] and [`createLazyRouteView`].
 
 ### Example
 
@@ -29,3 +29,6 @@ export const RoutesView = createRoutesView({
   ],
 });
 ```
+
+[`createLazyRouteView`]: /vue/create-lazy-route-view
+[`createRouteView`]: /vue/create-route-view

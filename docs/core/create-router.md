@@ -233,7 +233,7 @@ const mainRouter = createRouter({
 | `forward`       | `EventCallable<void>`            | Navigate forward (if possible)                             |
 | `navigate`      | `EventCallable<NavigatePayload>` | Navigate to path with query                                |
 | `setHistory`    | `EventCallable<RouterAdapter>`   | Initialize router with history adapter                     |
-| `trackQuery`    | `(config) => QueryTracker`       | Track query parameters, see [trackQuery](./track-query.md) |
+| [`trackQuery`]  | `(config) => QueryTracker`       | Track query parameters, see [trackQuery](./track-query.md) |
 | `registerRoute` | `(route: InputRoute) => void`    | Dynamically register a route                               |
 | `ownRoutes`     | `MappedRoute[]`                  | Routes owned by this router                                |
 | `knownRoutes`   | `MappedRoute[]`                  | All known routes (including nested)                        |
@@ -264,3 +264,5 @@ type InputRoute =
   | { path: string; route: PathlessRoute<any> } // Pathless route with assigned path
   | Router; // Nested router
 ```
+
+[`trackQuery`]: /core/track-query

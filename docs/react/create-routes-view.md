@@ -46,7 +46,7 @@ const RoutesView = createRoutesView({
 
 ### `routes` (required)
 
-Array of route views created with `createRouteView` or `createLazyRouteView`:
+Array of route views created with [`createRouteView`] or [`createLazyRouteView`]:
 
 ```tsx
 import { createRouteView } from '@effector/router-react';
@@ -83,21 +83,55 @@ Returns a React component that:
 
 - Renders the most recently opened route
 - Automatically updates when route state changes
-- Handles nested routes via `Outlet`
+- Handles nested routes via [`Outlet`]
 - Returns `null` or fallback when no routes are active
 
 ## How It Works
 
 The routes view:
 
-1. Uses `useOpenedViews` to track which routes are currently open
+1. Uses [`useOpenedViews`] to track which routes are currently open
 2. Renders the last (most recent) opened route
 3. Provides outlet context for nested routes
 4. Re-renders automatically when route state changes
 
+## Avoid Full-Page Remounts
+
+Create route views and the `RoutesView` component once at module scope. Recreating them inside a component render produces new component identities and subscriptions:
+
+```tsx
+const HomeScreen = createRouteView({
+  route: homeRoute,
+  view: HomeComponent,
+});
+
+const ProfileScreen = createRouteView({
+  route: profileRoute,
+  view: ProfileComponent,
+});
+
+const RoutesView = createRoutesView({
+  routes: [HomeScreen, ProfileScreen],
+});
+```
+
+Keep persistent application chrome outside `RoutesView`, so changing the selected route replaces only the page content:
+
+```tsx
+function App() {
+  return (
+    <AppLayout>
+      <RoutesView />
+    </AppLayout>
+  );
+}
+```
+
+For nested navigation, keep the persistent parent UI in a parent route view and render changing child content through [`Outlet`]. The parent view stays mounted while sibling child routes change. [`withLayout`] is useful for applying the same markup to several independent views, but it does not guarantee that the layout component stays mounted when switching between them.
+
 ## Nested Routes
 
-For nested route structures, use `Outlet` in parent components:
+For nested route structures, use [`Outlet`] in parent components:
 
 ```tsx
 import { Outlet } from '@effector/router-react';
@@ -124,7 +158,7 @@ const RoutesView = createRoutesView({
 
 ## With Router Provider
 
-`RouterProvider` must wrap the routes view:
+[`RouterProvider`] must wrap the routes view:
 
 ```tsx
 import { RouterProvider } from '@effector/router-react';
@@ -173,3 +207,10 @@ function App() {
 - [RouterProvider](./router-provider) - Provide router to React tree
 - [Outlet](./outlet) - Render nested routes
 - [useOpenedViews](./use-opened-views) - Hook to track opened routes
+
+[`createLazyRouteView`]: /react/create-lazy-route-view
+[`createRouteView`]: /react/create-route-view
+[`Outlet`]: /react/outlet
+[`RouterProvider`]: /react/router-provider
+[`useOpenedViews`]: /react/use-opened-views
+[`withLayout`]: /react/with-layout

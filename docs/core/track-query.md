@@ -284,6 +284,35 @@ function ProductFilters() {
 }
 ```
 
+### Store Parsed Query Parameters
+
+The `entered` event carries the parsed `z.infer<T>` value, so it can update a store directly:
+
+```ts
+import { createStore, sample } from 'effector';
+import { z } from 'zod';
+
+const searchTracker = router.trackQuery({
+  parameters: z.object({
+    q: z.string(),
+    page: z.coerce.number().default(1),
+  }),
+  forRoutes: [searchRoute],
+});
+
+const $searchQuery = createStore({ q: '', page: 1 });
+
+sample({
+  clock: searchTracker.entered,
+  target: $searchQuery,
+});
+
+sample({
+  clock: searchTracker.exited,
+  target: $searchQuery.reinit,
+});
+```
+
 ### Load Data on Query Change
 
 ```ts

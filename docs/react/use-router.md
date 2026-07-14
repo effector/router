@@ -1,6 +1,6 @@
 # useRouter
 
-Hook to access the router instance from `RouterProvider` context. Returns the router with all stores bound to their current values using `useUnit`.
+Hook to access the router instance from [`RouterProvider`] context. Returns the router with all stores bound to their current values using `useUnit`.
 
 ## Import
 
@@ -126,7 +126,7 @@ function CurrentPath() {
 
 ## Error Handling
 
-The hook throws an error if used outside of `RouterProvider`:
+The hook throws an error if used outside of [`RouterProvider`]:
 
 ```tsx
 function Component() {
@@ -135,7 +135,7 @@ function Component() {
 }
 ```
 
-Always wrap your app with `RouterProvider`:
+Always wrap your app with [`RouterProvider`]:
 
 ```tsx
 import { RouterProvider } from '@effector/router-react';
@@ -187,3 +187,5 @@ function Component() {
 
 - Use `useRouter()` - for most cases (automatically bound values)
 - Use `useRouterContext()` - when you need raw stores for custom Effector patterns or selective binding
+
+[`RouterProvider`]: /react/router-provider
