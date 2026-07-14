@@ -22,7 +22,7 @@ Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files 
 
 ### GitHub issues
 
-- [x] #29 Docs: avoid full-page rerenders on route transitions
+- [x] Documentation part of #29 Docs: avoid full-page rerenders on route transitions — completed by `affea7a` with stable parent/`Outlet` guidance and a regression test. The GitHub issue remains open because `withLayout` still remounts the shared layout; see #57.
 - [ ] #33 Docs/tracking: dynamic chunks loading
 
 ## Модификация поведения
@@ -38,6 +38,8 @@ Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files 
 - [ ] Implement or remove the documented multi-level `Outlet` example. `createRoutesView` provides context for the top-level view, but `Outlet` renders a selected child without providing a new `OutletContext` for that child's children. Existing tests cover one level only; add a three-level test matching the guide.
 
 - [ ] Preserve nested route metadata in `withLayout`. The function maps only `{ route, view }` and drops `children`, so it is not equivalent to the `layout` prop for route views that own an `Outlet`. Keep all RouteView fields and add a nested-layout regression test.
+
+- [ ] #57 RFC: preserve shared layout instances across `withLayout` route transitions. Decide whether layout identity/preservation belongs to the RouteView contract or to a React-specific primitive; moving between two views in one layout group must not unmount the layout.
 
 ### GitHub issues
 

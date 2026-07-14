@@ -25,8 +25,8 @@ Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-rel
 ### GitHub issues
 
 - [ ] #23 Docs: nested routes with params propagation
-- [x] #24 Docs: mapping trackQuery result into a store
-- [x] #25 Docs: observing route navigation and applied params
+- [x] #24 Docs: mapping trackQuery result into a store — closed on GitHub by `fbb7893` (`docs(core): show trackQuery store mapping`).
+- [x] #25 Docs: observing route navigation and applied params — closed on GitHub by `018a150` (`docs(core): explain route navigation observation`).
 
 ## Модификация поведения
 
@@ -57,7 +57,6 @@ Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-rel
 - [ ] #43 `route.$params` triggers whenever values of params actually not changed
 - [ ] #53 [Bug]: beforeOpen is called twice during link navigation
 - [ ] #56 [Bug]: routes never open without a fork scope - scopeBind throws inside openRoutesByPathFx and is silently swallowed
-- [ ] #57 [Feature]: Shared layout mechanism to prevent redundant re-renders
 - [ ] #61 redirect operator
 - [ ] #62 route.updated event with value-based deduplication
 - [ ] #63 router.initialized and router.updated lifecycle events

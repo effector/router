@@ -16,8 +16,8 @@
 - [x] Привести документацию `group` к текущему API: поддерживаются `Route` и `VirtualRoute`, но у обычного `Route` нет публичного `close()`.
 - [x] Починить примеры кастомных адаптеров: корректно разбирать строковый `To`, не использовать `this` из arrow-функций и поддерживать синхронное обновление location.
 - [x] Добавить обязательный `hash` в пример адаптера из `create-router-controls` и проверять пример через `satisfies RouterAdapter`.
-- [x] #24 Docs: mapping trackQuery result into a store — показать прямое и типобезопасное отображение результата `trackQuery` в store без изменения API.
-- [x] #25 Docs: observing route navigation and applied params — документировать существующие события и store для наблюдения за переходом и фактически применёнными параметрами.
+- [x] #24 Docs: mapping trackQuery result into a store — показать прямое и типобезопасное отображение результата `trackQuery` в store без изменения API. GitHub issue закрыт (`fbb7893`).
+- [x] #25 Docs: observing route navigation and applied params — документировать существующие события и store для наблюдения за переходом и фактически применёнными параметрами. GitHub issue закрыт (`018a150`).
 
 ### React
 
@@ -25,7 +25,7 @@
 - [x] Исправить generic в `use-link.md`: параметры должны выводиться из шаблона пути, а не передаваться объектом вместо path-generic.
 - [x] Переписать active-tabs пример: вынести `useIsOpened` из `map` в отдельный компонент и соблюдать Rules of Hooks.
 - [x] Документировать уже поддерживаемый eager `RouteView` с вложенным `Router`; не распространять утверждение на lazy-вариант до решения его контракта.
-- [x] #29 Docs: avoid full-page rerenders on route transitions — добавить рекомендации по стабильному размещению router/view-компонентов без изменения runtime.
+- [x] Документационная часть #29 Docs: avoid full-page rerenders on route transitions — добавить рекомендации по стабильному размещению router/view-компонентов без изменения runtime. GitHub issue остаётся открытым: remount при `withLayout` не исправлен и отслеживается в #57.
 
 ### React Native
 
@@ -73,7 +73,7 @@
 
 - [ ] #30 Reset scroll on history change — определить, является ли scroll restoration функцией core, binding helper или примером application-level integration.
 - [ ] #31 Show error page when an effect fails on the page — определить представление route error и владельца error UI.
-- [ ] #57 [Feature]: Shared layout mechanism to prevent redundant re-renders — решить, входит ли layout identity/preservation в общий RouteView-контракт или остаётся binding-specific.
+- [ ] #57 RFC: preserve shared layout instances across `withLayout` route transitions — решить, входит ли layout identity/preservation в общий RouteView-контракт или остаётся binding-specific для React, Solid и Vue.
 
 ### Решение 3. Модель route: path, parent params, pathless/virtual routes и value-based updates
 

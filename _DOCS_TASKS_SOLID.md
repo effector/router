@@ -30,6 +30,8 @@ Scope audited: `packages/solid/README.md`, `packages/solid/package.json`, all of
   - Preserve `children` (and future `RouteView` metadata) while wrapping `view`, then document whether layouts apply only to the selected view or recursively to descendants.
   - Test gap: the sole metadata-preservation assertion covers `createLazyRouteView.children`; there is no `withLayout` test (`packages/solid/tests/index.test.tsx:83-98`). Add a parent/child case proving the child still renders through `Outlet` after layout wrapping.
 
+- [ ] #57 RFC: preserve shared layout instances across `withLayout` route transitions. Decide whether layout identity/preservation belongs to the shared RouteView contract or to a Solid-specific primitive; moving between two views in one layout group must not remount the layout.
+
 - [ ] Define and implement the supported nesting depth for `Outlet`; the recursive type currently overpromises multi-level nesting.
   - `RouteView.children` is recursive (`packages/solid/lib/types.ts:25-29`), and `Outlet` is described as the nested-routes component (`packages/solid/lib/outlet.tsx:6-33`).
   - `createRoutesView` provides the selected top-level view's children (`packages/solid/lib/create-routes-view.tsx:43-48`), but `Outlet` renders the selected child without providing that child's own `children` (`packages/solid/lib/outlet.tsx:35-44`). A grandchild `<Outlet>` therefore reuses the parent's child list instead of descending to the next level.
