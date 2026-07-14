@@ -90,6 +90,27 @@ export default defineConfig({
         ],
       },
       {
+        text: 'Vue β',
+        collapsed: false,
+        items: [
+          { text: 'Overview', link: '/vue/' },
+          { text: 'RouterProvider', link: '/vue/router-provider' },
+          { text: 'createRouteView', link: '/vue/create-route-view' },
+          {
+            text: 'createLazyRouteView',
+            link: '/vue/create-lazy-route-view',
+          },
+          { text: 'createRoutesView', link: '/vue/create-routes-view' },
+          { text: 'Link', link: '/vue/link' },
+          { text: 'Outlet', link: '/vue/outlet' },
+          { text: 'useRouter', link: '/vue/use-router' },
+          { text: 'useLink', link: '/vue/use-link' },
+          { text: 'useIsOpened', link: '/vue/use-is-opened' },
+          { text: 'useOpenedViews', link: '/vue/use-opened-views' },
+          { text: 'withLayout', link: '/vue/with-layout' },
+        ],
+      },
+      {
         text: 'React Native β',
         collapsed: false,
         items: [

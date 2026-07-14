@@ -3,8 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@effector/router.svg)](https://www.npmjs.com/package/@effector/router)
 
 Flexible, type-safe routing for apps — powered by [Effector](https://effector.dev). Framework-agnostic core: define
-routes, drive navigation through events, and read state from stores. Bindings for [React](https://www.npmjs.com/package/@effector/router-react)
-and [React Native](https://www.npmjs.com/package/@effector/router-react-native) build on top of it.
+routes, drive navigation through events, and read state from stores. Bindings for [React](https://www.npmjs.com/package/@effector/router-react),
+[React Native](https://www.npmjs.com/package/@effector/router-react-native) and [Vue](https://www.npmjs.com/package/@effector/router-vue) build on top of it.
 
 ## Install
 

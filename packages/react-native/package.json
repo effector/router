@@ -61,9 +61,9 @@
     "@react-navigation/bottom-tabs": ">=6",
     "@react-navigation/native": ">=6",
     "@react-navigation/stack": ">=6",
-    "effector": ">=23",
-    "effector-react": ">=23",
-    "react": "18 || 19",
+    "effector": "catalog:peer",
+    "effector-react": "catalog:peer",
+    "react": "catalog:peer",
     "react-native": ">=0.70"
   }
 }

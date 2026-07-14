@@ -45,6 +45,29 @@ yarn add @effector/router-react
 
 :::
 
+## Vue bindings
+
+::: code-group
+
+```bash [pnpm]
+pnpm add @effector/router-vue effector-vue vue
+```
+
+```bash [npm]
+npm install @effector/router-vue effector-vue vue
+```
+
+```bash [yarn]
+yarn add @effector/router-vue effector-vue vue
+```
+
+:::
+
+::: tip
+`@effector/router-vue` supports only the latest Vue 3 (`^3.5`). See the
+[Vue guide](/vue/) for the full API.
+:::
+
 ## Writing first router
 
 As an example, we will write a simple router with `feed` and `profile` routes.
