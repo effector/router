@@ -1,0 +1,64 @@
+{
+  "name": "@effector/router-solid",
+  "version": "0.0.1",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "private": false,
+  "description": "SolidJS bindings for effector router",
+  "keywords": [
+    "effector",
+    "argon",
+    "atomic",
+    "router",
+    "effector/router",
+    "solid",
+    "solid-js"
+  ],
+  "contributors": [
+    "Sergey Sova <mail@sergeysova.com>",
+    "Anton Kosykh",
+    "Zero Bias <ribkatt@gmail.com>",
+    "movpushmov"
+  ],
+  "homepage": "https://router.effector.dev/solid",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/effector/router.git",
+    "directory": "packages/solid"
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run"
+  },
+  "bugs": {
+    "url": "https://github.com/effector/router/issues"
+  },
+  "dependencies": {
+    "@effector/router": "workspace:^"
+  },
+  "peerDependencies": {
+    "effector": ">=23",
+    "effector-solid": ">=0.23",
+    "solid-js": "^1.9.0"
+  }
+}

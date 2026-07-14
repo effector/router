@@ -11,6 +11,7 @@ node_modules
 dist
 cache
 dist-ssr
+examples/solid-router/test-results/
 *.local
 .husky
 
