@@ -29,7 +29,7 @@
 
 ### React Native
 
-- [ ] Исправить повреждённые имена API в navigator pages: использовать экспортируемые `createStackNavigator` и `createBottomTabsNavigator`.
+- [x] Исправить повреждённые имена API в navigator pages: использовать экспортируемые `createStackNavigator` и `createBottomTabsNavigator`.
 
 ### Solid
 

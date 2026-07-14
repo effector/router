@@ -6,7 +6,7 @@ Audit scope: `packages/react-native/README.md`, all three pages in `docs/react-n
 
 - [ ] Make factory return values match every usage example. Both `createStackNavigator` and `createBottomTabsNavigator` return `{ Navigator: Component }`, while the README and docs assign the whole result and render `<StackNavigator />` / `<TabsNavigator />`. Either return the component directly or document `const { Navigator: StackNavigator } = ...`; add a typechecked smoke example.
 
-- [ ] Replace the corrupted API names in the navigator pages. `docs/react-native/stack-navigator.md` repeatedly renders `createeffector / routerStackNavigator`, and `docs/react-native/bottom-tabs-navigator.md` uses `createeffector/routerBottomTabsNavigator`; neither symbol exists. The exported names are `createStackNavigator` and `createBottomTabsNavigator`.
+- [x] Replace the corrupted API names in the navigator pages. `docs/react-native/stack-navigator.md` repeatedly renders `createeffector / routerStackNavigator`, and `docs/react-native/bottom-tabs-navigator.md` uses `createeffector/routerBottomTabsNavigator`; neither symbol exists. The exported names are `createStackNavigator` and `createBottomTabsNavigator`.
 
 - [ ] Add the required core router initialization to installation and quick starts. The examples call `route.open()` without ever calling `router.setHistory(...)`; core navigation therefore has no adapter and throws `history not found`. Document/install a supported React Native adapter or initialize a memory/custom adapter before rendering.
 
