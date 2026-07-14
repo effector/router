@@ -1,18 +1,20 @@
 import {
   createEffect,
+  createEvent,
+  createStore,
   sample,
   type Effect,
   type EventCallable,
   type Unit,
 } from 'effector';
 import type {
-  AsyncBundleImport,
   OpenPayloadBase,
   Route,
   RouteOpenedPayload,
   VirtualRoute,
 } from './types';
 import { createVirtualRoute } from './create-virtual-route';
+import { createAttemptCoordinator } from './transition-attempt';
 
 type BeforeOpenUnit<T extends object | void = void> =
   | (T extends void
@@ -20,119 +22,212 @@ type BeforeOpenUnit<T extends object | void = void> =
       : EventCallable<{ params: T } & OpenPayloadBase>)
   | Effect<RouteOpenedPayload<T>, any>;
 
-interface ChainRouteProps<T extends object | void = void> {
+export interface ChainRouteProps<T extends object | void = void> {
   route: Route<T> | VirtualRoute<RouteOpenedPayload<T>, T>;
   beforeOpen: BeforeOpenUnit<T> | BeforeOpenUnit<T>[];
   openOn?: Unit<any> | Unit<any>[];
   cancelOn?: Unit<any> | Unit<any>[];
 }
 
+interface ChainState<T extends object | void> {
+  attemptId: number;
+  payload: RouteOpenedPayload<T>;
+  prepared: boolean;
+  openRequested: boolean;
+}
+
+function asUnits(unit?: Unit<any> | Unit<any>[]): Unit<any>[] {
+  if (!unit) return [];
+  return Array.isArray(unit) ? unit : [unit];
+}
+
 /**
- * @link https://router.effector.dev/core/chain-route.html
- * @param props Chain route props
- * @returns `Virtual route`
- * @example ```ts
- * import { createRoute, chainRoute } from '@effector/router';
- * import { createEvent, createEffect } from 'effector';
- *
- * // base example
- * const route = createRoute({ path: '/profile' });
- *
- * const authorized = createEvent();
- * const rejected = createEvent();
- *
- * const checkAuthorizationFx = createEffect(async ({ params }) => {
- *     // some logic
- * });
- *
- * sample({
- *   clock: checkAuthorizationFx.doneData,
- *   target: authorized,
- * });
- *
- * sample({
- *   clock: checkAuthorizationFx.failData,
- *   target: rejected,
- * });
- *
- * const virtual = chainRoute({
- *   route,
- *   beforeOpen: checkAuthorizationFx,
- *   openOn: authorized,
- *   cancelOn: rejected,
- * });
- *
- * // chain already chained routes
- * const postRoute = createRoute({ path: '/post/:id' });
- * const authorizedRoute = chainRoute({ route: postRoute, ... });
- * const postLoadedRoute = chainRoute({ route: authorizedRoute, ... });
- * ```
+ * Derives a post-commit readiness route from an already activated route.
+ * It does not mutate history and therefore is intentionally separate from
+ * `beforeNavigate`.
  */
 export function chainRoute<T extends object | void = void>(
   props: ChainRouteProps<T>,
 ): VirtualRoute<RouteOpenedPayload<T>, T> {
-  const { route, beforeOpen, openOn, cancelOn } = props;
+  const { route, beforeOpen } = props;
+  const openOn = asUnits(props.openOn);
+  const cancelOn = asUnits(props.cancelOn);
+  const beforeOpenUnits = Array.isArray(beforeOpen) ? beforeOpen : [beforeOpen];
 
-  let asyncImport: AsyncBundleImport;
-
-  const waitForAsyncBundleFx = createEffect(() => asyncImport?.());
-
-  const openFx = createEffect(async (payload: RouteOpenedPayload<T>) => {
-    await waitForAsyncBundleFx();
-
-    for (const trigger of (<BeforeOpenUnit<T>[]>[]).concat(beforeOpen)) {
-      // @ts-expect-error -- ts works very awful with this generics
-      await trigger(payload);
-    }
+  const coordinator = createAttemptCoordinator<RouteOpenedPayload<T>>({
+    concurrency: 'takeLatest',
   });
 
-  const transformer = (payload: RouteOpenedPayload<T>): T => {
-    if (!payload) {
-      return {} as T;
-    }
+  const $isPending = coordinator.$current.map(Boolean);
 
+  const transformer = (payload: RouteOpenedPayload<T>): T => {
+    if (!payload) return {} as T;
     return 'params' in payload ? (payload.params as T) : ({} as T);
   };
 
-  const virtualRoute = createVirtualRoute<RouteOpenedPayload<T>, T>({
+  const chained = createVirtualRoute<RouteOpenedPayload<T>, T>({
+    $isPending,
     transformer,
   });
 
-  sample({
-    clock: route.opened,
-    target: openFx,
-  });
+  const openRequested = createEvent<number>();
 
-  sample({
-    clock: route.opened,
-    fn: transformer,
-    target: virtualRoute.$params,
-  });
+  const $state = createStore<ChainState<T> | null>(null, {
+    serialize: 'ignore',
+  })
+    .on(coordinator.started, (_, attempt) => ({
+      attemptId: attempt.id,
+      payload: attempt.payload,
+      prepared: false,
+      openRequested: false,
+    }))
+    .on(openRequested, (state, attemptId) => {
+      if (!state || state.attemptId !== attemptId) return state;
+      return { ...state, openRequested: true };
+    })
+    .reset([coordinator.completed, coordinator.cancelled]);
 
-  if (openOn) {
-    sample({
-      clock: openOn as Unit<any>[],
-      source: virtualRoute.$params,
-      fn: (params) => ({ params }) as unknown as RouteOpenedPayload<T>,
-      target: virtualRoute.open,
-    });
-  }
+  const runBeforeOpenFx = createEffect(
+    async (attempt: { id: number; payload: RouteOpenedPayload<T> }) => {
+      for (const unit of beforeOpenUnits) {
+        // Calling a unit from an effect keeps the active Effector scope and lets
+        // effects be awaited while events remain synchronous.
+        await (unit as (payload: RouteOpenedPayload<T>) => unknown)(
+          attempt.payload,
+        );
+      }
 
-  if (cancelOn) {
-    sample({
-      clock: (<Unit<void>[]>[route.closed]).concat(cancelOn),
-      target: virtualRoute.close,
-    });
-
-    sample({
-      clock: (<Unit<void>[]>[]).concat(cancelOn),
-      target: virtualRoute.cancelled as EventCallable<void>,
-    });
-  }
-
-  return Object.assign(virtualRoute, {
-    internal: {
-      setAsyncImport: (value: AsyncBundleImport) => (asyncImport = value),
+      return attempt;
     },
+  );
+
+  sample({ clock: route.opened, target: coordinator.requested });
+  sample({ clock: coordinator.started, target: runBeforeOpenFx });
+
+  sample({
+    clock: coordinator.started,
+    source: chained.$isOpened,
+    filter: Boolean,
+    fn: () => undefined,
+    target: chained.close,
   });
+
+  const preparationFinished = sample({
+    clock: runBeforeOpenFx.doneData,
+    source: coordinator.$current,
+    filter: (current, result) => current?.id === result.id,
+    fn: (_, result) => result,
+  });
+
+  $state.on(preparationFinished, (state, attempt) => {
+    if (!state || state.attemptId !== attempt.id) return state;
+    return { ...state, prepared: true };
+  });
+
+  if (openOn.length > 0) {
+    sample({
+      clock: openOn,
+      source: coordinator.$current,
+      filter: Boolean,
+      fn: (attempt) => attempt.id,
+      target: openRequested,
+    });
+  }
+
+  const openAttempt = createEvent<{
+    id: number;
+    payload: RouteOpenedPayload<T>;
+  }>();
+
+  sample({
+    clock: preparationFinished,
+    source: $state,
+    filter: (state, attempt) =>
+      state?.attemptId === attempt.id &&
+      (openOn.length === 0 || state.openRequested),
+    fn: (_, attempt) => attempt,
+    target: openAttempt,
+  });
+
+  sample({
+    clock: openRequested,
+    source: $state,
+    filter: (state, attemptId) =>
+      state?.attemptId === attemptId && state.prepared,
+    fn: (state) => ({ id: state!.attemptId, payload: state!.payload }),
+    target: openAttempt,
+  });
+
+  sample({
+    clock: openAttempt,
+    fn: ({ payload }) => payload,
+    target: chained.open,
+  });
+
+  sample({
+    clock: openAttempt,
+    fn: ({ id }) => id,
+    target: coordinator.complete,
+  });
+
+  sample({
+    clock: runBeforeOpenFx.fail,
+    source: coordinator.$current,
+    filter: (current, { params }) => current?.id === params.id,
+    fn: (_, { params }) => params.id,
+    target: coordinator.cancel,
+  });
+
+  const cancellationRequested = createEvent();
+
+  if (cancelOn.length > 0) {
+    sample({
+      clock: cancelOn,
+      fn: () => undefined,
+      target: cancellationRequested,
+    });
+  }
+
+  sample({
+    clock: cancellationRequested,
+    source: coordinator.$current,
+    filter: Boolean,
+    fn: (attempt) => attempt.id,
+    target: coordinator.cancel,
+  });
+
+  const cancelOpened = sample({
+    clock: cancellationRequested,
+    source: coordinator.$current,
+    filter: (attempt) => attempt === null,
+    fn: () => undefined,
+  });
+
+  const cancelledEvent = chained.cancelled as EventCallable<void>;
+
+  sample({ clock: cancelOpened, target: [chained.close, cancelledEvent] });
+
+  sample({
+    clock: route.closed,
+    source: coordinator.$current,
+    filter: Boolean,
+    fn: (attempt) => attempt.id,
+    target: coordinator.cancel,
+  });
+
+  sample({
+    clock: route.closed,
+    source: coordinator.$current,
+    filter: (attempt) => attempt === null,
+    fn: () => undefined,
+    target: chained.close,
+  });
+
+  sample({
+    clock: coordinator.cancelled,
+    fn: () => undefined,
+    target: [chained.close, cancelledEvent],
+  });
+
+  return chained;
 }
