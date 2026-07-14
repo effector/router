@@ -178,18 +178,30 @@ export function createRoute<Params>(
     },
   });
 
+  const preparationFailed = sample({
+    clock: prepareFx.fail,
+    source: lifecycle.$current,
+    filter: (current, { params }) => current?.id === params.id,
+    fn: (_, { params }) => params.id,
+  });
+
   sample({
-    clock: prepareFx.failData,
+    clock: preparationFailed,
+    target: lifecycle.cancel,
+  });
+
+  sample({
+    clock: preparationFailed,
     fn: () => defaultParams,
     target: $params,
   });
 
   sample({
-    clock: prepareFx.fail,
-    source: lifecycle.$current,
-    filter: (current, { params }) => current?.id === params.id,
-    fn: (_, { params }) => params.id,
-    target: lifecycle.cancel,
+    clock: preparationFailed,
+    source: $isOpened,
+    filter: Boolean,
+    fn: () => undefined,
+    target: closed,
   });
 
   createAction({

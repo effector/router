@@ -223,7 +223,8 @@ childRoute.open();
 after the history adapter confirms the new location. It is therefore not a
 transition guard: the URL has already changed when the Effect starts. If it
 fails, the route does not emit `opened`, while the Effect exposes its normal
-`fail`/`failData` events.
+`fail`/`failData` events. A route that was already open is closed so stale
+params cannot remain active for the new URL.
 
 For new code, derive readiness with `chainRoute`:
 

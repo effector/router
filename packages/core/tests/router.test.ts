@@ -275,6 +275,34 @@ describe('router', () => {
     expect(scope.getState(route.$isOpened)).toBe(true);
   });
 
+  test('beforeOpen failure closes a previously opened route', async () => {
+    let shouldFail = false;
+    const beforeOpenFx = createEffect(() => {
+      if (shouldFail) throw new Error('preparation failed');
+    });
+    const route = createRoute({ path: '/profile', beforeOpen: [beforeOpenFx] });
+    const router = createRouter({ routes: [route] });
+    const history = createMemoryHistory();
+    const scope = fork();
+    const closed = watchCalls(route.closed, scope);
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+    await allSettled(route.open, { scope, params: {} });
+
+    expect(scope.getState(route.$isOpened)).toBe(true);
+    closed.mockClear();
+
+    shouldFail = true;
+    await allSettled(route.open, { scope, params: {} });
+
+    expect(history.location.pathname).toBe('/profile');
+    expect(scope.getState(route.$isOpened)).toBe(false);
+    expect(closed).toHaveBeenCalledTimes(1);
+  });
+
   test('parent route is opened', async () => {
     const scope = fork();
 

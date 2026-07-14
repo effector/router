@@ -162,7 +162,9 @@ and adapter choice.
 
 - Cancel before commit: location and active routes do not change.
 - Preparation error after commit: the preparation Effect exposes its normal
-  `fail`/`failData`; the chained route is cancelled and pending ends.
+  `fail`/`failData`; the chained route is cancelled and pending ends. Deprecated
+  route preparation closes a previously active route instead of retaining stale
+  params.
 - Redirect while held: the old attempt is discarded and the redirect becomes a
   new semantic attempt.
 - Redirect loop: after 16 consecutive pre-commit redirects the attempt is
