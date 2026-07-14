@@ -5,7 +5,7 @@ Scope audited: `packages/solid/README.md`, `packages/solid/package.json`, all of
 
 ## Актуализация документации
 
-- [ ] Make both quick-start examples runnable by showing router history initialization.
+- [x] Make both quick-start examples runnable by showing router history initialization.
   - `packages/solid/README.md:21-55` and `docs/solid/index.md:31-81` create a router and render route views, but never call `router.setHistory(...)`; the README only leaves a parenthetical pointer to unspecified history setup, while the docs example gives no warning at all.
   - Core explicitly requires initialization (`docs/core/create-router.md:17-24`; `packages/core/lib/create-router.ts:54`), and every Solid integration test initializes the router (`packages/solid/tests/index.test.tsx:26,65`; `packages/solid/tests/example-app.test.tsx:109,120,135,150,165`). Without it no initial route is opened and the shown `<Link>` is not reachable.
   - Add the concrete adapter/history imports and initialization to the examples, and include any directly imported history package in the install command (or link immediately to a complete, runnable setup).

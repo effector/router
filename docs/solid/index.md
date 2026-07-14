@@ -23,13 +23,14 @@ Unlike the React binding, reactive helpers (`useLink`, `useIsOpened`, `useOpened
 ## Installation
 
 ```bash
-npm install @effector/router-solid @effector/router effector effector-solid solid-js
+npm install @effector/router-solid @effector/router effector effector-solid solid-js history
 ```
 
 ## Quick Example
 
 ```tsx
-import { createRoute, createRouter } from '@effector/router';
+import { createRoute, createRouter, historyAdapter } from '@effector/router';
+import { createBrowserHistory } from 'history';
 import {
   RouterProvider,
   createRouteView,
@@ -38,11 +39,12 @@ import {
 } from '@effector/router-solid';
 
 // 1. Create routes
-const homeRoute = createRoute({ path: '/home' });
+const homeRoute = createRoute({ path: '/' });
 const aboutRoute = createRoute({ path: '/about' });
 
 // 2. Create router
 const router = createRouter({ routes: [homeRoute, aboutRoute] });
+router.setHistory(historyAdapter(createBrowserHistory()));
 
 // 3. Bind routes to components
 const HomeScreen = createRouteView({

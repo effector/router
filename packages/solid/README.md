@@ -13,13 +13,14 @@ Only the current major of SolidJS (**1.x**) is supported.
 ## Install
 
 ```bash
-npm install @effector/router-solid @effector/router effector effector-solid solid-js
+npm install @effector/router-solid @effector/router effector effector-solid solid-js history
 ```
 
 ## Quick start
 
 ```tsx
-import { createRoute, createRouter } from '@effector/router';
+import { createRoute, createRouter, historyAdapter } from '@effector/router';
+import { createBrowserHistory } from 'history';
 import {
   RouterProvider,
   createRouteView,
@@ -27,10 +28,11 @@ import {
   Link,
 } from '@effector/router-solid';
 
-// 1. Routes + router (see @effector/router for history setup)
+// 1. Routes + router
 const home = createRoute({ path: '/' });
 const about = createRoute({ path: '/about' });
 const router = createRouter({ routes: [home, about] });
+router.setHistory(historyAdapter(createBrowserHistory()));
 
 // 2. Bind each route to a component
 const HomeScreen = createRouteView({
