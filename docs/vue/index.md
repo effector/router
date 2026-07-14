@@ -54,5 +54,5 @@ plugin at the app root when you need a forked scope:
 ```ts
 import { EffectorScopePlugin } from 'effector-vue';
 
-app.use(EffectorScopePlugin, { scope });
+app.use(EffectorScopePlugin({ scope }));
 ```

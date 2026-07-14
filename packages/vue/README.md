@@ -106,7 +106,7 @@ its scope plugin in your app (or tests) to run inside a forked scope:
 ```ts
 import { EffectorScopePlugin } from 'effector-vue';
 
-app.use(EffectorScopePlugin, { scope });
+app.use(EffectorScopePlugin({ scope }));
 ```
 
 ## Documentation

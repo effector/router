@@ -4,7 +4,7 @@ Audit scope: `packages/vue/README.md`, `packages/vue/package.json`, every page i
 
 ## Актуализация документации
 
-- [ ] Fix the fork-scope plugin setup in both `packages/vue/README.md` and `docs/vue/index.md`. They show `app.use(EffectorScopePlugin, { scope })`, but `effector-vue@23.1.1` exposes `EffectorScopePlugin(config): Plugin`; the documented call treats the factory itself as a Vue function plugin and leaves `app.config.globalProperties.scopeName` unset. Use `app.use(EffectorScopePlugin({ scope }))`. The current suite avoids the public plugin by defining a different local `EffectorScopePlugin(scope)` helper, so add a test for the exact documented setup.
+- [x] Fix the fork-scope plugin setup in both `packages/vue/README.md` and `docs/vue/index.md`. They show `app.use(EffectorScopePlugin, { scope })`, but `effector-vue@23.1.1` exposes `EffectorScopePlugin(config): Plugin`; the documented call treats the factory itself as a Vue function plugin and leaves `app.config.globalProperties.scopeName` unset. Use `app.use(EffectorScopePlugin({ scope }))`. The current suite avoids the public plugin by defining a different local `EffectorScopePlugin(scope)` helper, so add a test for the exact documented setup.
 
 - [ ] Correct the route-params example in `packages/vue/README.md`. `useUnit(userRoute.$params)` returns a Vue `Ref`, so `const { id } = useUnit(...)` attempts to take `id` from the ref object rather than from its value. Keep the ref (`const params = useUnit(...)`) and rely on template unwrapping, or derive `id` from `params.value`. Add a typechecked documentation example; none of the four Vue tests reads route stores directly through `useUnit`.
 

@@ -8,7 +8,8 @@ import {
 } from '@effector/router';
 import { createMemoryHistory } from 'history';
 import { flushPromises, mount } from '@vue/test-utils';
-import { defineComponent, h, type Plugin } from 'vue';
+import { defineComponent, h } from 'vue';
+import { createRequire } from 'node:module';
 import {
   createLazyRouteView,
   createRouteView,
@@ -18,16 +19,12 @@ import {
   withLayout,
 } from '../lib';
 
-// effector-vue reads the forked scope from a provide() keyed by the value stored
-// in `globalProperties.scopeName`. This tiny plugin wires that up for tests.
-function EffectorScopePlugin(scope: Scope): Plugin {
-  return {
-    install(app) {
-      app.config.globalProperties.scopeName = 'root';
-      app.provide('root', scope);
-    },
-  };
-}
+// effector-vue@23.1.1's native ESM entry imports a Vue 2-style default export,
+// which Vitest cannot load with Vue 3. The package's CJS entry exposes the same
+// public factory and lets this test exercise the documented plugin setup.
+const { EffectorScopePlugin } = createRequire(import.meta.url)(
+  'effector-vue',
+) as typeof import('effector-vue');
 
 function mountRoutes(
   router: Router,
@@ -38,7 +35,7 @@ function mountRoutes(
     props: { router },
     slots: { default: () => h(RoutesView) },
     global: {
-      plugins: [EffectorScopePlugin(scope)],
+      plugins: [EffectorScopePlugin({ scope })],
     },
   });
 }
