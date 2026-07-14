@@ -26,7 +26,7 @@ Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-rel
 
 - [ ] #23 Docs: nested routes with params propagation
 - [x] #24 Docs: mapping trackQuery result into a store
-- [ ] #25 Docs: observing route navigation and applied params
+- [x] #25 Docs: observing route navigation and applied params
 
 ## Модификация поведения
 
