@@ -16,7 +16,7 @@ Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-rel
 
 - [x] Fix non-compiling `chainRoute` examples. `createRoute<{ userId: string }>({ path: '/user/:userId' })` supplies an object where the first generic is the path string; rely on path inference instead. The `loadUserDataFx.doneData` example also treats the returned data as an Effector `done` payload and reads `.result`, although `doneData` already is the result.
 
-- [ ] Correct the `group` API and examples. The implementation accepts both `Route` and `VirtualRoute`, but the documented signature only accepts `Route[]`. Conversely, the basic example calls `.close()` on `createRoute` results even though `close` is not public. Demonstrate closure through router navigation for normal routes, or use virtual routes in the manual-close example.
+- [x] Correct the `group` API and examples. The implementation accepts both `Route` and `VirtualRoute`, but the documented signature only accepts `Route[]`. Conversely, the basic example calls `.close()` on `createRoute` results even though `close` is not public. Demonstrate closure through router navigation for normal routes, or use virtual routes in the manual-close example.
 
 - [ ] Repair the custom-adapter examples in `docs/core/adapters.md`. Several adapters treat a string `To` as a pathname even though the same page defines it as a full `pathname?search#hash` value. The React Native and Electron `replace` examples call `this.push` from arrow functions, and the location-maintenance example assigns `this.location` from an arrow function; these snippets are not valid implementations. Factor a shared local `navigate`/`updateLocation` function and parse string targets consistently.
 

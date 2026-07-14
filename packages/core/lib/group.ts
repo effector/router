@@ -8,17 +8,16 @@ import { not, or } from 'patronum';
  * @link https://router.effector.dev/core/group.html
  * @returns VirtualRoute
  * @example ```ts
- * import { group, createRoute } from '@effector/router';
- * import { createEvent, createEffect } from 'effector';
+ * import { group, createVirtualRoute } from '@effector/router';
  *
- * const signInRoute = createRoute({ path: '/auth/sign-in' });
- * const signUpRoute = createRoute({ path: '/auth/sign-up' });
+ * const signInRoute = createVirtualRoute();
+ * const signUpRoute = createVirtualRoute();
  * const authorizationRoute = group([signInRoute, signUpRoute]);
  *
  * signInRoute.open(); // authorizationRoute.$isOpened —> true
  * signUpRoute.open(); // authorizationRoute.$isOpened —> true
- * signInRoute.close(); // authorizationRoute.$isOpened —> true
- * signUpRoute.close(); // authorizationRoute.$isOpened —> false
+ * signInRoute.close(); // authorizationRoute.$isOpened —> true (signUpRoute is still open)
+ * signUpRoute.close(); // authorizationRoute.$isOpened —> false (all routes are closed)
  * ```
  */
 export function group(routes: (Route<any> | VirtualRoute<any, any>)[]) {

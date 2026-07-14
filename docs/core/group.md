@@ -5,14 +5,16 @@ Create a virtual route that opens when any of the passed routes is opened, and c
 ## API
 
 ```typescript
-function group(routes: Route<any>[]): VirtualRoute;
+function group(
+  routes: Array<Route<any> | VirtualRoute<any, any>>,
+): VirtualRoute;
 ```
 
 ### Parameters
 
-| Parameter | Type           | Description                       |
-| --------- | -------------- | --------------------------------- |
-| `routes`  | `Route<any>[]` | Array of routes to group together |
+| Parameter | Type                                          | Description                                |
+| --------- | --------------------------------------------- | ------------------------------------------ |
+| `routes`  | `Array<Route<any> \| VirtualRoute<any, any>>` | Path, pathless, or virtual routes to group |
 
 ### Returns
 
@@ -23,10 +25,10 @@ function group(routes: Route<any>[]): VirtualRoute;
 ### Basic Example
 
 ```ts
-import { group, createRoute } from '@effector/router';
+import { group, createVirtualRoute } from '@effector/router';
 
-const signInRoute = createRoute({ path: '/auth/sign-in' });
-const signUpRoute = createRoute({ path: '/auth/sign-up' });
+const signInRoute = createVirtualRoute();
+const signUpRoute = createVirtualRoute();
 const authorizationRoute = group([signInRoute, signUpRoute]);
 
 signInRoute.open(); // authorizationRoute.$isOpened → true
@@ -34,6 +36,8 @@ signUpRoute.open(); // authorizationRoute.$isOpened → true
 signInRoute.close(); // authorizationRoute.$isOpened → true (signUpRoute still open)
 signUpRoute.close(); // authorizationRoute.$isOpened → false (all closed)
 ```
+
+Regular routes do not expose a public `close()` method. Their open state follows router navigation, as shown in the examples below. Use virtual routes when the grouped states must be opened and closed manually.
 
 ### Guard Multiple Routes
 
