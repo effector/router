@@ -11,8 +11,6 @@ import type { z, ZodType } from 'zod/v4';
 import type { Builder, Parser } from '@effector/router-paths';
 import type { RouterAdapter } from './adapters';
 
-export type AsyncBundleImport = () => Promise<{ default: any }>;
-
 export type Query = Record<string, string | null | Array<string | null>>;
 
 export interface PathlessRoute<T extends object | void = void> {
@@ -177,8 +175,6 @@ export interface InternalRouteParams<T> {
     InternalOpenedPayload<T>,
     Error
   >;
-
-  setAsyncImport: (value: AsyncBundleImport) => void;
 }
 
 export interface InternalPathlessRoute<

@@ -1,6 +1,6 @@
 import { allSettled, fork } from 'effector';
 import { Provider } from 'effector-solid';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { render } from '@solidjs/testing-library';
 import { createRoute, createRouter, historyAdapter } from '@effector/router';
 import { createMemoryHistory } from 'history';
@@ -14,6 +14,34 @@ import {
 } from '../lib';
 
 describe('solid bindings', () => {
+  test('lazy import starts on render and exposes Suspense fallback', async () => {
+    let resolve!: (module: { default: () => JSX.Element }) => void;
+    const route = createRoute({ path: '/lazy' });
+    const importer = vi.fn(
+      () =>
+        new Promise<{ default: () => JSX.Element }>((done) => (resolve = done)),
+    );
+    const lazyView = createLazyRouteView({
+      route,
+      view: importer,
+      fallback: () => <p id="lazy">loading</p>,
+    });
+
+    expect(importer).not.toHaveBeenCalled();
+
+    const View = lazyView.view;
+    const { container } = render(() => <View />);
+
+    expect(importer).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('#lazy')?.textContent).toBe('loading');
+
+    resolve({ default: () => <p id="lazy">loaded</p> });
+
+    await vi.waitFor(() =>
+      expect(container.querySelector('#lazy')?.textContent).toBe('loaded'),
+    );
+  });
+
   test('component changes when path changes', async () => {
     const route1 = createRoute({ path: '/app' });
     const route2 = createRoute({ path: '/faq' });

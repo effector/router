@@ -3,12 +3,13 @@ import { Provider } from 'effector-react';
 import {
   createRoutesView,
   createRouteView,
+  createLazyRouteView,
   Link,
   RouterProvider,
   withLayout,
 } from '../lib';
 import { act, ReactNode } from 'react';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import {
   chainRoute,
   createRoute,
@@ -16,10 +17,36 @@ import {
   historyAdapter,
 } from '@effector/router';
 import { createMemoryHistory } from 'history';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 describe('react bindings', () => {
+  test('lazy import starts on render and exposes Suspense fallback', async () => {
+    let resolve!: (module: { default: () => ReactNode }) => void;
+    const route = createRoute({ path: '/lazy' });
+    const importer = vi.fn(
+      () =>
+        new Promise<{ default: () => ReactNode }>((done) => (resolve = done)),
+    );
+    const lazyView = createLazyRouteView({
+      route,
+      view: importer,
+      fallback: () => <p data-testid="lazy">loading</p>,
+    });
+
+    expect(importer).not.toHaveBeenCalled();
+
+    const View = lazyView.view;
+    const { getByTestId } = render(<View />);
+
+    expect(importer).toHaveBeenCalledTimes(1);
+    expect(getByTestId('lazy').textContent).toBe('loading');
+
+    resolve({ default: () => <p data-testid="lazy">loaded</p> });
+
+    await waitFor(() => expect(getByTestId('lazy').textContent).toBe('loaded'));
+  });
+
   test('component changed when path changed', async () => {
     const route1 = createRoute({ path: '/app' });
     const route2 = createRoute({ path: '/faq' });

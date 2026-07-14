@@ -3,24 +3,16 @@ import {
   createEvent,
   createStore,
   sample,
-  type Effect,
   type EventCallable,
   type Unit,
 } from 'effector';
-import type {
-  OpenPayloadBase,
-  Route,
-  RouteOpenedPayload,
-  VirtualRoute,
-} from './types';
+import type { Route, RouteOpenedPayload, VirtualRoute } from './types';
 import { createVirtualRoute } from './create-virtual-route';
 import { createAttemptCoordinator } from './transition-attempt';
 
 type BeforeOpenUnit<T extends object | void = void> =
-  | (T extends void
-      ? EventCallable<void> | EventCallable<OpenPayloadBase>
-      : EventCallable<{ params: T } & OpenPayloadBase>)
-  | Effect<RouteOpenedPayload<T>, any>;
+  | ((payload: RouteOpenedPayload<T>) => unknown)
+  | ((payload: void) => unknown);
 
 export interface ChainRouteProps<T extends object | void = void> {
   route: Route<T> | VirtualRoute<RouteOpenedPayload<T>, T>;

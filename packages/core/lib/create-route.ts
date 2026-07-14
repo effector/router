@@ -6,7 +6,6 @@ import {
   type Effect,
 } from 'effector';
 import type {
-  AsyncBundleImport,
   InternalRoute,
   PathlessRoute,
   PathRoute,
@@ -70,8 +69,6 @@ export function createRoute<Params>(
     | WithBaseRouteConfig
     | CreateRouteConfig<any> = {} as WithBaseRouteConfig,
 ): PathRoute<any> | PathlessRoute<any> {
-  let asyncImport: AsyncBundleImport;
-
   const beforeOpen = config.beforeOpen ?? [];
 
   // Opening a path route is a navigation intent. Preparation starts only
@@ -115,8 +112,6 @@ export function createRoute<Params>(
 
   const closed = createEvent();
 
-  const waitForAsyncBundleFx = createEffect(() => asyncImport?.());
-
   const beforeOpenFx = createEffect(async () => {
     for (const fx of beforeOpen) {
       await fx();
@@ -125,7 +120,6 @@ export function createRoute<Params>(
 
   const prepareFx = createEffect(
     async (attempt: { id: number; payload: OpenPayload }) => {
-      await waitForAsyncBundleFx();
       await beforeOpenFx();
 
       return attempt;
@@ -270,8 +264,6 @@ export function createRoute<Params>(
       close,
       openFx,
       forceOpenParentFx,
-
-      setAsyncImport: (value: AsyncBundleImport) => (asyncImport = value),
     },
 
     '@@unitShape': () => ({

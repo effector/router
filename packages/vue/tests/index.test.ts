@@ -1,5 +1,5 @@
 import { allSettled, fork, type Scope } from 'effector';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import {
   createRoute,
   createRouter,
@@ -43,6 +43,42 @@ function mountRoutes(
 }
 
 describe('vue bindings', () => {
+  test('lazy import starts on render and exposes loading component', async () => {
+    type LazyModule = {
+      default: ReturnType<typeof defineComponent>;
+      __esModule: true;
+    };
+    let resolve!: (module: LazyModule) => void;
+    const route = createRoute({ path: '/lazy' });
+    const importer = vi.fn(
+      () => new Promise<LazyModule>((done) => (resolve = done)),
+    );
+    const fallback = defineComponent({
+      setup: () => () => h('p', { id: 'lazy' }, 'loading'),
+    });
+    const loaded = defineComponent({
+      setup: () => () => h('p', { id: 'lazy' }, 'loaded'),
+    });
+    const lazyView = createLazyRouteView({
+      route,
+      view: importer,
+      fallback,
+    });
+
+    expect(importer).not.toHaveBeenCalled();
+
+    const wrapper = mount(lazyView.view);
+    await flushPromises();
+
+    expect(importer).toHaveBeenCalledTimes(1);
+    expect(wrapper.find('#lazy').text()).toBe('loading');
+
+    resolve({ default: loaded, __esModule: true });
+    await flushPromises();
+
+    expect(wrapper.find('#lazy').text()).toBe('loaded');
+  });
+
   test('lazy route view accepts a nested router', () => {
     const childRoute = createRoute({ path: '/child' });
     const nestedRouter = createRouter({ routes: [childRoute] });

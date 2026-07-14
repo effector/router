@@ -1,6 +1,5 @@
 import { lazy, Suspense } from 'react';
 import type { CreateLazyRouteViewProps, RouteView } from './types';
-import type { InternalRoute } from '@effector/router';
 
 /**
  * @description Creates Lazy route view with async bundle load
@@ -29,7 +28,6 @@ import type { InternalRoute } from '@effector/router';
 export function createLazyRouteView<T extends object | void = void>(
   props: CreateLazyRouteViewProps<T>,
 ): RouteView {
-  (props.route as InternalRoute<T>).internal.setAsyncImport(props.view);
   const View = lazy(props.view);
   const { layout: Layout, fallback: Fallback = () => <></> } = props;
 
