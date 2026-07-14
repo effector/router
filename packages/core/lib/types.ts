@@ -81,7 +81,7 @@ export type RouteOpenedPayload<T> = T extends void
   : { params: T } & OpenPayloadBase;
 
 export type NavigatePayload = {
-  query: Query;
+  query?: Query;
   path?: string;
   replace?: boolean;
 };

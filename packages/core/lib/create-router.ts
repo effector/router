@@ -17,6 +17,11 @@ import { compile } from '@effector/router-paths';
 import { createRouterControls } from './create-router-controls';
 import { createAction } from 'effector-action';
 import { is } from './utils';
+import {
+  type InternalNavigatePayload,
+  type InternalRouterControls,
+  navigationKind,
+} from './navigation';
 
 type InputRoute =
   | PathRoute<any>
@@ -80,6 +85,8 @@ const inputIs = {
  */
 export function createRouter(config: RouterConfig): Router {
   const { base = '/', routes } = config;
+  const controls = (config.controls ??
+    createRouterControls()) as InternalRouterControls;
   const {
     $path,
     $query,
@@ -89,7 +96,7 @@ export function createRouter(config: RouterConfig): Router {
     navigate,
     setHistory,
     locationUpdated,
-  } = config.controls ?? createRouterControls();
+  } = controls;
 
   function getPathWithBase(path: string) {
     if (base === '/') {
@@ -157,6 +164,8 @@ export function createRouter(config: RouterConfig): Router {
       build,
       parse,
     };
+
+    controls.internal.registerRoute(inputRoute, parse);
 
     return route;
   }
@@ -232,13 +241,21 @@ export function createRouter(config: RouterConfig): Router {
           return;
         }
 
-        const navigateParams = {
+        const navigateParams: InternalNavigatePayload = {
           path: build(
             payload && 'params' in payload ? payload.params : undefined,
           ),
           query: payload?.query ?? {},
           replace: payload?.replace,
         };
+
+        const internalPayload = payload as
+          | Record<PropertyKey, unknown>
+          | undefined;
+
+        if (internalPayload?.[navigationKind] === 'redirect') {
+          navigateParams[navigationKind] = 'redirect';
+        }
 
         return target.navigate(navigateParams);
       },
