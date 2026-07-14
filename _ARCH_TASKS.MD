@@ -35,7 +35,7 @@
 
 - [x] Сделать README и quick start запускаемыми: показать обязательную инициализацию history/adapter и полный набор импортов.
 - [x] Добавить отсутствующие Solid API pages и исправить мёртвые `@link`; описать текущие сигнатуры, accessor-правила, provider errors, lazy/fallback, layouts и публичные hooks.
-- [ ] Исправить описание `useLink`: он возвращает `{ path, onOpen }`, где accessor только `path`, а params передаются accessor-ом.
+- [x] Исправить описание `useLink`: он возвращает `{ path, onOpen }`, где accessor только `path`, а params передаются accessor-ом.
 
 ### Vue
 

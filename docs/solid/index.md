@@ -17,8 +17,7 @@ is supported.
 - **Reactive helpers** - Access router state as Solid accessors
 - **Layouts** - Wrap multiple routes with shared layouts
 
-Unlike the React binding, reactive helpers (`useLink`, `useIsOpened`, `useOpenedViews`) return Solid
-**accessors** (`() => value`) instead of plain values.
+Unlike the React binding, `useIsOpened` and `useOpenedViews` return Solid accessors (`() => value`). `useLink` returns `{ path, onOpen }`: `path` is an accessor, `onOpen` is a callable Effector event, and the params argument is also an accessor.
 
 ## Installation
 

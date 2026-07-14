@@ -79,8 +79,7 @@ const UserScreen = createRouteView({
 - `withLayout` — share a layout across routes.
 - `Outlet`, `useRouter`, `useIsOpened`, `useOpenedViews` — composition helpers.
 
-Unlike the React binding, reactive helpers (`useLink`, `useIsOpened`, `useOpenedViews`) return Solid
-**accessors** (`() => value`) instead of plain values.
+Unlike the React binding, `useIsOpened` and `useOpenedViews` return Solid accessors (`() => value`). `useLink` returns `{ path, onOpen }`: `path` is an accessor, `onOpen` is a callable Effector event, and the params argument is also an accessor.
 
 ## Documentation
 

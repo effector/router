@@ -17,7 +17,7 @@ Scope audited: `packages/solid/README.md`, `packages/solid/package.json`, all of
   - Cover the actual signatures, accessor usage, provider requirement, errors, route parameters, `query`/`replace` and native anchor behavior, fallback/lazy behavior, layouts, nested routes, and router-backed views. Add `useRouterContext` to the reference or stop exporting it publicly (`packages/solid/lib/index.ts:6`).
   - Test gap: add a docs link checker (including source-code `@link` URLs) and type-check executable snippets against the package entry point.
 
-- [ ] Correct the accessor wording for `useLink` in both overview documents.
+- [x] Correct the accessor wording for `useLink` in both overview documents.
   - `packages/solid/README.md:80-81` and `docs/solid/index.md:20-21` say `useLink`, `useIsOpened`, and `useOpenedViews` return accessors.
   - In fact `useIsOpened` and `useOpenedViews` directly return accessors, but `useLink` returns an object `{ path, onOpen }`; only `path` is an accessor (`packages/solid/lib/use-link.ts:12-35`). Document the exact call shape, including that the second argument is a params accessor rather than a params object.
   - Test gap: current tests exercise `Link`'s rendered `href`, but never call `useLink` directly or verify that changing its params accessor recomputes `path` (`packages/solid/tests/index.test.tsx:58-81`).
