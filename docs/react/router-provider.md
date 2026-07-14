@@ -63,7 +63,8 @@ React components to render:
 For SSR or testing, wrap with Effector's Provider:
 
 ```tsx
-import { fork, Provider } from 'effector-react';
+import { fork } from 'effector';
+import { Provider } from 'effector-react';
 import { RouterProvider } from '@effector/router-react';
 
 function App() {

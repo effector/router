@@ -6,7 +6,7 @@ Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files 
 
 - [ ] Rewrite the `useRouter` page around the actual unit shape. `useRouter()` calls `useUnit(router)`, and the router's `@@unitShape` returns `{ query, path, activeRoutes, onBack, onForward, onNavigate }`. The docs instead claim it returns the router object with `$path`, `$query`, `$activeRoutes`, `back`, `forward`, and `navigate`. Document the real names/values (or change the unit shape/API), and add direct hook tests for both `useRouter` and `useRouterContext`.
 
-- [ ] Fix the Effector scope import in `docs/react/router-provider.md`. The example imports `fork` from `effector-react`, but `fork` is exported by `effector`; only `Provider` comes from `effector-react`. Typecheck the complete setup snippet.
+- [x] Fix the Effector scope import in `docs/react/router-provider.md`. The example imports `fork` from `effector-react`, but `fork` is exported by `effector`; only `Provider` comes from `effector-react`. Typecheck the complete setup snippet.
 
 - [ ] Replace the misleading lazy-loading/preloading section. Route opening already waits for the registered dynamic import before the route becomes opened; the documented `beforeOpen` effect that calls `profileRoute.open()` recursively opens the same route and is not a valid preload pattern. Explain when the import starts, what `$isPending` does, and whether the Suspense fallback is observable in normal navigation; add timing/fallback tests.
 

@@ -21,7 +21,7 @@
 
 ### React
 
-- [ ] Исправить импорт `fork` в `router-provider.md`: `fork` экспортируется из `effector`, `Provider` — из `effector-react`.
+- [x] Исправить импорт `fork` в `router-provider.md`: `fork` экспортируется из `effector`, `Provider` — из `effector-react`.
 - [ ] Исправить generic в `use-link.md`: параметры должны выводиться из шаблона пути, а не передаваться объектом вместо path-generic.
 - [ ] Переписать active-tabs пример: вынести `useIsOpened` из `map` в отдельный компонент и соблюдать Rules of Hooks.
 - [ ] Документировать уже поддерживаемый eager `RouteView` с вложенным `Router`; не распространять утверждение на lazy-вариант до решения его контракта.
