@@ -1,6 +1,6 @@
 # ☄️ effector/router
 
-The most latest documentation published at [router.effector.dev](https://router.effector.dev)
+The latest documentation is published at [router.effector.dev](https://router.effector.dev).
 
 A type-safe, framework-agnostic router built on top of [Effector](https://effector.dev). This repository is a
 [pnpm](https://pnpm.io) monorepo that hosts the core router and its framework bindings.
@@ -21,6 +21,9 @@ A type-safe, framework-agnostic router built on top of [Effector](https://effect
 Full documentation is published at [router.effector.dev](https://router.effector.dev). Each package also
 has its own README: [core](packages/core), [paths](packages/paths), [react](packages/react),
 [react-native](packages/react-native), [solid](packages/solid), and [vue](packages/vue).
+
+The composable navigation lifecycle and its design rationale are recorded in the
+[navigation lifecycle RFC](NAVIGATION_LIFECYCLE_RFC.md).
 
 ## Contributing
 

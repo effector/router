@@ -1,6 +1,6 @@
 # Navigation lifecycle RFC
 
-Status: implemented on `sovax/minimal-navigation-lifecycle`.
+Status: implemented on `sovax/minimal-navigation-lifecycle` on 2026-07-15.
 
 ## Goal
 
@@ -172,20 +172,23 @@ and adapter choice.
 - Repeated ordinary intent while held: ignored.
 - Repeated chained activation: latest activation wins.
 
-## Sequential implementation and rollout plan
+## Implementation and rollout record
 
-1. Add the private scope-local attempt coordinator and make route activation a
-   single confirmed-location pipeline. Lock the one-`beforeOpen` invariant with
-   a regression test.
-2. Add optional adapter blocking and implement `beforeNavigate` in controls.
-   Cover proceed, cancel, multiple holds, POP, ignored intents, and redirect.
-3. Implement the clock-less `redirect` target and internal redirect ancestry.
-4. Rebuild `chainRoute` around the same coordinator with pending, auto-open,
-   error/cancel, parent close, and stale-result tests.
-5. Remove the core lazy-import hook; verify fallback timing in React, Solid, and
-   Vue.
-6. Publish the migration documentation and package changesets; run full lint,
-   typecheck, tests, package builds, and docs build.
+1. [x] Added the private scope-local attempt coordinator and a single
+       confirmed-location activation pipeline. Regression coverage locks one
+       deprecated `beforeOpen` run per activation (`17564b0`, `be6bb85`).
+2. [x] Added optional adapter blocking and `beforeNavigate`, covering proceed,
+       cancel, multiple holds, POP, ignored intents, and redirect (`e3c635d`).
+3. [x] Added the clock-less `redirect` target with dynamic payloads and bounded
+       redirect ancestry (`e3c635d`).
+4. [x] Rebuilt `chainRoute` with pending, auto-open, explicit open/cancel,
+       parent-close cancellation, Effect failure, and take-latest behavior
+       (`aa090f0`, `9dc00ed`).
+5. [x] Removed the core lazy-import hook and verified render-time fallback
+       behavior in React, Solid, and Vue (`28ea09a`).
+6. [x] Published migration/reference documentation and a changeset for core,
+       React, Solid, and Vue (`4200e69`). Full lint, typecheck, package tests,
+       package builds, and docs build pass on this branch.
 
 ## Non-goals
 

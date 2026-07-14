@@ -69,16 +69,14 @@ and query, then use it for `href` while keeping click navigation behavior.
 
 ## Follow-up checks
 
-### 6. Lazy fallback behavior needs an explicit browser contract
+### 6. Lazy fallback behavior has an explicit binding contract (resolved)
 
-The core route waits for the async bundle import before opening the route, and
-the Solid binding also wraps the component in `Suspense`. A browser test should
-define whether the fallback is expected during bundle loading or only during
-component rendering, then lock that behavior down. In the current consumer
-example, a direct deep-link to `/reports` can remain on the router fallback,
-while entering the same lazy route through client-side navigation renders it
-correctly. The E2E suite records the working client-navigation behavior and
-keeps direct-refresh coverage on a non-lazy nested route.
+Core no longer registers or waits for a framework importer. Solid starts the
+importer when the lazy view renders and exposes its configured `Suspense`
+fallback until the module resolves. Route/chained `$isPending` remains model
+readiness and does not represent chunk loading. The Solid package has a
+regression test for importer timing and fallback visibility; preload can reuse
+the importer through an ordinary application Effect.
 
 ### 7. Active-link styling is not part of `Link`
 

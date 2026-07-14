@@ -40,5 +40,5 @@ Scope audited: `packages/solid/README.md`, `packages/solid/package.json`, all of
 
 ## Verification snapshot
 
-- `pnpm :solid test` — passed: 2 test files, 8 tests.
-- No source or documentation files were changed by this audit; this checklist is the only Solid-phase output.
+- `pnpm :solid test` — passed: 2 test files, 9 tests, including render-time lazy import and observable Suspense fallback.
+- The lifecycle follow-up updated the Solid lazy binding/docs and added the fallback regression test; unrelated API gaps above remain open.

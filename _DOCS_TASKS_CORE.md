@@ -1,6 +1,6 @@
 # Core documentation tasks
 
-Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-related getting-started material, all files in `packages/core/lib/`, and all core tests. The core suite passes (48 tests) after building the local `@effector/router-paths` dependency.
+Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-related getting-started material, all files in `packages/core/lib/`, and all core tests. The core suite passes (66 tests) after building the local `@effector/router-paths` dependency.
 
 ## Актуализация документации
 
@@ -30,11 +30,11 @@ Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-rel
 
 ## Модификация поведения
 
-- [ ] Remove or implement `beforeOpen` for `createVirtualRoute`. `docs/core/create-virtual-route.md` lists `options.beforeOpen` and contains working-looking examples, but `VirtualRouteOptions` only supports `$isPending` and `transformer`, and the implementation never runs effects. Cover the chosen contract with a test.
+- [x] Remove or implement `beforeOpen` for `createVirtualRoute` — the unsupported option and examples were removed. `createVirtualRoute` remains independent derived/UI state; readiness is composed with ordinary Effector units or `chainRoute`.
 
 - [ ] Make nested-route parameter documentation match the type/runtime contract. `docs/core/create-route.md` says a child with `path: '/posts'` and parent `'/profile/:userId'` can be opened with `{ params: { userId } }`, but `createRoute` infers params only from the child's own path. Either include parent params in the child route type or rewrite the guide around the actual supported pattern; add a type/runtime test where the parameter exists only on the parent.
 
-- [ ] Align `NavigatePayload` across docs, declarations, and examples. Both `docs/core/create-router.md` and `docs/core/create-router-controls.md` mark `query` optional and show `navigate({ path })`, while `packages/core/lib/types.ts` requires `query`. Decide whether navigation may omit query; then update the public type, examples, and the two empty navigation tests in `router.test.ts`.
+- [x] Align `NavigatePayload` across docs, declarations, and examples — `query` is optional, and `navigate({ path })` preserves the current query. Public types, examples, and navigation tests now use the same contract.
 
 - [ ] Resolve the adapter `location` contract inconsistency. The guide requires `adapter.location` to stay synchronized and says omitted object fields have common fallbacks, but both built-in adapters expose an initial snapshot, and `historyAdapter` delegates partial-object behavior to `history` while `queryAdapter` supplies its own `/`/empty fallbacks. Define the intended contract, update implementation/docs, and test partial targets plus `adapter.location` after navigation.
 
@@ -44,20 +44,20 @@ Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-rel
 
 ### GitHub issues
 
-- [ ] #26 Expose pending state for chained routes
+- [x] #26 Expose pending state for chained routes — chained `$isPending` spans parent activation through chained open/cancel/close.
 - [ ] #28 Allow replace (not push) when trackQuery updates the query
 - [ ] #30 Reset scroll on history change
 - [ ] #31 Show error page when an effect fails on the page
-- [ ] #32 RFC: chainRoute API naming & composition (vs createVirtualRoute)
+- [x] #32 RFC: chainRoute API naming & composition (vs createVirtualRoute) — roles and composition are fixed in [`NAVIGATION_LIFECYCLE_RFC.md`](NAVIGATION_LIFECYCLE_RFC.md).
 - [ ] #34 RFC: Allow partial Route params updates
 - [ ] #37 Support navigating to external URLs
-- [ ] #39 RFC: block or confirm route transitions
+- [x] #39 RFC: block or confirm route transitions — `beforeNavigate` exposes Effector `started`, `proceed`, and `cancel` units before history commit.
 - [ ] #40 trackQuery: read/write mapping for non-primitive query params
-- [ ] #42 RFC: add `createTask` helper for `chainRoute`
+- [x] #42 RFC: add `createTask` helper for `chainRoute` — no new primitive; `chainRoute.beforeOpen` accepts existing callable events/effects.
 - [ ] #43 `route.$params` triggers whenever values of params actually not changed
-- [ ] #53 [Bug]: beforeOpen is called twice during link navigation
+- [x] #53 [Bug]: beforeOpen is called twice during link navigation — deprecated preparation runs once per confirmed route activation, with a regression test.
 - [ ] #56 [Bug]: routes never open without a fork scope - scopeBind throws inside openRoutesByPathFx and is silently swallowed
-- [ ] #61 redirect operator
+- [x] #61 redirect operator — implemented as `redirect({ to, replace? })`, a clock-less Effector target with bounded loop semantics.
 - [ ] #62 route.updated event with value-based deduplication
 - [ ] #63 router.initialized and router.updated lifecycle events
 - [ ] #64 routeNotFound option in createRouter

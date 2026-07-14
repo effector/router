@@ -1,6 +1,6 @@
 # Architecture, behavior, and documentation tasks
 
-Единый дедуплицированный чеклист по аудитам `core`, `paths`, React, React Native, Solid и Vue, а также по всем открытым GitHub issues на 2026-07-14. Пакетные `_DOCS_TASKS_*.md` остаются подробными исходными отчётами.
+Единый дедуплицированный чеклист по аудитам `core`, `paths`, React, React Native, Solid и Vue, а также по всем открытым GitHub issues на 2026-07-15. Пакетные `_DOCS_TASKS_*.md` остаются подробными исходными отчётами.
 
 Принцип группировки: пункты в разделе документации не требуют изменения публичного контракта. Всё, где возможны несколько долгосрочных вариантов поведения, находится в группе соответствующего архитектурного решения.
 
@@ -54,18 +54,18 @@
 
 ## Архитектурные решения
 
-### Решение 1. Единый lifecycle перехода: `beforeOpen`, tasks, pending, cancel, error и redirect
+### Решение 1. Единый lifecycle перехода: `beforeOpen`, tasks, pending, cancel, error и redirect — принято и реализовано
 
-Нужно решить, существует ли единый transition pipeline, какие стадии в нём публичны, как они композируются и что происходит при повторном/отменённом/ошибочном переходе. После этого один контракт должен использоваться обычными, virtual и chained routes и lazy bindings.
+Принята минимальная двухфазная модель: `beforeNavigate` удерживает переход до изменения history, обычный `Route` активируется после commit, `chainRoute` отвечает за post-commit readiness, а lazy import запускается binding-ом во время render. В API не добавляются отдельные `task`, `barrier`, `blocker`, `guard` или публичный transition object. Полный контракт и мотивация зафиксированы в [`NAVIGATION_LIFECYCLE_RFC.md`](NAVIGATION_LIFECYCLE_RFC.md).
 
-- [x] `[core]` Удалить документированный `beforeOpen` у `createVirtualRoute` либо реализовать его в `VirtualRouteOptions` и runtime; закрепить выбранный контракт тестом.
-- [x] #26 Expose pending state for chained routes — определить источник и длительность pending-состояния в общей lifecycle-модели.
-- [x] #32 RFC: chainRoute API naming & composition (vs createVirtualRoute) — определить роли и композицию `chainRoute`, `createVirtualRoute` и базового `Route`.
-- [x] #39 RFC: block or confirm route transitions — выбрать синхронную/асинхронную модель guard/confirmation и поведение history при отмене.
-- [x] #42 RFC: add `createTask` helper for `chainRoute` — решить, нужен ли отдельный task primitive или lifecycle должен принимать обычные Effector units/effects.
-- [x] #53 [Bug]: beforeOpen is called twice during link navigation — после фиксации lifecycle гарантировать один запуск preparation stage на один логический переход.
-- [x] #61 redirect operator — определить redirect как результат lifecycle, отдельный operator или обычную навигацию, включая loop/error semantics.
-- [x] `[react]` После решения lifecycle переписать lazy/preload guide: убрать рекурсивный `route.open()` из `beforeOpen`, описать момент dynamic import, `$isPending` и наблюдаемость Suspense fallback.
+- [x] `[core]` `createVirtualRoute` не получает `beforeOpen`: ошибочная опция удалена из документации, а readiness композируется через обычные Effector units или `chainRoute`.
+- [x] #26 Expose pending state for chained routes — `$isPending` активен от открытия parent route до открытия/отмены/закрытия chained route.
+- [x] #32 RFC: chainRoute API naming & composition (vs createVirtualRoute) — базовый `Route` представляет URL lifecycle, `VirtualRoute` — независимое derived/UI state, `chainRoute` — post-commit readiness.
+- [x] #39 RFC: block or confirm route transitions — `beforeNavigate` создаёт асинхронно управляемый hold с `started`, `proceed` и `cancel`; при отмене history и active routes не меняются.
+- [x] #42 RFC: add `createTask` helper for `chainRoute` — отдельный task primitive не вводится; `beforeOpen` принимает существующие callable Effector events/effects.
+- [x] #53 [Bug]: beforeOpen is called twice during link navigation — deprecated preparation запускается ровно один раз на подтверждённую активацию, включая link/`route.open()` navigation.
+- [x] #61 redirect operator — `redirect({ to, replace? })` реализован как clock-less Effector target с динамическим payload и ограничением redirect loops.
+- [x] `[react/solid/vue]` Lazy/preload guides описывают render-time dynamic import, различие chunk loading и route `$isPending`, наблюдаемый fallback и preload через общий importer без рекурсивного `route.open()`.
 
 ### Решение 2. Граница ответственности router core и UI/application layer
 
@@ -102,7 +102,7 @@
 
 Нужно определить допустимые targets и состояния до/после инициализации: обязательность query, актуальность `adapter.location`, внешние URL, not-found и публичные lifecycle events/types.
 
-- [x] `[core]` Решить, обязателен ли `NavigatePayload.query`; синхронизировать типы, docs и тесты `navigate({ path })`.
+- [x] `[core]` `NavigatePayload.query` опционален; `navigate({ path })` сохраняет текущий query, типы, docs и тесты синхронизированы.
 - [ ] `[core]` Зафиксировать контракт `RouterAdapter.location`, fallback для partial object targets и одинаковое поведение `historyAdapter`/`queryAdapter` после push/replace.
 - [ ] `[core]` Выбрать pre-initialization state `$path`: публичный `string | null` либо реальный начальный path вместо cast `null as string`.
 - [ ] `[core]` Определить публичность `PathRoute`, `PathlessRoute`, `RouterControls`, `LocationState`, `To`, `Subscription` и adapter options; экспортировать поддержанные типы либо убрать внутренние имена из reference.
@@ -124,11 +124,11 @@
 Нужно определить единый рекурсивный контракт `RouteView`: сохраняются ли `children` и metadata всеми transforms, поддерживается ли `Router` как target, сколько уровней рендерит `Outlet` и как выбирается победивший view.
 
 - [ ] #70 [Bug]: createLazyRouteView drops nested children — объединить с React-аудитом: либо гарантировать parity с `createRouteView` и сохранять `children`, либо убрать поле из lazy API/docs.
-- [x] `[react]` Поддержать lazy `Router` target либо сузить тип до `Route`; сейчас shared type разрешает `Router`, а runtime вызывает отсутствующий `setAsyncImport`.
+- [x] `[react]` Lazy `Router` target остаётся поддержанным: importer принадлежит binding render lifecycle, и runtime больше не вызывает отсутствующий core `setAsyncImport`.
 - [ ] `[react]` Реализовать рекурсивный `OutletContext` для multi-level Outlet либо явно ограничить nesting одним уровнем; синхронизировать пример и three-level test.
 - [ ] `[react/solid/vue]` Сохранять весь RouteView metadata в `withLayout` либо определить более узкий контракт transform; проверить parent/child Outlet после layout.
 - [ ] `[react]` Выбрать route-selection priority: declaration order или фактический open order; закрепить поведение при нескольких одновременно активных pathless/virtual routes.
-- [x] #33 Docs/tracking: dynamic chunks loading — после фиксации lazy-контракта описать chunk start/pending/fallback и добавить наблюдаемое tracking API или интеграционный рецепт.
+- [x] #33 Docs/tracking: dynamic chunks loading — chunk start/fallback документированы как binding render lifecycle; preload/tracking композируется обычным Effect вокруг общего importer без нового router API.
 - [ ] #73 [Bug]: React Native navigators ignore nested RouteView children and Outlet — определить, участвует ли RN в общем RouteView tree или принимает только плоский список screens.
 - [ ] `[solid]` Провайдер `OutletContext` должен спускаться на каждый выбранный child либо рекурсивный `children` type нужно сузить до реально поддерживаемой глубины.
 - [ ] `[vue]` Документировать и проверить eager/lazy nested Router, `children` и Outlet только после фиксации общей tree semantics.
@@ -166,9 +166,13 @@
 ## Контроль качества после принятия решений
 
 - [ ] Добавить единый docs-conformance pipeline: typecheck исполняемых snippets, проверка source `@link`/sidebar links и smoke tests для quick starts всех bindings.
-- [ ] Для core покрыть transition state machine, query round trips, adapter initialization/location, same-value updates, nested params, external/not-found и scope/global-scope сценарии.
+- [x] Для core покрыть transition state machine: proceed/cancel, несколько holds, повторный intent, POP, redirect, loop bound, one-shot preparation и take-latest chain readiness.
+- [ ] Для core покрыть оставшиеся query round trips, adapter initialization/location, same-value updates, nested params, external/not-found и scope/global-scope сценарии.
 - [ ] Для paths добавить table-driven runtime matrix и compile-time assertions для optional/range/cardinality/generic/full-URL случаев.
-- [ ] Для React покрыть hooks напрямую, native/modified Link navigation, lazy timing/fallback, nested routers, layouts и multi-level Outlet.
+- [x] Для React покрыть render-time lazy import и наблюдаемый Suspense fallback.
+- [ ] Для React покрыть hooks напрямую, native/modified Link navigation, lazy children, nested routers, layouts и multi-level Outlet.
 - [ ] Для React Native создать реальную test suite: factory render shape, ref/container integration, двусторонняя sync, back/gestures, tabs, names, params, options, scopes и cleanup.
-- [ ] Для Solid покрыть прямой `useLink`, reactive params, lazy fallback, layouts и one-/multi-level Outlet.
-- [ ] Для Vue покрыть public plugin setup, provider-free/error paths, hooks, Link types/native behavior, lazy resolution, nested priority/layouts и multi-level Outlet.
+- [x] Для Solid покрыть render-time lazy import и наблюдаемый Suspense fallback.
+- [ ] Для Solid покрыть прямой `useLink`, reactive params, layouts и one-/multi-level Outlet.
+- [x] Для Vue покрыть render-time lazy import и immediate loading component.
+- [ ] Для Vue покрыть provider-free/error paths, hooks, Link types/native behavior, nested priority/layouts и multi-level Outlet.

@@ -1,6 +1,6 @@
 # React binding documentation tasks
 
-Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files in `packages/react/lib/`, and all four React test files. The React suite passes (17 tests), but it does not exercise several APIs that have detailed documentation.
+Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files in `packages/react/lib/`, and all four React test files. The React suite passes (19 tests), but it does not exercise several APIs that have detailed documentation.
 
 ## Актуализация документации
 
@@ -8,7 +8,7 @@ Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files 
 
 - [x] Fix the Effector scope import in `docs/react/router-provider.md`. The example imports `fork` from `effector-react`, but `fork` is exported by `effector`; only `Provider` comes from `effector-react`. Typecheck the complete setup snippet.
 
-- [ ] Replace the misleading lazy-loading/preloading section. Route opening already waits for the registered dynamic import before the route becomes opened; the documented `beforeOpen` effect that calls `profileRoute.open()` recursively opens the same route and is not a valid preload pattern. Explain when the import starts, what `$isPending` does, and whether the Suspense fallback is observable in normal navigation; add timing/fallback tests.
+- [x] Replace the misleading lazy-loading/preloading section — core no longer owns the importer. The guide and regression test establish render-time import, observable Suspense fallback, model-only `$isPending`, and preload through an application Effect around the same importer.
 
 - [ ] Correct route selection terminology in `createRoutesView`. It renders `.at(-1)` from opened views in the original `routes` array order, not the route that opened most recently. Document declaration-order priority or track actual open order, with a test that opens multiple simultaneously active virtual/pathless routes in reverse order.
 
@@ -18,12 +18,12 @@ Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files 
 
 - [x] Do not call `useIsOpened` inside a loop in the active-tabs example. Hooks inside `tabs.map(...)` violate the Rules of Hooks. Extract a `Tab` component that calls the hook once at component top level.
 
-- [x] Document the supported nested-router RouteView use case. `RouteView.route` accepts a `Router`, `useOpenedViews` handles router activity, and the test suite devotes substantial coverage to nested routers, but the React API pages describe `route` only as a `createRoute` result. Add the supported pattern and clarify that it applies to eager route views, not the current lazy implementation.
+- [x] Document the supported nested-router RouteView use case. The eager API page now shows a `Router` target and nested routes view. Lazy `Router` safety was resolved separately by moving importer ownership entirely into the binding render lifecycle; see the completed lazy-target item below.
 
 ### GitHub issues
 
 - [x] Documentation part of #29 Docs: avoid full-page rerenders on route transitions — completed by `affea7a` with stable parent/`Outlet` guidance and a regression test. The GitHub issue remains open because `withLayout` still remounts the shared layout; see #57.
-- [ ] #33 Docs/tracking: dynamic chunks loading
+- [x] #33 Docs/tracking: dynamic chunks loading — chunk loading belongs to React render/Suspense; the guide includes an Effector preload/tracking recipe without recursive route navigation.
 
 ## Модификация поведения
 
@@ -33,7 +33,7 @@ Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files 
 
 - [ ] Preserve or stop documenting `children` in `createLazyRouteView`. `CreateLazyRouteViewProps` and the guide accept nested route views, but the implementation returns only `{ route, view }` and silently drops `children`, so `Outlet` cannot render them. Add parity tests with `createRouteView`.
 
-- [ ] Restrict lazy views to supported route targets. The shared prop type allows `Route | Router`, but `createLazyRouteView` casts the target to `InternalRoute` and calls `internal.setAsyncImport`, which a router does not provide. Either implement lazy router views or exclude `Router` from this API and document the distinction.
+- [x] Restrict lazy views to supported route targets — `Route | Router` remains supported. `createLazyRouteView` no longer calls route internals; the importer starts only when React renders the selected lazy view.
 
 - [ ] Implement or remove the documented multi-level `Outlet` example. `createRoutesView` provides context for the top-level view, but `Outlet` renders a selected child without providing a new `OutletContext` for that child's children. Existing tests cover one level only; add a three-level test matching the guide.
 
@@ -47,4 +47,4 @@ Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files 
 
 ## Контроль качества
 
-- [ ] Add documentation conformance coverage for currently untested public APIs: `useRouter`, `useRouterContext`, `useLink`, `useIsOpened`, lazy loading/fallback/children, layout preservation, multi-level outlets, Link query behavior under native navigation, and declaration-order priority.
+- [ ] Add documentation conformance coverage for currently untested public APIs: `useRouter`, `useRouterContext`, `useLink`, `useIsOpened`, lazy children, layout preservation, multi-level outlets, Link query behavior under native navigation, and declaration-order priority. Lazy import timing and Suspense fallback are covered.
