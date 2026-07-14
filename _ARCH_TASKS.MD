@@ -16,7 +16,7 @@
 - [x] Привести документацию `group` к текущему API: поддерживаются `Route` и `VirtualRoute`, но у обычного `Route` нет публичного `close()`.
 - [x] Починить примеры кастомных адаптеров: корректно разбирать строковый `To`, не использовать `this` из arrow-функций и поддерживать синхронное обновление location.
 - [x] Добавить обязательный `hash` в пример адаптера из `create-router-controls` и проверять пример через `satisfies RouterAdapter`.
-- [ ] #24 Docs: mapping trackQuery result into a store — показать прямое и типобезопасное отображение результата `trackQuery` в store без изменения API.
+- [x] #24 Docs: mapping trackQuery result into a store — показать прямое и типобезопасное отображение результата `trackQuery` в store без изменения API.
 - [ ] #25 Docs: observing route navigation and applied params — документировать существующие события и store для наблюдения за переходом и фактически применёнными параметрами.
 
 ### React
