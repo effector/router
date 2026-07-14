@@ -238,6 +238,20 @@ const mainRouter = createRouter({
 | `ownRoutes`     | `MappedRoute[]`                  | Routes owned by this router                                |
 | `knownRoutes`   | `MappedRoute[]`                  | All known routes (including nested)                        |
 
+## Shared controls configuration
+
+`controls` may be created with routes in a lower FSD layer. `createRouter`
+registers route matchers on that instance; the app then attaches history:
+
+```ts
+const router = createRouter({ routes: Object.values(routes), controls });
+controls.setHistory(historyAdapter(createBrowserHistory()));
+```
+
+This lets features use `beforeNavigate({ controls, ... })` without depending on
+the application router. Routes in `from`/`to` must be registered on a router
+using the same controls.
+
 ## Types
 
 ### NavigatePayload

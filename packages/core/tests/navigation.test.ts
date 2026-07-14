@@ -26,6 +26,23 @@ function createFixture(initialEntries = ['/']) {
 }
 
 describe('navigation operators', () => {
+  test('navigate path does not require query and preserves current query', async () => {
+    const { controls, router, history } = createFixture(['/?keep=yes']);
+    const scope = fork();
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+    await allSettled(controls.navigate, {
+      scope,
+      params: { path: '/sign-in' },
+    });
+
+    expect(history.location.pathname).toBe('/sign-in');
+    expect(history.location.search).toBe('?keep=yes');
+  });
+
   test('beforeNavigate holds and proceeds a matching transition', async () => {
     const { controls, routes, router, history } = createFixture();
     const transition = beforeNavigate({ controls, to: routes.protected });

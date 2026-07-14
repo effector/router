@@ -44,7 +44,7 @@ All routes have:
 
 - State stores: `$isOpened`, `$params`, `$isPending`
 - Events: `open`, `opened`, `closed`
-- Optional: `parent`, `beforeOpen`
+- Optional: `parent`; deprecated compatibility preparation: `beforeOpen`
 
 ### Router
 
@@ -92,7 +92,9 @@ profileRoute.open({ replace: true });
 
 - [createRoute](/core/create-route) - Create a route with path and parameters
 - [createVirtualRoute](/core/create-virtual-route) - Create a route without a path
-- [chainRoute](/core/chain-route) - Create routes with conditional navigation
+- [beforeNavigate](/core/before-navigate) - Hold or confirm before history changes
+- [redirect](/core/redirect) - Compose semantic route redirects
+- [chainRoute](/core/chain-route) - Derive post-commit route readiness
 
 ### Router Management
 

@@ -22,7 +22,7 @@ function createRoute<Params extends object | void = void>(
 | ------------ | ------------ | ------------------------------------------- |
 | `path`       | `string`     | Optional. URL path template with parameters |
 | `parent`     | `Route<any>` | Optional. Parent route for nesting          |
-| `beforeOpen` | `Effect[]`   | Optional. Effects to run before opening     |
+| `beforeOpen` | `Effect[]`   | Deprecated post-commit preparation Effects  |
 
 ### Returns
 
@@ -32,7 +32,7 @@ Returns either `PathRoute<T>` or `PathlessRoute<T>` depending on whether `path` 
 | ---------------- | -------------------------------------- | ------------------------------------------- |
 | `$params`        | `Store<T>`                             | Route parameters                            |
 | `$isOpened`      | `Store<boolean>`                       | Whether route (or its children) are opened  |
-| `$isPending`     | `Store<boolean>`                       | Whether beforeOpen effects are running      |
+| `$isPending`     | `Store<boolean>`                       | Deprecated route preparation is running     |
 | `open`           | `EventCallable<RouteOpenedPayload<T>>` | Open the route and its parents              |
 | `opened`         | `Event<RouteOpenedPayload<T>>`         | Fires when route opens (client or server)   |
 | `openedOnServer` | `Event<RouteOpenedPayload<T>>`         | Fires when opened on server (SSR)           |
@@ -40,7 +40,7 @@ Returns either `PathRoute<T>` or `PathlessRoute<T>` depending on whether `path` 
 | `closed`         | `Event<void>`                          | Fires when route closes                     |
 | `path`           | `string`                               | _PathRoute only_: The route's path template |
 | `parent`         | `Route<any>`                           | Optional. The parent route                  |
-| `beforeOpen`     | `Effect[]`                             | Optional. Before-open effects               |
+| `beforeOpen`     | `Effect[]`                             | Deprecated post-commit preparation Effects  |
 
 ## Usage
 
@@ -217,55 +217,25 @@ sample({
 childRoute.open();
 ```
 
-#### Parent beforeOpen Effects
+### Deprecated `beforeOpen`
+
+`createRoute({ beforeOpen })` is kept for compatibility. It runs exactly once
+after the history adapter confirms the new location. It is therefore not a
+transition guard: the URL has already changed when the Effect starts. If it
+fails, the route does not emit `opened`, while the Effect exposes its normal
+`fail`/`failData` events.
+
+For new code, derive readiness with `chainRoute`:
 
 ```ts
-import { createEffect } from 'effector';
-
-const checkAuthFx = createEffect(async () => {
-  return await verifyAuth();
-});
-
-const dashboardRoute = createRoute({
-  path: '/dashboard',
-  beforeOpen: [checkAuthFx],
-});
-
-const settingsRoute = createRoute({
-  path: '/settings',
-  parent: dashboardRoute, // Inherits checkAuthFx
-});
-
-// checkAuthFx runs before opening
-settingsRoute.open();
-```
-
-### Before Open Effects
-
-Run effects before a route opens:
-
-```ts
-import { createRoute } from '@effector/router';
-import { createEffect, sample } from 'effector';
-
-const loadUserFx = createEffect(async () => {
-  return await fetchUser();
-});
-
-const profileRoute = createRoute({
-  path: '/profile',
-  beforeOpen: [loadUserFx],
-});
-
-// loadUserFx executes, then route opens
-profileRoute.open();
-
-// Track loading state
-sample({
-  clock: profileRoute.$isPending,
-  fn: (isPending) => console.log('Loading:', isPending),
+const readyProfileRoute = chainRoute({
+  route: profileRoute,
+  beforeOpen: loadUserFx,
 });
 ```
+
+Use `readyProfileRoute.$isPending` for model preparation. To hold history before
+commit, use `beforeNavigate` instead.
 
 ### Open with Query Parameters
 
@@ -322,28 +292,20 @@ const route = createRoute({ path: '/user/:id<number>' });
 const route = createRoute({ path: '/user/:id' });
 ```
 
-### Use Parent for Shared Logic
+### Compose Shared Policy Outside Route Creation
 
-Extract common path prefixes and guards into parent routes:
+Use `parent` for path hierarchy. Compose authorization or confirmation from a
+shared controls instance:
 
 ```ts
-// ✅ Good: Shared auth guard
-const adminRoute = createRoute({
-  path: '/admin',
-  beforeOpen: [checkAdminAuthFx],
-});
-
+const adminRoute = createRoute({ path: '/admin' });
 const usersRoute = createRoute({ path: '/users', parent: adminRoute });
 const settingsRoute = createRoute({ path: '/settings', parent: adminRoute });
 
-// ❌ Bad: Duplicate guards
-const usersRoute = createRoute({
-  path: '/admin/users',
-  beforeOpen: [checkAdminAuthFx],
-});
-const settingsRoute = createRoute({
-  path: '/admin/settings',
-  beforeOpen: [checkAdminAuthFx],
+beforeNavigate({
+  controls,
+  to: [adminRoute, usersRoute, settingsRoute],
+  filter: $unauthorized,
 });
 ```
 
@@ -351,5 +313,6 @@ const settingsRoute = createRoute({
 
 - [createRouter](/core/create-router) - Create router with routes
 - [createVirtualRoute](/core/create-virtual-route) - Create virtual routes
-- [chainRoute](/core/chain-route) - Wrap routes with guards
+- [beforeNavigate](/core/before-navigate) - Hold transitions before history
+- [chainRoute](/core/chain-route) - Derive post-commit readiness
 - [@effector/router-paths](https://github.com/effector/router/tree/main/packages/router-paths) - Path parameter syntax

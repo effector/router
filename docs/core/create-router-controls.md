@@ -275,6 +275,9 @@ interface NavigatePayload {
 }
 ```
 
+When `path` or `query` is omitted, controls reuse the current value. Therefore
+`controls.navigate({ path: '/settings' })` preserves the current query.
+
 ## Query Type
 
 Query parameters are represented as:
@@ -304,19 +307,34 @@ Examples:
 
 ## Best Practices
 
-### Use createRouter Instead
+### Share Controls with Lower Layers
 
-For most applications, use [`createRouter`] which includes controls automatically:
+Create controls beside route declarations when feature models need to compose
+transition policy without importing the application router:
 
 ```ts
-// ✅ Recommended for most cases
-import { createRouter } from '@effector/router';
+// shared/routing
+export const controls = createRouterControls();
+export const routes = {
+  /* createRoute declarations */
+};
 
+// feature model
+export const leaveEditor = beforeNavigate({
+  controls,
+  from: routes.editor,
+  filter: $dirty,
+});
+
+// app/routing
 const router = createRouter({
-  routes: [...],
-  controls: createRouterControls(),
+  routes: Object.values(routes),
+  controls,
 });
 ```
+
+The app remains responsible for `setHistory`. See
+[Navigation lifecycle](/core/navigation-lifecycle).
 
 ### Initialize Early
 

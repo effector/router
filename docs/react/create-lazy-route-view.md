@@ -142,23 +142,32 @@ Lazy route views enable automatic code splitting - the component code is only lo
 // User navigates to profile → Profile component loads (50KB)
 ```
 
+The importer starts when the route view renders, not when `route.open()` is
+called. React `Suspense` can therefore commit the configured fallback while the
+chunk is loading. Route or chained `$isPending` represents model preparation;
+chunk loading is observed by the Suspense boundary.
+
 ## Preloading
 
-The route automatically registers the async import for preloading when using `beforeOpen` effects:
+Reuse one importer for rendering and an application-owned preload Effect:
 
 ```tsx
-import { createEffect } from 'effector';
+import { createEffect, sample } from 'effector';
 
-const preloadFx = createEffect(() => {
-  // This will trigger the lazy load
-  profileRoute.open();
+const importProfile = () => import('./components/ProfileComponent');
+const preloadProfileFx = createEffect(importProfile);
+
+export const ProfileScreen = createLazyRouteView({
+  route: profileRoute,
+  view: importProfile,
+  fallback: () => <ProfileSkeleton />,
 });
 
-const profileRoute = createRoute({
-  path: '/profile',
-  beforeOpen: [preloadFx],
-});
+sample({ clock: profileLinkHovered, target: preloadProfileFx });
 ```
+
+Do not call `route.open()` recursively from `beforeOpen`: it creates another
+navigation intent instead of preloading a chunk.
 
 ## See Also
 

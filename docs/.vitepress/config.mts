@@ -57,6 +57,12 @@ export default defineConfig({
             link: '/core/create-router-controls',
           },
           { text: 'Adapters', link: '/core/adapters' },
+          {
+            text: 'Navigation lifecycle',
+            link: '/core/navigation-lifecycle',
+          },
+          { text: 'beforeNavigate', link: '/core/before-navigate' },
+          { text: 'redirect', link: '/core/redirect' },
           { text: 'trackQuery', link: '/core/track-query' },
           { text: 'chainRoute', link: '/core/chain-route' },
           { text: 'group', link: '/core/group' },

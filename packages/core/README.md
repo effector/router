@@ -42,20 +42,22 @@ profile.$params.watch((p) => console.log('id:', p.id));
 - **Type-safe params** — `createRoute({ path: '/user/:id' })` infers `Route<{ id: string }>`.
 - **Routes as units** — each route exposes `$isOpened`, `$params`, `$isPending` stores and `open`/`opened`/`closed` events.
 - **Path & pathless routes** — `createRoute()` and `createVirtualRoute()` for modals, dialogs, and nested flows.
-- **Composable navigation** — `chainRoute` for guards/redirects, `group` for related routes, `trackQuery` for query params.
+- **Composable navigation** — `beforeNavigate` and `redirect` for pre-commit policy, `chainRoute` for post-commit readiness.
 
 ## Core API
 
-| Export                           | Purpose                                        |
-| -------------------------------- | ---------------------------------------------- |
-| `createRoute`                    | Route with a path and typed params.            |
-| `createVirtualRoute`             | Route without a path (modals, tabs, steps).    |
-| `createRouter`                   | Combine routes and bind them to history.       |
-| `createRouterControls`           | Build router controls separately.              |
-| `chainRoute`                     | Conditional navigation / guards / redirects.   |
-| `group`                          | Group related routes.                          |
-| `trackQuery`                     | Track and react to query parameters.           |
-| `historyAdapter`, `queryAdapter` | Connect the router to a history source.        |
+| Export                           | Purpose                                      |
+| -------------------------------- | -------------------------------------------- |
+| `createRoute`                    | Route with a path and typed params.          |
+| `createVirtualRoute`             | Route without a path (modals, tabs, steps).  |
+| `createRouter`                   | Combine routes and bind them to history.     |
+| `createRouterControls`           | Build router controls separately.            |
+| `beforeNavigate`                 | Hold or confirm navigation before history.   |
+| `redirect`                       | Semantic route redirect target for `sample`. |
+| `chainRoute`                     | Derive post-commit route readiness.          |
+| `group`                          | Group related routes.                        |
+| `trackQuery`                     | Track and react to query parameters.         |
+| `historyAdapter`, `queryAdapter` | Connect the router to a history source.      |
 
 ## Documentation
 

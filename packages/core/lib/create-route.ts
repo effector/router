@@ -19,6 +19,7 @@ import { createAttemptCoordinator } from './transition-attempt';
 
 type WithBaseRouteConfig<T = void> = T & {
   parent?: Route<any>;
+  /** @deprecated Use `chainRoute` for post-commit preparation. */
   beforeOpen?: Effect<void, any, any>[];
 };
 

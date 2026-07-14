@@ -96,12 +96,16 @@ The `group` function creates a virtual route that:
 
 This is useful for:
 
-- Protecting multiple routes with the same guard
 - Showing UI indicators for route sections
 - Tracking navigation state across related routes
+
+`group` is a derived virtual route, not a route-selection object for transition
+policy. Pass a path-route array to `beforeNavigate({ to: [...] })` when several
+routes share the same pre-commit rule.
 
 ## See Also
 
 - [createVirtualRoute](/core/create-virtual-route) - Create custom virtual routes
 - [createRoute](/core/create-route) - Create regular routes
 - [chainRoute](/core/chain-route) - Create sequential route chains
+- [beforeNavigate](/core/before-navigate) - Hold transitions to route arrays

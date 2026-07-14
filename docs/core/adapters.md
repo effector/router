@@ -254,6 +254,7 @@ interface RouterAdapter {
   goBack: () => void;
   goForward: () => void;
   listen: (callback: (location: RouterLocation) => void) => Subscription;
+  block?: (callback: (transition: RouterTransition) => void) => Subscription;
 }
 
 interface RouterLocation {
@@ -264,6 +265,11 @@ interface RouterLocation {
 
 type To = string | Partial<RouterLocation>;
 ```
+
+`block` is optional. It lets [`beforeNavigate`](/core/before-navigate) hold
+native POP transitions and supplies `{ action, location, retry }` to controls.
+Without it, router commands are still intercepted, but external browser
+back/forward cannot be held reliably.
 
 The custom adapter examples below use one helper to normalize both `To` forms. A string is parsed as a complete `pathname[?search][#hash]` target rather than treated as a pathname only:
 
@@ -749,6 +755,7 @@ interface RouterAdapter {
   goBack: () => void;
   goForward: () => void;
   listen: (callback: (location: RouterLocation) => void) => Subscription;
+  block?: (callback: (transition: RouterTransition) => void) => Subscription;
 }
 
 interface RouterLocation {
@@ -763,6 +770,9 @@ interface Subscription {
   unsubscribe: () => void;
 }
 ```
+
+The built-in `historyAdapter` and `queryAdapter` implement `block`. A custom
+adapter may omit it when the host platform cannot retry native transitions.
 
 ## See Also
 
