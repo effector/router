@@ -52,7 +52,7 @@
     "url": "https://github.com/effector/router/issues?q=is%3Aissue%20label%3Ascope%3Acore"
   },
   "peerDependencies": {
-    "effector": ">=23",
+    "effector": "catalog:peer",
     "effector-action": ">=1.2.2",
     "patronum": ">=2.2",
     "query-string": "^9.1.1",

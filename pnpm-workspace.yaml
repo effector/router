@@ -1,5 +1,18 @@
 packages:
   - 'packages/*'
   - 'docs'
+
+catalog:
+  query-string: ^9.3.1
+  vite: 7.3.2
+  vitepress: 1.6.4
+  vue: ^3.5.29
+
+catalogs:
+  peer:
+    effector: '>=23'
+    effector-react: '>=23'
+    react: '18 || 19'
+
 allowBuilds:
   esbuild: true

@@ -55,10 +55,10 @@
   },
   "dependencies": {
     "@effector/router": "workspace:^",
-    "query-string": "^9.3.1"
+    "query-string": "catalog:"
   },
   "peerDependencies": {
-    "effector": ">=23",
+    "effector": "catalog:peer",
     "effector-vue": ">=23",
     "vue": "^3.5.0"
   }

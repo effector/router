@@ -6,8 +6,8 @@
     "@iconify-json/logos": "1.2.10",
     "@unocss/preset-icons": "66.6.4",
     "unocss": "66.6.4",
-    "vite": "7.3.2",
-    "vitepress": "1.6.4"
+    "vite": "catalog:",
+    "vitepress": "catalog:"
   },
   "scripts": {
     "docs:dev": "vitepress dev",
@@ -15,7 +15,7 @@
     "docs:preview": "vitepress preview"
   },
   "dependencies": {
-    "vue": "^3.5.29"
+    "vue": "catalog:"
   },
   "version": "0.0.1"
 }

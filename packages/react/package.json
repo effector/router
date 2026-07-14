@@ -56,8 +56,8 @@
     "@effector/router": "workspace:^"
   },
   "peerDependencies": {
-    "effector": ">=23",
-    "effector-react": ">=23",
-    "react": "18 || 19"
+    "effector": "catalog:peer",
+    "effector-react": "catalog:peer",
+    "react": "catalog:peer"
   }
 }
