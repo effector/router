@@ -180,17 +180,21 @@ export function chainRoute<T extends object | void = void>(
     });
   }
 
-  sample({
+  const cancellationAttempt = sample({
     clock: cancellationRequested,
     source: coordinator.$current,
+    fn: (attempt) => attempt,
+  });
+
+  sample({
+    clock: cancellationAttempt,
     filter: Boolean,
     fn: (attempt) => attempt.id,
     target: coordinator.cancel,
   });
 
   const cancelOpened = sample({
-    clock: cancellationRequested,
-    source: coordinator.$current,
+    clock: cancellationAttempt,
     filter: (attempt) => attempt === null,
     fn: () => undefined,
   });
@@ -199,17 +203,21 @@ export function chainRoute<T extends object | void = void>(
 
   sample({ clock: cancelOpened, target: [chained.close, cancelledEvent] });
 
-  sample({
+  const parentClosed = sample({
     clock: route.closed,
     source: coordinator.$current,
+    fn: (attempt) => attempt,
+  });
+
+  sample({
+    clock: parentClosed,
     filter: Boolean,
     fn: (attempt) => attempt.id,
     target: coordinator.cancel,
   });
 
   sample({
-    clock: route.closed,
-    source: coordinator.$current,
+    clock: parentClosed,
     filter: (attempt) => attempt === null,
     fn: () => undefined,
     target: chained.close,

@@ -184,6 +184,7 @@ describe('chained routes', () => {
     const chained = chainRoute({ route: parent, beforeOpen: prepareFx });
     const scope = fork();
     const cancelled = watchCalls(chained.cancelled, scope);
+    const closed = watchCalls(chained.closed, scope);
 
     const opening = allSettled(parent.open, { scope, params: {} });
     await vi.waitFor(() =>
@@ -194,6 +195,7 @@ describe('chained routes', () => {
 
     expect(scope.getState(chained.$isPending)).toBe(false);
     expect(cancelled).toHaveBeenCalledTimes(1);
+    expect(closed).toHaveBeenCalledTimes(1);
 
     resolve();
     await opening;
