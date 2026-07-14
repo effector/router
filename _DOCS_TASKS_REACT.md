@@ -12,7 +12,7 @@ Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files 
 
 - [ ] Correct route selection terminology in `createRoutesView`. It renders `.at(-1)` from opened views in the original `routes` array order, not the route that opened most recently. Document declaration-order priority or track actual open order, with a test that opens multiple simultaneously active virtual/pathless routes in reverse order.
 
-- [ ] Fix the non-compiling route generic in `docs/react/use-link.md`. `createRoute<{ userId: string; tab?: string }>({ path: ... })` passes an object as the path generic; use path inference (and put optional params in the path template if supported) so the type-safety example demonstrates the actual core API.
+- [x] Fix the non-compiling route generic in `docs/react/use-link.md`. `createRoute<{ userId: string; tab?: string }>({ path: ... })` passes an object as the path generic; use path inference (and put optional params in the path template if supported) so the type-safety example demonstrates the actual core API.
 
 - [ ] Replace the standalone pathless-route example in `useOpenedViews`. It calls `open()` on unregistered `createRoute()` values and expects them to become opened alongside the home route, but core pathless routes only open through router mapping/history. Use `createVirtualRoute` for independent layers or show mapped pathless routes.
 
