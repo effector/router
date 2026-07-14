@@ -20,7 +20,7 @@ Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-rel
 
 - [x] Repair the custom-adapter examples in `docs/core/adapters.md`. Several adapters treat a string `To` as a pathname even though the same page defines it as a full `pathname?search#hash` value. The React Native and Electron `replace` examples call `this.push` from arrow functions, and the location-maintenance example assigns `this.location` from an arrow function; these snippets are not valid implementations. Factor a shared local `navigate`/`updateLocation` function and parse string targets consistently.
 
-- [ ] Correct the custom adapter in `docs/core/create-router-controls.md`: its `location` object omits the required `hash`, so it does not satisfy `RouterAdapter`. Prefer a typed example (`satisfies RouterAdapter`) to keep the docs honest.
+- [x] Correct the custom adapter in `docs/core/create-router-controls.md`: its `location` object omits the required `hash`, so it does not satisfy `RouterAdapter`. Prefer a typed example (`satisfies RouterAdapter`) to keep the docs honest.
 
 ### GitHub issues
 

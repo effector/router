@@ -189,7 +189,7 @@ await allSettled(controls.setHistory, {
 ### Custom History Adapter
 
 ```ts
-import { createRouterControls } from '@effector/router';
+import { createRouterControls, type RouterAdapter } from '@effector/router';
 
 const controls = createRouterControls();
 
@@ -198,6 +198,7 @@ const customAdapter = {
   location: {
     pathname: '/current-path',
     search: '?query=value',
+    hash: '',
   },
   push: (location) => {
     console.log('Navigate to:', location);
@@ -215,7 +216,7 @@ const customAdapter = {
       },
     };
   },
-};
+} satisfies RouterAdapter;
 
 controls.setHistory(customAdapter);
 ```
