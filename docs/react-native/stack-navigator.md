@@ -69,7 +69,7 @@ export default function App() {
 
 ### `router` (required)
 
-effector/router Router instance created with `createRouter`.
+effector/router Router instance created with [`createRouter`].
 
 ```tsx
 const router = createRouter({
@@ -84,7 +84,7 @@ const StackNavigator = createStackNavigator({
 
 ### `routes` (required)
 
-Array of route views created with `createRouteView` or `createLazyRouteView`.
+Array of route views created with [`createRouteView`] or [`createLazyRouteView`].
 
 ```tsx
 const HomeScreen = createRouteView({
@@ -174,3 +174,7 @@ userRoute.open({
 
 userRoute.open({ params: { id: 123 } }); // ❌ Error: id must be string
 ```
+
+[`createLazyRouteView`]: /react/create-lazy-route-view
+[`createRouteView`]: /react/create-route-view
+[`createRouter`]: /core/create-router
