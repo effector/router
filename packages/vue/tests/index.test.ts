@@ -8,7 +8,7 @@ import {
 } from '@effector/router';
 import { createMemoryHistory } from 'history';
 import { flushPromises, mount } from '@vue/test-utils';
-import { defineComponent, h } from 'vue';
+import { defineComponent, h, type Plugin } from 'vue';
 import { createRequire } from 'node:module';
 import {
   createLazyRouteView,
@@ -24,7 +24,9 @@ import {
 // public factory and lets this test exercise the documented plugin setup.
 const { EffectorScopePlugin } = createRequire(import.meta.url)(
   'effector-vue',
-) as typeof import('effector-vue');
+) as {
+  EffectorScopePlugin: (config: { scope: Scope }) => Plugin;
+};
 
 function mountRoutes(
   router: Router,
