@@ -172,19 +172,19 @@ userModal.open({ params: { id: '1' } });
 
 The parameter's value is the nested route path, so slashes are percent-encoded (`%2F`) — the readable part is the `key`, not the slashes. Closing the route removes only that one parameter.
 
-| Mode | Example URL | Coexists with other query params |
-| ---- | ----------- | -------------------------------- |
-| Default (whole search) | `/users?%2Fuser%2F1` | ❌ |
-| `{ key: 'modal' }` | `/users?sort=asc&modal=%2Fuser%2F1` | ✅ |
+| Mode                   | Example URL                         | Coexists with other query params |
+| ---------------------- | ----------------------------------- | -------------------------------- |
+| Default (whole search) | `/users?%2Fuser%2F1`                | ❌                               |
+| `{ key: 'modal' }`     | `/users?sort=asc&modal=%2Fuser%2F1` | ✅                               |
 
 **Comparison:**
 
-| Feature      | historyAdapter  | queryAdapter          |
-| ------------ | --------------- | --------------------- |
-| URL Location | Pathname        | Query parameters      |
-| Example URL  | `/user/123`     | `/app?%2Fuser%2F123`  |
-| Use Case     | Main navigation | Modal/tab navigation  |
-| SEO          | ✅ Good         | ⚠️ Limited            |
+| Feature      | historyAdapter  | queryAdapter         |
+| ------------ | --------------- | -------------------- |
+| URL Location | Pathname        | Query parameters     |
+| Example URL  | `/user/123`     | `/app?%2Fuser%2F123` |
+| Use Case     | Main navigation | Modal/tab navigation |
+| SEO          | ✅ Good         | ⚠️ Limited           |
 
 **Modal Routing Example:**
 
@@ -265,6 +265,24 @@ interface RouterLocation {
 type To = string | Partial<RouterLocation>;
 ```
 
+The custom adapter examples below use one helper to normalize both `To` forms. A string is parsed as a complete `pathname[?search][#hash]` target rather than treated as a pathname only:
+
+```ts
+import { parsePath } from 'history';
+import type { RouterLocation, To } from '@effector/router';
+
+function resolveTo(to: To, current: RouterLocation): RouterLocation {
+  const target = typeof to === 'string' ? parsePath(to) : to;
+  const resetMissingParts = typeof to === 'string';
+
+  return {
+    pathname: target.pathname ?? current.pathname,
+    search: target.search ?? (resetMissingParts ? '' : current.search),
+    hash: target.hash ?? (resetMissingParts ? '' : current.hash),
+  };
+}
+```
+
 ### Creating a Custom Adapter
 
 **Example 1: Console Logger Adapter**
@@ -273,7 +291,7 @@ type To = string | Partial<RouterLocation>;
 import type { RouterAdapter } from '@effector/router';
 
 function consoleAdapter(): RouterAdapter {
-  let currentLocation = {
+  const currentLocation = {
     pathname: '/',
     search: '',
     hash: '',
@@ -285,36 +303,17 @@ function consoleAdapter(): RouterAdapter {
     listeners.forEach((listener) => listener(currentLocation));
   };
 
+  const navigate = (label: string, to: To) => {
+    Object.assign(currentLocation, resolveTo(to, currentLocation));
+    console.log(`${label}:`, currentLocation);
+    notify();
+  };
+
   return {
     location: currentLocation,
 
-    push: (to) => {
-      if (typeof to === 'string') {
-        currentLocation = { pathname: to, search: '', hash: '' };
-      } else {
-        currentLocation = {
-          pathname: to.pathname ?? currentLocation.pathname,
-          search: to.search ?? currentLocation.search,
-          hash: to.hash ?? currentLocation.hash,
-        };
-      }
-      console.log('Navigate to:', currentLocation);
-      notify();
-    },
-
-    replace: (to) => {
-      if (typeof to === 'string') {
-        currentLocation = { pathname: to, search: '', hash: '' };
-      } else {
-        currentLocation = {
-          pathname: to.pathname ?? currentLocation.pathname,
-          search: to.search ?? currentLocation.search,
-          hash: to.hash ?? currentLocation.hash,
-        };
-      }
-      console.log('Replace with:', currentLocation);
-      notify();
-    },
+    push: (to) => navigate('Navigate to', to),
+    replace: (to) => navigate('Replace with', to),
 
     goBack: () => {
       console.log('Go back');
@@ -357,19 +356,11 @@ function localStorageAdapter(): RouterAdapter {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(location));
   };
 
-  let currentLocation = getLocation();
+  const currentLocation = getLocation();
   const listeners = new Set<(location: RouterLocation) => void>();
 
   const updateLocation = (to: To) => {
-    if (typeof to === 'string') {
-      currentLocation = { pathname: to, search: '', hash: '' };
-    } else {
-      currentLocation = {
-        pathname: to.pathname ?? currentLocation.pathname,
-        search: to.search ?? currentLocation.search,
-        hash: to.hash ?? currentLocation.hash,
-      };
-    }
+    Object.assign(currentLocation, resolveTo(to, currentLocation));
     setLocation(currentLocation);
     listeners.forEach((listener) => listener(currentLocation));
   };
@@ -394,7 +385,7 @@ function localStorageAdapter(): RouterAdapter {
 import { Linking } from 'react-native';
 
 function reactNativeAdapter(): RouterAdapter {
-  let currentLocation: RouterLocation = {
+  const currentLocation: RouterLocation = {
     pathname: '/',
     search: '',
     hash: '',
@@ -419,42 +410,30 @@ function reactNativeAdapter(): RouterAdapter {
   // Initialize with current URL
   Linking.getInitialURL().then((url) => {
     if (url) {
-      currentLocation = parseUrl(url);
+      Object.assign(currentLocation, parseUrl(url));
     }
   });
 
   // Listen to deep links
   const subscription = Linking.addEventListener('url', ({ url }) => {
-    currentLocation = parseUrl(url);
+    Object.assign(currentLocation, parseUrl(url));
     listeners.forEach((listener) => listener(currentLocation));
   });
 
+  const navigate = (to: To) => {
+    Object.assign(currentLocation, resolveTo(to, currentLocation));
+
+    // Update React Native navigation
+    const url = `myapp://${currentLocation.pathname}${currentLocation.search}${currentLocation.hash}`;
+    Linking.openURL(url);
+
+    listeners.forEach((listener) => listener(currentLocation));
+  };
+
   return {
     location: currentLocation,
-
-    push: (to) => {
-      const newLocation =
-        typeof to === 'string'
-          ? parseUrl(to)
-          : {
-              pathname: to.pathname ?? currentLocation.pathname,
-              search: to.search ?? currentLocation.search,
-              hash: to.hash ?? currentLocation.hash,
-            };
-
-      currentLocation = newLocation;
-
-      // Update React Native navigation
-      const url = `myapp://${newLocation.pathname}${newLocation.search}${newLocation.hash}`;
-      Linking.openURL(url);
-
-      listeners.forEach((listener) => listener(currentLocation));
-    },
-
-    replace: (to) => {
-      // Same as push for React Native
-      this.push(to);
-    },
+    push: navigate,
+    replace: navigate, // Same behavior as push for this adapter
 
     goBack: () => {
       // Handle via React Navigation or custom logic
@@ -483,7 +462,7 @@ function reactNativeAdapter(): RouterAdapter {
 import { ipcRenderer } from 'electron';
 
 function electronAdapter(): RouterAdapter {
-  let currentLocation: RouterLocation = {
+  const currentLocation: RouterLocation = {
     pathname: '/',
     search: '',
     hash: '',
@@ -493,35 +472,23 @@ function electronAdapter(): RouterAdapter {
 
   // Listen to navigation from main process
   ipcRenderer.on('navigate', (_, location: RouterLocation) => {
-    currentLocation = location;
+    Object.assign(currentLocation, location);
     listeners.forEach((listener) => listener(currentLocation));
   });
 
+  const navigate = (to: To) => {
+    Object.assign(currentLocation, resolveTo(to, currentLocation));
+
+    // Send to main process
+    ipcRenderer.send('router-navigate', currentLocation);
+
+    listeners.forEach((listener) => listener(currentLocation));
+  };
+
   return {
     location: currentLocation,
-
-    push: (to) => {
-      const newLocation =
-        typeof to === 'string'
-          ? { pathname: to, search: '', hash: '' }
-          : {
-              pathname: to.pathname ?? currentLocation.pathname,
-              search: to.search ?? currentLocation.search,
-              hash: to.hash ?? currentLocation.hash,
-            };
-
-      currentLocation = newLocation;
-
-      // Send to main process
-      ipcRenderer.send('router-navigate', newLocation);
-
-      listeners.forEach((listener) => listener(currentLocation));
-    },
-
-    replace: (to) => {
-      // Same as push for Electron
-      this.push(to);
-    },
+    push: navigate,
+    replace: navigate, // Same behavior as push for this adapter
 
     goBack: () => {
       ipcRenderer.send('router-back');
@@ -570,25 +537,11 @@ Support both formats. Per the `To` contract a **string is a full path**
 same as its object form:
 
 ```ts
-import { parsePath } from 'history';
-
 push: (to) => {
-  if (typeof to === 'string') {
-    // '/about?id=1#top' → { pathname: '/about', search: '?id=1', hash: '#top' }
-    const { pathname, search, hash } = parsePath(to);
-    navigate({
-      pathname: pathname ?? current.pathname,
-      search: search ?? '',
-      hash: hash ?? '',
-    });
-  } else {
-    // Handle object: { pathname: '/about', search: '?id=1' }
-    navigate({
-      pathname: to.pathname ?? current.pathname,
-      search: to.search ?? current.search,
-      hash: to.hash ?? current.hash,
-    });
-  }
+  // '/about?id=1#top' → { pathname: '/about', search: '?id=1', hash: '#top' }
+  const nextLocation = resolveTo(to, currentLocation);
+  Object.assign(currentLocation, nextLocation);
+  notify();
 };
 ```
 
@@ -636,8 +589,7 @@ const adapter = {
   location: currentLocation, // Always current
 
   push: (to) => {
-    currentLocation = newLocation;
-    this.location = currentLocation; // Update reference
+    Object.assign(currentLocation, resolveTo(to, currentLocation));
     notify();
   },
 };
@@ -673,14 +625,13 @@ test('navigation works', async () => {
 ```ts
 test('custom adapter', async () => {
   const locations: RouterLocation[] = [];
+  const currentLocation = { pathname: '/', search: '', hash: '' };
 
   const mockAdapter: RouterAdapter = {
-    location: { pathname: '/', search: '', hash: '' },
+    location: currentLocation,
     push: (to) => {
-      const location =
-        typeof to === 'string'
-          ? { pathname: to, search: '', hash: '' }
-          : { pathname: to.pathname ?? '/', search: '', hash: '' };
+      const location = resolveTo(to, currentLocation);
+      Object.assign(currentLocation, location);
       locations.push(location);
     },
     replace: vi.fn(),

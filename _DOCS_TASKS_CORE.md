@@ -18,7 +18,7 @@ Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-rel
 
 - [x] Correct the `group` API and examples. The implementation accepts both `Route` and `VirtualRoute`, but the documented signature only accepts `Route[]`. Conversely, the basic example calls `.close()` on `createRoute` results even though `close` is not public. Demonstrate closure through router navigation for normal routes, or use virtual routes in the manual-close example.
 
-- [ ] Repair the custom-adapter examples in `docs/core/adapters.md`. Several adapters treat a string `To` as a pathname even though the same page defines it as a full `pathname?search#hash` value. The React Native and Electron `replace` examples call `this.push` from arrow functions, and the location-maintenance example assigns `this.location` from an arrow function; these snippets are not valid implementations. Factor a shared local `navigate`/`updateLocation` function and parse string targets consistently.
+- [x] Repair the custom-adapter examples in `docs/core/adapters.md`. Several adapters treat a string `To` as a pathname even though the same page defines it as a full `pathname?search#hash` value. The React Native and Electron `replace` examples call `this.push` from arrow functions, and the location-maintenance example assigns `this.location` from an arrow function; these snippets are not valid implementations. Factor a shared local `navigate`/`updateLocation` function and parse string targets consistently.
 
 - [ ] Correct the custom adapter in `docs/core/create-router-controls.md`: its `location` object omits the required `hash`, so it does not satisfy `RouterAdapter`. Prefer a typed example (`satisfies RouterAdapter`) to keep the docs honest.
 
