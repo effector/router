@@ -1,6 +1,6 @@
 # createRouterControls
 
-Create the core navigation controls for managing browser history, URL paths, and query parameters. These controls are typically used internally by `createRouter`, but can also be used independently for custom routing solutions.
+Create the core navigation controls for managing browser history, URL paths, and query parameters. These controls are typically used internally by [`createRouter`], but can also be used independently for custom routing solutions.
 
 ## API
 
@@ -23,7 +23,7 @@ function createRouterControls(): RouterControls;
 | `back`            | `Event<void>`                  | Navigate back in history                 |
 | `forward`         | `Event<void>`                  | Navigate forward in history              |
 | `locationUpdated` | `Event<{ pathname, query }>`   | Fires when location changes              |
-| `trackQuery`      | `function`                     | Create query parameter trackers          |
+| [`trackQuery`]    | `function`                     | Create query parameter trackers          |
 
 ## Usage
 
@@ -306,7 +306,7 @@ Examples:
 
 ### Use createRouter Instead
 
-For most applications, use `createRouter` which includes controls automatically:
+For most applications, use [`createRouter`] which includes controls automatically:
 
 ```ts
 // ✅ Recommended for most cases
@@ -350,3 +350,6 @@ controls.navigate({
 - [createRouter](/core/create-router) - Create complete router with controls
 - [Adapters](/core/adapters) - History adapters and custom adapter creation
 - [trackQuery](/core/track-query) - Track individual query parameters
+
+[`createRouter`]: /core/create-router
+[`trackQuery`]: /core/track-query

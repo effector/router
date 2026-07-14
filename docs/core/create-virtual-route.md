@@ -1,6 +1,6 @@
 # createVirtualRoute
 
-Create a virtual route without a path. Virtual routes are used for UI state management, dialogs, popups, and as building blocks for other routing utilities like `chainRoute` and `group`.
+Create a virtual route without a path. Virtual routes are used for UI state management, dialogs, popups, and as building blocks for other routing utilities like [`chainRoute`] and [`group`].
 
 ## API
 
@@ -242,3 +242,6 @@ const userRoute = createRoute({ path: '/user/:id' });
 - [group](/core/group) - Group multiple routes into a virtual route
 - [chainRoute](/core/chain-route) - Create sequential route chains
 - [createRoute](/core/create-route) - Create routes with paths
+
+[`chainRoute`]: /core/chain-route
+[`group`]: /core/group
