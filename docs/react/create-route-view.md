@@ -79,11 +79,38 @@ function ProfileComponent() {
 }
 ```
 
+### With a Nested Router
+
+An eager route view can also target a `Router`. The view is active whenever that router has at least one active route, which is useful for mounting a nested routes view under a parent `Outlet`:
+
+```tsx
+import { createRoutesView, createRouteView } from '@effector/router-react';
+import { createRouter } from '@effector/router';
+
+const profileRouter = createRouter({
+  routes: [friendsRoute, settingsRoute],
+});
+
+const ProfileRoutesView = createRoutesView({
+  routes: [
+    createRouteView({ route: friendsRoute, view: FriendsComponent }),
+    createRouteView({ route: settingsRoute, view: SettingsComponent }),
+  ],
+});
+
+const ProfileRouterView = createRouteView({
+  route: profileRouter,
+  view: ProfileRoutesView,
+});
+```
+
+This contract applies to `createRouteView`. Do not pass a `Router` to `createLazyRouteView`; lazy router targets are not currently implemented.
+
 ## Configuration
 
 ### `route` (required)
 
-The effector/router Router route instance created with `createRoute`:
+An effector/router `Route` created with `createRoute`, or a `Router` created with `createRouter`:
 
 ```tsx
 import { createRoute } from '@effector/router';
@@ -158,7 +185,7 @@ const ProfileScreen = createRouteView({
 
 Returns a `RouteView` object with:
 
-- `route` - The route instance
+- `route` - The route or router instance
 - `view` - The wrapped React component
 - `children` (optional) - Nested route views
 
