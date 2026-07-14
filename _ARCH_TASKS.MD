@@ -25,7 +25,7 @@
 - [x] Исправить generic в `use-link.md`: параметры должны выводиться из шаблона пути, а не передаваться объектом вместо path-generic.
 - [x] Переписать active-tabs пример: вынести `useIsOpened` из `map` в отдельный компонент и соблюдать Rules of Hooks.
 - [x] Документировать уже поддерживаемый eager `RouteView` с вложенным `Router`; не распространять утверждение на lazy-вариант до решения его контракта.
-- [ ] #29 Docs: avoid full-page rerenders on route transitions — добавить рекомендации по стабильному размещению router/view-компонентов без изменения runtime.
+- [x] #29 Docs: avoid full-page rerenders on route transitions — добавить рекомендации по стабильному размещению router/view-компонентов без изменения runtime.
 
 ### React Native
 

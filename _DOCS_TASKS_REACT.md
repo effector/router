@@ -22,7 +22,7 @@ Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files 
 
 ### GitHub issues
 
-- [ ] #29 Docs: avoid full-page rerenders on route transitions
+- [x] #29 Docs: avoid full-page rerenders on route transitions
 - [ ] #33 Docs/tracking: dynamic chunks loading
 
 ## Модификация поведения
