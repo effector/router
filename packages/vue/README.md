@@ -66,11 +66,11 @@ Read route params in a view with `effector-vue`:
 import { useUnit } from 'effector-vue/composition';
 import { userRoute } from './router'; // createRoute({ path: '/user/:id' })
 
-const { id } = useUnit(userRoute.$params);
+const params = useUnit(userRoute.$params);
 </script>
 
 <template>
-  <div>User {{ id }}</div>
+  <div>User {{ params.id }}</div>
 </template>
 ```
 
