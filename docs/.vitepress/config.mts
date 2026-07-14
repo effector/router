@@ -128,7 +128,23 @@ export default defineConfig({
       {
         text: 'Solid β',
         collapsed: false,
-        items: [{ text: 'Overview', link: '/solid/' }],
+        items: [
+          { text: 'Overview', link: '/solid/' },
+          { text: 'RouterProvider', link: '/solid/router-provider' },
+          { text: 'createRouteView', link: '/solid/create-route-view' },
+          {
+            text: 'createLazyRouteView',
+            link: '/solid/create-lazy-route-view',
+          },
+          { text: 'createRoutesView', link: '/solid/create-routes-view' },
+          { text: 'Link', link: '/solid/link' },
+          { text: 'Outlet', link: '/solid/outlet' },
+          { text: 'useRouter', link: '/solid/use-router' },
+          { text: 'useLink', link: '/solid/use-link' },
+          { text: 'useIsOpened', link: '/solid/use-is-opened' },
+          { text: 'useOpenedViews', link: '/solid/use-opened-views' },
+          { text: 'withLayout', link: '/solid/with-layout' },
+        ],
       },
     ],
 

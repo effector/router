@@ -11,7 +11,7 @@ Scope audited: `packages/solid/README.md`, `packages/solid/package.json`, all of
   - Add the concrete adapter/history imports and initialization to the examples, and include any directly imported history package in the install command (or link immediately to a complete, runnable setup).
   - Test gap: add a compile/smoke test for the documented quick start so omission of required initialization cannot recur.
 
-- [ ] Replace the “full guides and API reference” promise with real Solid API pages, or narrow the promise and remove dead source links.
+- [x] Replace the “full guides and API reference” promise with real Solid API pages, or narrow the promise and remove dead source links.
   - `packages/solid/README.md:83-85` advertises full guides/reference at `/solid`, but `docs/solid` contains only `index.md`, and the Solid sidebar has only “Overview” (`docs/.vitepress/config.mts:128-132`).
   - The implementation links to pages that do not exist: `create-route-view.html`, `create-lazy-route-view.html`, `create-routes-view.html`, `link.html`, `outlet.html`, `use-router.html`, and `with-layout.html` (the corresponding `@link` entries are in `packages/solid/lib`). There are also no Solid pages for the exported `useLink`, `useIsOpened`, or `useOpenedViews` helpers.
   - Cover the actual signatures, accessor usage, provider requirement, errors, route parameters, `query`/`replace` and native anchor behavior, fallback/lazy behavior, layouts, nested routes, and router-backed views. Add `useRouterContext` to the reference or stop exporting it publicly (`packages/solid/lib/index.ts:6`).
