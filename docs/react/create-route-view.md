@@ -64,7 +64,7 @@ export const ProfileScreen = createRouteView({
 });
 ```
 
-Use `Outlet` component in the parent view to render children:
+Use [`Outlet`] component in the parent view to render children:
 
 ```tsx
 import { Outlet } from '@effector/router-react';
@@ -81,7 +81,7 @@ function ProfileComponent() {
 
 ### With a Nested Router
 
-An eager route view can also target a `Router`. The view is active whenever that router has at least one active route, which is useful for mounting a nested routes view under a parent `Outlet`:
+An eager route view can also target a `Router`. The view is active whenever that router has at least one active route, which is useful for mounting a nested routes view under a parent [`Outlet`]:
 
 ```tsx
 import { createRoutesView, createRouteView } from '@effector/router-react';
@@ -104,13 +104,13 @@ const ProfileRouterView = createRouteView({
 });
 ```
 
-This contract applies to `createRouteView`. Do not pass a `Router` to `createLazyRouteView`; lazy router targets are not currently implemented.
+This contract applies to `createRouteView`. Do not pass a `Router` to [`createLazyRouteView`]; lazy router targets are not currently implemented.
 
 ## Configuration
 
 ### `route` (required)
 
-An effector/router `Route` created with `createRoute`, or a `Router` created with `createRouter`:
+An effector/router `Route` created with [`createRoute`], or a `Router` created with [`createRouter`]:
 
 ```tsx
 import { createRoute } from '@effector/router';
@@ -214,3 +214,8 @@ const UserScreen = createRouteView({
 - [createRoutesView](./create-routes-view) - Render active routes
 - [Outlet](./outlet) - Render nested routes
 - [withLayout](./with-layout) - Apply layouts to multiple routes
+
+[`createLazyRouteView`]: /react/create-lazy-route-view
+[`createRoute`]: /core/create-route
+[`createRouter`]: /core/create-router
+[`Outlet`]: /react/outlet

@@ -27,7 +27,7 @@ function App() {
 
 ### `router` (required)
 
-The router instance created with `createRouter`:
+The router instance created with [`createRouter`]:
 
 ```tsx
 import { createRouter, createRoute } from '@effector/router';
@@ -180,3 +180,5 @@ render();
 - [useRouter](./use-router) - Access router in components
 - [createRouter](/core/create-router) - Create router instance
 - [createRoutesView](./create-routes-view) - Render active routes
+
+[`createRouter`]: /core/create-router
