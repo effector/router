@@ -40,5 +40,5 @@ Scope audited: `packages/solid/README.md`, `packages/solid/package.json`, all of
 
 ## Verification snapshot
 
-- `pnpm :solid test` — passed: 2 test files, 9 tests, including render-time lazy import and observable Suspense fallback.
+- `pnpm :solid test` — passed: 2 test files, 10 tests, including render-time lazy import, observable Suspense fallback, and a lazy `Router` target without eager import.
 - The lifecycle follow-up updated the Solid lazy binding/docs and added the fallback regression test; unrelated API gaps above remain open.

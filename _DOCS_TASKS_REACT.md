@@ -1,6 +1,6 @@
 # React binding documentation tasks
 
-Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files in `packages/react/lib/`, and all four React test files. The React suite passes (19 tests), but it does not exercise several APIs that have detailed documentation.
+Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files in `packages/react/lib/`, and all four React test files. The React suite passes (20 tests), but it does not exercise several APIs that have detailed documentation.
 
 ## Актуализация документации
 
@@ -33,7 +33,7 @@ Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files 
 
 - [ ] Preserve or stop documenting `children` in `createLazyRouteView`. `CreateLazyRouteViewProps` and the guide accept nested route views, but the implementation returns only `{ route, view }` and silently drops `children`, so `Outlet` cannot render them. Add parity tests with `createRouteView`.
 
-- [x] Restrict lazy views to supported route targets — `Route | Router` remains supported. `createLazyRouteView` no longer calls route internals; the importer starts only when React renders the selected lazy view.
+- [x] Restrict lazy views to supported route targets — `Route | Router` remains supported. `createLazyRouteView` no longer calls route internals; a regression test verifies that constructing a lazy nested-router view does not start its importer.
 
 - [ ] Implement or remove the documented multi-level `Outlet` example. `createRoutesView` provides context for the top-level view, but `Outlet` renders a selected child without providing a new `OutletContext` for that child's children. Existing tests cover one level only; add a three-level test matching the guide.
 
@@ -47,4 +47,4 @@ Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files 
 
 ## Контроль качества
 
-- [ ] Add documentation conformance coverage for currently untested public APIs: `useRouter`, `useRouterContext`, `useLink`, `useIsOpened`, lazy children, layout preservation, multi-level outlets, Link query behavior under native navigation, and declaration-order priority. Lazy import timing and Suspense fallback are covered.
+- [ ] Add documentation conformance coverage for currently untested public APIs: `useRouter`, `useRouterContext`, `useLink`, `useIsOpened`, lazy children, layout preservation, multi-level outlets, Link query behavior under native navigation, and declaration-order priority. Lazy import timing/fallback, lazy `Router` construction, and one-shot deprecated preparation through `<Link>` are covered.

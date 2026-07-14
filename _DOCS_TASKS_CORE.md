@@ -1,6 +1,6 @@
 # Core documentation tasks
 
-Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-related getting-started material, all files in `packages/core/lib/`, and all core tests. The core suite passes (66 tests) after building the local `@effector/router-paths` dependency.
+Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-related getting-started material, all files in `packages/core/lib/`, and all core tests. The core suite passes (71 tests) after building the local `@effector/router-paths` dependency.
 
 ## Актуализация документации
 

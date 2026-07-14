@@ -166,13 +166,13 @@
 ## Контроль качества после принятия решений
 
 - [ ] Добавить единый docs-conformance pipeline: typecheck исполняемых snippets, проверка source `@link`/sidebar links и smoke tests для quick starts всех bindings.
-- [x] Для core покрыть transition state machine: proceed/cancel, несколько holds, повторный intent, POP, redirect, loop bound, one-shot preparation и take-latest chain readiness.
+- [x] Для core покрыть transition state machine: proceed/cancel, несколько holds, function/store filters, route arrays, повторный intent, POP proceed/cancel, history/query adapters, redirect replace/loop bound, one-shot preparation и take-latest chain readiness.
 - [ ] Для core покрыть оставшиеся query round trips, adapter initialization/location, same-value updates, nested params, external/not-found и scope/global-scope сценарии.
 - [ ] Для paths добавить table-driven runtime matrix и compile-time assertions для optional/range/cardinality/generic/full-URL случаев.
-- [x] Для React покрыть render-time lazy import и наблюдаемый Suspense fallback.
+- [x] Для React покрыть render-time lazy import, наблюдаемый Suspense fallback, lazy `Router` target и one-shot deprecated preparation через `<Link>`.
 - [ ] Для React покрыть hooks напрямую, native/modified Link navigation, lazy children, nested routers, layouts и multi-level Outlet.
 - [ ] Для React Native создать реальную test suite: factory render shape, ref/container integration, двусторонняя sync, back/gestures, tabs, names, params, options, scopes и cleanup.
-- [x] Для Solid покрыть render-time lazy import и наблюдаемый Suspense fallback.
+- [x] Для Solid покрыть render-time lazy import, наблюдаемый Suspense fallback и lazy `Router` target без eager import.
 - [ ] Для Solid покрыть прямой `useLink`, reactive params, layouts и one-/multi-level Outlet.
-- [x] Для Vue покрыть render-time lazy import и immediate loading component.
+- [x] Для Vue покрыть render-time lazy import, immediate loading component и lazy `Router` target без eager import.
 - [ ] Для Vue покрыть provider-free/error paths, hooks, Link types/native behavior, nested priority/layouts и multi-level Outlet.

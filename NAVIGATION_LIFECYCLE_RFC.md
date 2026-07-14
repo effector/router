@@ -176,16 +176,20 @@ and adapter choice.
 
 1. [x] Added the private scope-local attempt coordinator and a single
        confirmed-location activation pipeline. Regression coverage locks one
-       deprecated `beforeOpen` run per activation (`17564b0`, `be6bb85`).
+       deprecated `beforeOpen` run per activation, including React link navigation
+       (`17564b0`, `be6bb85`, `83f4832`).
 2. [x] Added optional adapter blocking and `beforeNavigate`, covering proceed,
-       cancel, multiple holds, POP, ignored intents, and redirect (`e3c635d`).
+       cancel, multiple holds, route arrays/function filters, POP proceed/cancel,
+       ignored intents, and both history/query adapters (`e3c635d`, `24da19a`).
 3. [x] Added the clock-less `redirect` target with dynamic payloads and bounded
-       redirect ancestry (`e3c635d`).
+       redirect ancestry. Regression coverage verifies replace semantics and one
+       diagnostic per bounded loop (`e3c635d`, `24da19a`).
 4. [x] Rebuilt `chainRoute` with pending, auto-open, explicit open/cancel,
        parent-close cancellation, Effect failure, and take-latest behavior
        (`aa090f0`, `9dc00ed`).
 5. [x] Removed the core lazy-import hook and verified render-time fallback
-       behavior in React, Solid, and Vue (`28ea09a`).
+       behavior plus lazy `Router` targets in React, Solid, and Vue (`28ea09a`,
+       `83f4832`).
 6. [x] Published migration/reference documentation and a changeset for core,
        React, Solid, and Vue (`4200e69`). Full lint, typecheck, package tests,
        package builds, and docs build pass on this branch.
