@@ -16,7 +16,7 @@ Audit scope: `packages/react/README.md`, every page in `docs/react/`, all files 
 
 - [ ] Replace the standalone pathless-route example in `useOpenedViews`. It calls `open()` on unregistered `createRoute()` values and expects them to become opened alongside the home route, but core pathless routes only open through router mapping/history. Use `createVirtualRoute` for independent layers or show mapped pathless routes.
 
-- [ ] Do not call `useIsOpened` inside a loop in the active-tabs example. Hooks inside `tabs.map(...)` violate the Rules of Hooks. Extract a `Tab` component that calls the hook once at component top level.
+- [x] Do not call `useIsOpened` inside a loop in the active-tabs example. Hooks inside `tabs.map(...)` violate the Rules of Hooks. Extract a `Tab` component that calls the hook once at component top level.
 
 - [ ] Document the supported nested-router RouteView use case. `RouteView.route` accepts a `Router`, `useOpenedViews` handles router activity, and the test suite devotes substantial coverage to nested routers, but the React API pages describe `route` only as a `createRoute` result. Add the supported pattern and clarify that it applies to eager route views, not the current lazy implementation.
 

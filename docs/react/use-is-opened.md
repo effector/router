@@ -89,27 +89,31 @@ function UserMenu() {
 import { useIsOpened } from '@effector/router-react';
 import { dashboardRoute, reportsRoute, analyticsRoute } from './routes';
 
-function TabNavigation() {
-  const tabs = [
-    { route: dashboardRoute, label: 'Dashboard' },
-    { route: reportsRoute, label: 'Reports' },
-    { route: analyticsRoute, label: 'Analytics' },
-  ];
+const tabs = [
+  { route: dashboardRoute, label: 'Dashboard' },
+  { route: reportsRoute, label: 'Reports' },
+  { route: analyticsRoute, label: 'Analytics' },
+];
+
+function Tab({ route, label }) {
+  const isActive = useIsOpened(route);
 
   return (
+    <button
+      onClick={() => route.open()}
+      className={isActive ? 'tab-active' : 'tab-inactive'}
+    >
+      {label}
+    </button>
+  );
+}
+
+function TabNavigation() {
+  return (
     <div className="tabs">
-      {tabs.map(({ route, label }) => {
-        const isActive = useIsOpened(route);
-        return (
-          <button
-            key={label}
-            onClick={() => route.open()}
-            className={isActive ? 'tab-active' : 'tab-inactive'}
-          >
-            {label}
-          </button>
-        );
-      })}
+      {tabs.map((tab) => (
+        <Tab key={tab.label} {...tab} />
+      ))}
     </div>
   );
 }
