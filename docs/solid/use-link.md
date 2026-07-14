@@ -39,4 +39,6 @@ function UserLink() {
 }
 ```
 
-`onOpen` is the raw route event; it does not capture the params accessor. Pass the required payload when calling it. The hook requires `RouterProvider` and throws when the route is absent from `router.knownRoutes`.
+`onOpen` is the raw route event; it does not capture the params accessor. Pass the required payload when calling it. The hook requires [`RouterProvider`] and throws when the route is absent from `router.knownRoutes`.
+
+[`RouterProvider`]: /solid/router-provider

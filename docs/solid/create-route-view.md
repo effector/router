@@ -10,12 +10,12 @@ function createRouteView<T extends object | void = void>(
 ): RouteView;
 ```
 
-| Property   | Type                                   | Description                               |
-| ---------- | -------------------------------------- | ----------------------------------------- |
-| `route`    | `Route<T> \| Router`                   | Unit that controls whether the view opens |
-| `view`     | `Component`                            | Component rendered for the opened unit    |
-| `layout`   | `Component<{ children: JSX.Element }>` | Optional wrapper component                |
-| `children` | `RouteView[]`                          | Optional direct child views for `Outlet`  |
+| Property   | Type                                   | Description                                |
+| ---------- | -------------------------------------- | ------------------------------------------ |
+| `route`    | `Route<T> \| Router`                   | Unit that controls whether the view opens  |
+| `view`     | `Component`                            | Component rendered for the opened unit     |
+| `layout`   | `Component<{ children: JSX.Element }>` | Optional wrapper component                 |
+| `children` | `RouteView[]`                          | Optional direct child views for [`Outlet`] |
 
 ## Usage
 
@@ -44,3 +44,5 @@ const UserScreen = createRouteView({
 ```
 
 Use `children` with [`Outlet`](./outlet) for nested views. A `Router` target is active while its `$activeRoutes` is non-empty.
+
+[`Outlet`]: /solid/outlet

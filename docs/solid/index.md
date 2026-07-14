@@ -13,11 +13,11 @@ is supported.
 `@effector/router-solid` provides Solid-specific utilities to use effector/router in your Solid applications:
 
 - **Route Views** - Connect routes to Solid components
-- **Navigation Components** - `Link` and navigation helpers
+- **Navigation Components** - [`Link`] and navigation helpers
 - **Reactive helpers** - Access router state as Solid accessors
 - **Layouts** - Wrap multiple routes with shared layouts
 
-Unlike the React binding, `useIsOpened` and `useOpenedViews` return Solid accessors (`() => value`). `useLink` returns `{ path, onOpen }`: `path` is an accessor, `onOpen` is a callable Effector event, and the params argument is also an accessor.
+Unlike the React binding, [`useIsOpened`] and [`useOpenedViews`] return Solid accessors (`() => value`). [`useLink`] returns `{ path, onOpen }`: `path` is an accessor, `onOpen` is a callable Effector event, and the params argument is also an accessor.
 
 ## Installation
 
@@ -140,14 +140,26 @@ const RoutesView = createRoutesView({
 
 The Solid binding mirrors the React one:
 
-- `RouterProvider` — provide the router to the tree.
-- `createRouteView` / `createLazyRouteView` — bind a route to a component (with optional lazy loading).
-- `createRoutesView` — render the currently opened route, with an `otherwise` fallback.
-- `Link`, `useLink` — declarative and imperative navigation.
-- `withLayout` — share a layout across routes.
-- `Outlet`, `useRouter`, `useIsOpened`, `useOpenedViews` — composition helpers.
+- [`RouterProvider`] — provide the router to the tree.
+- [`createRouteView`] / [`createLazyRouteView`] — bind a route to a component (with optional lazy loading).
+- [`createRoutesView`] — render the currently opened route, with an `otherwise` fallback.
+- [`Link`], [`useLink`] — declarative and imperative navigation.
+- [`withLayout`] — share a layout across routes.
+- [`Outlet`], [`useRouter`], [`useIsOpened`], [`useOpenedViews`] — composition helpers.
 
 ## Next Steps
 
 - [Core Package](/core/create-router) - Learn about core concepts
 - [React bindings](/react/) - The stable reference implementation this binding mirrors
+
+[`createLazyRouteView`]: /solid/create-lazy-route-view
+[`createRoutesView`]: /solid/create-routes-view
+[`createRouteView`]: /solid/create-route-view
+[`Link`]: /solid/link
+[`Outlet`]: /solid/outlet
+[`RouterProvider`]: /solid/router-provider
+[`useIsOpened`]: /solid/use-is-opened
+[`useLink`]: /solid/use-link
+[`useOpenedViews`]: /solid/use-opened-views
+[`useRouter`]: /solid/use-router
+[`withLayout`]: /solid/with-layout

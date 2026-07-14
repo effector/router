@@ -1,6 +1,6 @@
 # useRouter and useRouterContext
 
-Read the router provided by `RouterProvider`.
+Read the router provided by [`RouterProvider`].
 
 ## useRouter
 
@@ -35,4 +35,6 @@ const router = useRouterContext();
 router.setHistory(adapter);
 ```
 
-Both functions throw `[useRouter] Router not found. Add RouterProvider in app root` when called outside `RouterProvider`.
+Both functions throw `[useRouter] Router not found. Add RouterProvider in app root` when called outside [`RouterProvider`].
+
+[`RouterProvider`]: /solid/router-provider

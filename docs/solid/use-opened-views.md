@@ -23,4 +23,7 @@ The hook:
 - removes an active parent view when an active child view is present;
 - preserves the declaration order of the supplied array.
 
-`createRoutesView` and `Outlet` select the last item from this accessor. The hook reads supplied units directly and does not require router context.
+[`createRoutesView`] and [`Outlet`] select the last item from this accessor. The hook reads supplied units directly and does not require router context.
+
+[`createRoutesView`]: /solid/create-routes-view
+[`Outlet`]: /solid/outlet

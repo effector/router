@@ -25,6 +25,9 @@ const RoutesView = createRoutesView({
 });
 ```
 
-The component uses `useOpenedViews`, removes an active parent when its child is active, and renders the last remaining view in the supplied array. `otherwise` renders when no supplied view is open.
+The component uses [`useOpenedViews`], removes an active parent when its child is active, and renders the last remaining view in the supplied array. `otherwise` renders when no supplied view is open.
 
-Create the route-view objects and `RoutesView` once at module scope so their identities remain stable. Add `RouterProvider` when rendered descendants use router context; `createRoutesView` itself reads the supplied route units directly.
+Create the route-view objects and `RoutesView` once at module scope so their identities remain stable. Add [`RouterProvider`] when rendered descendants use router context; `createRoutesView` itself reads the supplied route units directly.
+
+[`RouterProvider`]: /solid/router-provider
+[`useOpenedViews`]: /solid/use-opened-views
