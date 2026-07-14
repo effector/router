@@ -4,7 +4,7 @@ Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-rel
 
 ## Актуализация документации
 
-- [ ] Fix the getting-started history initialization example. `docs/introduction/getting-started.md` passes `createBrowserHistory()` directly to `router.setHistory`, while the public event accepts a `RouterAdapter`; wrap the history with `historyAdapter(...)` and import it. Add a documentation typecheck/example test so this cannot regress.
+- [x] Fix the getting-started history initialization example. `docs/introduction/getting-started.md` passes `createBrowserHistory()` directly to `router.setHistory`, while the public event accepts a `RouterAdapter`; wrap the history with `historyAdapter(...)` and import it. Add a documentation typecheck/example test so this cannot regress.
 
 - [ ] Document whether `navigate.query` replaces or merges the current query. The controls guide says to add/update query parameters, but `createRouterControls` serializes the supplied object as the complete search string. Examples that navigate first with `{ page }` and then `{ filter }` therefore lose `page`. State the replacement behavior or implement merging, and add a regression test.
 

@@ -137,6 +137,7 @@ router need to be initialzed with `setHistory` event, which requires memory or b
 ```ts
 import { createRoot } from 'react-dom/client';
 import { allSettled, fork } from 'effector';
+import { historyAdapter } from '@effector/router';
 import { createBrowserHistory } from 'history';
 import { Provider } from 'effector-react';
 import { router } from './shared/routing';
@@ -149,7 +150,7 @@ async function render() {
 
   await allSettled(router.setHistory, {
     scope,
-    params: createBrowserHistory(),
+    params: historyAdapter(createBrowserHistory()),
   });
 
   root.render(
