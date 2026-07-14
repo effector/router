@@ -14,7 +14,7 @@ Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-rel
 
 - [ ] Correct `trackQuery` lifecycle and removal semantics. The guide describes `entered` as a transition when parameters appear, but the implementation/test suite emits it again for every valid query change. `exit()` clears the entire query, not only the schema's keys, unless `ignoreParams` explicitly lists keys to preserve. Document these behaviors or change the implementation, with tests for unrelated query parameters.
 
-- [ ] Fix non-compiling `chainRoute` examples. `createRoute<{ userId: string }>({ path: '/user/:userId' })` supplies an object where the first generic is the path string; rely on path inference instead. The `loadUserDataFx.doneData` example also treats the returned data as an Effector `done` payload and reads `.result`, although `doneData` already is the result.
+- [x] Fix non-compiling `chainRoute` examples. `createRoute<{ userId: string }>({ path: '/user/:userId' })` supplies an object where the first generic is the path string; rely on path inference instead. The `loadUserDataFx.doneData` example also treats the returned data as an Effector `done` payload and reads `.result`, although `doneData` already is the result.
 
 - [ ] Correct the `group` API and examples. The implementation accepts both `Route` and `VirtualRoute`, but the documented signature only accepts `Route[]`. Conversely, the basic example calls `.close()` on `createRoute` results even though `close` is not public. Demonstrate closure through router navigation for normal routes, or use virtual routes in the manual-close example.
 
