@@ -30,7 +30,7 @@ export default defineConfig({
               },
               {
                 text: 'Releases Notes',
-                link: 'https://github.com/effector/router/blob/main/CHANGELOG.md',
+                link: 'https://github.com/effector/router/releases',
               },
             ],
           },
