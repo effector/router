@@ -1,4 +1,4 @@
-import { describe, expect, test, vi } from 'vitest';
+import { describe, expect, expectTypeOf, test, vi } from 'vitest';
 import {
   chainRoute,
   createRoute,
@@ -19,6 +19,13 @@ import { createMemoryHistory } from 'history';
 import { watchCalls } from './utils';
 
 describe('chained routes', () => {
+  test('virtual route options do not expose beforeOpen', () => {
+    type Options = NonNullable<Parameters<typeof createVirtualRoute>[0]>;
+    type HasBeforeOpen = 'beforeOpen' extends keyof Options ? true : false;
+
+    expectTypeOf<HasBeforeOpen>().toEqualTypeOf<false>();
+  });
+
   test('authorized route', async () => {
     const scope = fork();
 

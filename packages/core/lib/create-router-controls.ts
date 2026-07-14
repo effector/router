@@ -250,18 +250,25 @@ export function createRouterControls(): RouterControls {
 
   const candidate = merge([commandCandidate, nativeCandidate]);
 
-  const acceptedCandidate = sample({
+  const classifiedCandidate = sample({
     clock: candidate,
     source: coordinator.$current,
-    filter: (current, next) =>
-      !next.redirect ||
-      (current?.payload.redirectDepth ?? 0) < MAX_REDIRECT_DEPTH,
-    fn: (current, next): NavigationRequest => ({
-      ...next,
-      redirectDepth: next.redirect
+    fn: (current, next) => {
+      const redirectDepth = next.redirect
         ? (current?.payload.redirectDepth ?? 0) + 1
-        : 0,
-    }),
+        : 0;
+
+      return {
+        accepted: !next.redirect || redirectDepth <= MAX_REDIRECT_DEPTH,
+        request: { ...next, redirectDepth } satisfies NavigationRequest,
+      };
+    },
+  });
+
+  const acceptedCandidate = sample({
+    clock: classifiedCandidate,
+    filter: ({ accepted }) => accepted,
+    fn: ({ request }) => request,
   });
 
   sample({
@@ -276,11 +283,8 @@ export function createRouterControls(): RouterControls {
   });
 
   sample({
-    clock: candidate,
-    source: coordinator.$current,
-    filter: (current, next) =>
-      next.redirect &&
-      (current?.payload.redirectDepth ?? 0) >= MAX_REDIRECT_DEPTH,
+    clock: classifiedCandidate,
+    filter: ({ accepted }) => !accepted,
     target: reportRedirectLoopFx,
   });
 

@@ -1,6 +1,6 @@
 import { allSettled, createEvent, createStore, fork, sample } from 'effector';
 import { createMemoryHistory } from 'history';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 
 import {
   beforeNavigate,
@@ -8,6 +8,7 @@ import {
   createRouter,
   createRouterControls,
   historyAdapter,
+  queryAdapter,
   redirect,
 } from '../lib';
 import { watchCalls } from './utils';
@@ -102,6 +103,36 @@ describe('navigation operators', () => {
     expect(history.location.pathname).toBe('/protected');
   });
 
+  test('function filter composes with route arrays', async () => {
+    const { controls, routes, router, history } = createFixture();
+    const transition = beforeNavigate({
+      controls,
+      from: [routes.home, routes.protected],
+      to: [routes.protected, routes.signIn],
+      filter: ({ path }) => path === '/sign-in',
+    });
+    const scope = fork();
+    const started = watchCalls(transition.started, scope);
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+    await allSettled(routes.protected.open, { scope, params: {} });
+
+    expect(started).not.toHaveBeenCalled();
+    expect(history.location.pathname).toBe('/protected');
+
+    await allSettled(routes.signIn.open, { scope, params: {} });
+
+    expect(started).toHaveBeenCalledTimes(1);
+    expect(history.location.pathname).toBe('/protected');
+
+    await allSettled(transition.proceed, { scope });
+
+    expect(history.location.pathname).toBe('/sign-in');
+  });
+
   test('all matching operators must proceed', async () => {
     const { controls, routes, router, history } = createFixture();
     const first = beforeNavigate({ controls, to: routes.protected });
@@ -162,6 +193,8 @@ describe('navigation operators', () => {
     await allSettled(routes.protected.open, { scope, params: {} });
 
     expect(history.location.pathname).toBe('/sign-in');
+    expect(history.action).toBe('REPLACE');
+    expect(history.index).toBe(0);
     expect(scope.getState(routes.signIn.$isOpened)).toBe(true);
     expect(scope.getState(routes.protected.$isOpened)).toBe(false);
   });
@@ -190,6 +223,65 @@ describe('navigation operators', () => {
     expect(history.location.search).toBe('?source=test');
   });
 
+  test('redirect loops are bounded and leave history unchanged', async () => {
+    const controls = createRouterControls();
+    const first = createRoute({ path: '/first' });
+    const second = createRoute({ path: '/second' });
+    const router = createRouter({ routes: [first, second], controls });
+    const history = createMemoryHistory();
+    const fromFirst = beforeNavigate({ controls, to: first });
+    const fromSecond = beforeNavigate({ controls, to: second });
+
+    sample({ clock: fromFirst.started, target: redirect({ to: second }) });
+    sample({ clock: fromSecond.started, target: redirect({ to: first }) });
+
+    const report = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const scope = fork();
+
+    try {
+      await allSettled(router.setHistory, {
+        scope,
+        params: historyAdapter(history),
+      });
+      await allSettled(first.open, { scope, params: {} });
+
+      expect(report.mock.calls).toEqual([
+        [
+          '[@effector/router] Redirect cancelled after 16 consecutive redirects',
+        ],
+      ]);
+      expect(history.location.pathname).toBe('/');
+      expect(scope.getState(first.$isOpened)).toBe(false);
+      expect(scope.getState(second.$isOpened)).toBe(false);
+    } finally {
+      report.mockRestore();
+    }
+  });
+
+  test('queryAdapter holds navigation until proceed', async () => {
+    const { controls, routes, router } = createFixture();
+    const transition = beforeNavigate({ controls, to: routes.protected });
+    const history = createMemoryHistory({ initialEntries: ['/host'] });
+    const scope = fork();
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: queryAdapter(history, { key: 'route' }),
+    });
+    await allSettled(routes.protected.open, { scope, params: {} });
+
+    expect(
+      new URLSearchParams(history.location.search).get('route'),
+    ).toBeNull();
+
+    await allSettled(transition.proceed, { scope });
+
+    expect(new URLSearchParams(history.location.search).get('route')).toBe(
+      '/protected',
+    );
+    expect(scope.getState(routes.protected.$isOpened)).toBe(true);
+  });
+
   test('historyAdapter holds native POP until proceed', async () => {
     const { controls, routes, router, history } = createFixture([
       '/',
@@ -215,5 +307,31 @@ describe('navigation operators', () => {
     await allSettled(transition.proceed, { scope });
 
     expect(history.location.pathname).toBe('/');
+  });
+
+  test('historyAdapter keeps native POP cancelled', async () => {
+    const { controls, routes, router, history } = createFixture([
+      '/',
+      '/protected',
+    ]);
+    const transition = beforeNavigate({
+      controls,
+      from: routes.protected,
+      to: routes.home,
+    });
+    const scope = fork();
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    history.back();
+    await allSettled(scope);
+    await allSettled(transition.cancel, { scope });
+
+    expect(history.location.pathname).toBe('/protected');
+    expect(history.index).toBe(1);
+    expect(scope.getState(routes.protected.$isOpened)).toBe(true);
   });
 });
