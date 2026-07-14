@@ -255,6 +255,26 @@ describe('router', () => {
     expect(fn2).toBeCalled();
   });
 
+  test('beforeOpen runs once for one route.open navigation', async () => {
+    const beforeOpen = vi.fn();
+    const route = createRoute({
+      path: '/profile',
+      beforeOpen: [createEffect(beforeOpen)],
+    });
+    const router = createRouter({ routes: [route] });
+    const scope = fork();
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(createMemoryHistory()),
+    });
+
+    await allSettled(route.open, { scope, params: {} });
+
+    expect(beforeOpen).toHaveBeenCalledTimes(1);
+    expect(scope.getState(route.$isOpened)).toBe(true);
+  });
+
   test('parent route is opened', async () => {
     const scope = fork();
 

@@ -1,5 +1,4 @@
 import {
-  attach,
   createEffect,
   createEvent,
   createStore,
@@ -17,6 +16,7 @@ import type {
 
 import { ParseUrlParams, ValidatePath } from '@effector/router-paths';
 import { createAction } from 'effector-action';
+import { createAttemptCoordinator } from './transition-attempt';
 
 type WithBaseRouteConfig<T = void> = T & {
   parent?: Route<any>;
@@ -74,21 +74,9 @@ export function createRoute<Params>(
 
   const beforeOpen = config.beforeOpen ?? [];
 
-  const openFx = createEffect<OpenPayload, OpenPayload>(async (payload) => {
-    await waitForAsyncBundleFx();
-    await beforeOpenFx();
-
-    const parent = config.parent as InternalRoute | undefined;
-
-    if (parent) {
-      await parent.internal.openFx({
-        ...(payload ?? { params: {} }),
-        navigate: false,
-      });
-    }
-
-    return payload;
-  });
+  // Opening a path route is a navigation intent. Preparation starts only
+  // after the adapter confirms the resulting location.
+  const openFx = createEffect<OpenPayload, OpenPayload>((payload) => payload);
 
   const forceOpenParentFx = createEffect<OpenPayload, OpenPayload>(
     async (payload) => {
@@ -105,14 +93,16 @@ export function createRoute<Params>(
     },
   );
 
-  const navigatedFx = attach({ effect: openFx });
-
   type OpenPayload = RouteOpenedPayload<Params>;
+
+  const lifecycle = createAttemptCoordinator<OpenPayload>({
+    concurrency: 'takeLatest',
+  });
 
   const $params = createStore<Params>({} as Params);
 
   const $isOpened = createStore(false);
-  const $isPending = openFx.pending;
+  const $isPending = lifecycle.$current.map(Boolean);
 
   const open = createEvent<OpenPayload>();
   const close = createEvent();
@@ -133,6 +123,25 @@ export function createRoute<Params>(
     }
   });
 
+  const prepareFx = createEffect(async (attempt: {
+    id: number;
+    payload: OpenPayload;
+  }) => {
+    await waitForAsyncBundleFx();
+    await beforeOpenFx();
+
+    return attempt;
+  });
+
+  const activateFx = createEffect(async (attempt: {
+    id: number;
+    payload: OpenPayload;
+  }) => {
+    await forceOpenParentFx({ navigate: false, ...attempt.payload });
+
+    return attempt;
+  });
+
   const defaultParams = {} as Params;
 
   sample({
@@ -142,14 +151,24 @@ export function createRoute<Params>(
 
   sample({
     clock: navigated,
-    fn: (payload) => ({ navigate: false, ...payload }),
-    target: navigatedFx,
+    target: lifecycle.requested,
   });
 
   sample({
-    clock: navigatedFx.done,
-    fn: ({ params }) => params,
-    target: forceOpenParentFx,
+    clock: lifecycle.started,
+    target: prepareFx,
+  });
+
+  const prepared = sample({
+    clock: prepareFx.doneData,
+    source: lifecycle.$current,
+    filter: (current, result) => current?.id === result.id,
+    fn: (_, result) => result,
+  });
+
+  sample({
+    clock: prepared,
+    target: activateFx,
   });
 
   createAction({
@@ -167,9 +186,17 @@ export function createRoute<Params>(
   });
 
   sample({
-    clock: navigatedFx.failData,
+    clock: prepareFx.failData,
     fn: () => defaultParams,
     target: $params,
+  });
+
+  sample({
+    clock: prepareFx.fail,
+    source: lifecycle.$current,
+    filter: (current, { params }) => current?.id === params.id,
+    fn: (_, { params }) => params.id,
+    target: lifecycle.cancel,
   });
 
   createAction({
@@ -205,6 +232,22 @@ export function createRoute<Params>(
   sample({
     clock: close,
     target: closed,
+  });
+
+  sample({
+    clock: close,
+    source: lifecycle.$current,
+    filter: Boolean,
+    fn: (attempt) => attempt.id,
+    target: lifecycle.cancel,
+  });
+
+  sample({
+    clock: activateFx.doneData,
+    source: lifecycle.$current,
+    filter: (current, result) => current?.id === result.id,
+    fn: (_, result) => result.id,
+    target: lifecycle.complete,
   });
 
   sample({

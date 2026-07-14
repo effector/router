@@ -32,6 +32,7 @@ export interface PathlessRoute<T extends object | void = void> {
   closed: Event<void>;
 
   parent?: PathRoute<any> | PathlessRoute<any>;
+  /** @deprecated Compose post-commit preparation with `chainRoute` instead. */
   beforeOpen?: Effect<any, any, any>[];
 
   '@@unitShape': () => {
@@ -216,8 +217,6 @@ export interface VirtualRoute<T, TransformerResult> {
   cancelled: Event<void>;
 
   path: string;
-  beforeOpen?: Effect<any, any, any>[];
-
   '@@unitShape': () => {
     params: Store<TransformerResult>;
     isOpened: Store<boolean>;
