@@ -46,17 +46,7 @@ nested `Outlet` tree.
 Suggested direction: preserve `children` when mapping the views and add a
 regression test for a layout-wrapped parent with an active child route.
 
-### 4. `createLazyRouteView` dropped nested route children (resolved)
-
-`CreateLazyRouteViewProps` allowed `children`, but the Solid implementation
-returned only `route` and `view`. Lazy parent routes therefore lost their
-nested outlet configuration. The Solid binding now returns `children` and has a
-regression test covering the contract.
-
-The same runtime gap remains in the React binding and should be fixed there
-separately.
-
-### 5. `Link.href` does not include the query payload
+### 4. `Link.href` does not include the query payload
 
 `Link` resolves `href` from the route path only. Its `query` prop is applied on
 click through `onOpen`, but is absent from the rendered anchor href.
@@ -69,16 +59,7 @@ and query, then use it for `href` while keeping click navigation behavior.
 
 ## Follow-up checks
 
-### 6. Lazy fallback behavior has an explicit binding contract (resolved)
-
-Core no longer registers or waits for a framework importer. Solid starts the
-importer when the lazy view renders and exposes its configured `Suspense`
-fallback until the module resolves. Route/chained `$isPending` remains model
-readiness and does not represent chunk loading. The Solid package has a
-regression test for importer timing and fallback visibility; preload can reuse
-the importer through an ordinary application Effect.
-
-### 7. Active-link styling is not part of `Link`
+### 5. Active-link styling is not part of `Link`
 
 The Solid `Link` API forwards anchor props but does not expose an active-route
 state or `activeClass`. This is not a runtime bug, but every consumer must

@@ -4,37 +4,19 @@ Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-rel
 
 ## Актуализация документации
 
-- [x] Fix the getting-started history initialization example. `docs/introduction/getting-started.md` passes `createBrowserHistory()` directly to `router.setHistory`, while the public event accepts a `RouterAdapter`; wrap the history with `historyAdapter(...)` and import it. Add a documentation typecheck/example test so this cannot regress.
-
 - [ ] Document whether `navigate.query` replaces or merges the current query. The controls guide says to add/update query parameters, but `createRouterControls` serializes the supplied object as the complete search string. Examples that navigate first with `{ page }` and then `{ filter }` therefore lose `page`. State the replacement behavior or implement merging, and add a regression test.
 
 - [ ] Use one accurate `Query` type everywhere. `docs/core/create-router-controls.md` documents `Record<string, string | string[] | undefined>`, while the exported type is `Record<string, string | null | Array<string | null>>`. Core JSDoc/examples also use numeric arrays (`[1, 2]`) that the public type rejects. Update all signatures and examples together.
 
-- [x] Replace the obsolete `controls.trackQuery('q', { defaultValue })` example. The implementation only accepts `{ parameters: ZodType, check? }`; use the Zod-based API shown on the dedicated `trackQuery` page and document the optional `check` field in the config table.
-
 - [ ] Correct `trackQuery` lifecycle and removal semantics. The guide describes `entered` as a transition when parameters appear, but the implementation/test suite emits it again for every valid query change. `exit()` clears the entire query, not only the schema's keys, unless `ignoreParams` explicitly lists keys to preserve. Document these behaviors or change the implementation, with tests for unrelated query parameters.
-
-- [x] Fix non-compiling `chainRoute` examples. `createRoute<{ userId: string }>({ path: '/user/:userId' })` supplies an object where the first generic is the path string; rely on path inference instead. The `loadUserDataFx.doneData` example also treats the returned data as an Effector `done` payload and reads `.result`, although `doneData` already is the result.
-
-- [x] Correct the `group` API and examples. The implementation accepts both `Route` and `VirtualRoute`, but the documented signature only accepts `Route[]`. Conversely, the basic example calls `.close()` on `createRoute` results even though `close` is not public. Demonstrate closure through router navigation for normal routes, or use virtual routes in the manual-close example.
-
-- [x] Repair the custom-adapter examples in `docs/core/adapters.md`. Several adapters treat a string `To` as a pathname even though the same page defines it as a full `pathname?search#hash` value. The React Native and Electron `replace` examples call `this.push` from arrow functions, and the location-maintenance example assigns `this.location` from an arrow function; these snippets are not valid implementations. Factor a shared local `navigate`/`updateLocation` function and parse string targets consistently.
-
-- [x] Correct the custom adapter in `docs/core/create-router-controls.md`: its `location` object omits the required `hash`, so it does not satisfy `RouterAdapter`. Prefer a typed example (`satisfies RouterAdapter`) to keep the docs honest.
 
 ### GitHub issues
 
 - [ ] #23 Docs: nested routes with params propagation
-- [x] #24 Docs: mapping trackQuery result into a store — closed on GitHub by `fbb7893` (`docs(core): show trackQuery store mapping`).
-- [x] #25 Docs: observing route navigation and applied params — closed on GitHub by `018a150` (`docs(core): explain route navigation observation`).
 
 ## Модификация поведения
 
-- [x] Remove or implement `beforeOpen` for `createVirtualRoute` — the unsupported option and examples were removed. `createVirtualRoute` remains independent derived/UI state; readiness is composed with ordinary Effector units or `chainRoute`.
-
 - [ ] Make nested-route parameter documentation match the type/runtime contract. `docs/core/create-route.md` says a child with `path: '/posts'` and parent `'/profile/:userId'` can be opened with `{ params: { userId } }`, but `createRoute` infers params only from the child's own path. Either include parent params in the child route type or rewrite the guide around the actual supported pattern; add a type/runtime test where the parameter exists only on the parent.
-
-- [x] Align `NavigatePayload` across docs, declarations, and examples — `query` is optional, and `navigate({ path })` preserves the current query. Public types, examples, and navigation tests now use the same contract.
 
 - [ ] Resolve the adapter `location` contract inconsistency. The guide requires `adapter.location` to stay synchronized and says omitted object fields have common fallbacks, but both built-in adapters expose an initial snapshot, and `historyAdapter` delegates partial-object behavior to `history` while `queryAdapter` supplies its own `/`/empty fallbacks. Define the intended contract, update implementation/docs, and test partial targets plus `adapter.location` after navigation.
 
@@ -44,20 +26,14 @@ Audit scope: `packages/core/README.md`, every page in `docs/core/`, the core-rel
 
 ### GitHub issues
 
-- [x] #26 Expose pending state for chained routes — chained `$isPending` spans parent activation through chained open/cancel/close.
 - [ ] #28 Allow replace (not push) when trackQuery updates the query
 - [ ] #30 Reset scroll on history change
 - [ ] #31 Show error page when an effect fails on the page
-- [x] #32 RFC: chainRoute API naming & composition (vs createVirtualRoute) — roles and composition are fixed in [`NAVIGATION_LIFECYCLE_RFC.md`](NAVIGATION_LIFECYCLE_RFC.md).
 - [ ] #34 RFC: Allow partial Route params updates
 - [ ] #37 Support navigating to external URLs
-- [x] #39 RFC: block or confirm route transitions — `beforeNavigate` exposes Effector `started`, `proceed`, and `cancel` units before history commit.
 - [ ] #40 trackQuery: read/write mapping for non-primitive query params
-- [x] #42 RFC: add `createTask` helper for `chainRoute` — no new primitive; `chainRoute.beforeOpen` accepts existing callable events/effects.
 - [ ] #43 `route.$params` triggers whenever values of params actually not changed
-- [x] #53 [Bug]: beforeOpen is called twice during link navigation — deprecated preparation runs once per confirmed route activation, with a regression test.
 - [ ] #56 [Bug]: routes never open without a fork scope - scopeBind throws inside openRoutesByPathFx and is silently swallowed
-- [x] #61 redirect operator — implemented as `redirect({ to, replace? })`, a clock-less Effector target with bounded loop semantics.
 - [ ] #62 route.updated event with value-based deduplication
 - [ ] #63 router.initialized and router.updated lifecycle events
 - [ ] #64 routeNotFound option in createRouter
