@@ -114,14 +114,16 @@ describe('solid bindings', () => {
     const { container } = render(() => (
       <Provider value={scope}>
         <RouterProvider router={router}>
-          <Link to={route2} params={{ id: '42' }}>
+          <Link to={route2} params={{ id: '42' }} query={{ tab: 'details' }}>
             open
           </Link>
         </RouterProvider>
       </Provider>
     ));
 
-    expect(container.querySelector('a')?.getAttribute('href')).toBe('/faq/42');
+    expect(container.querySelector('a')?.getAttribute('href')).toBe(
+      '/faq/42?tab=details',
+    );
   });
 
   test('lazy route view preserves nested route views', () => {

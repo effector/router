@@ -178,7 +178,12 @@ describe('react bindings', () => {
         {
           route: route1,
           view: () => (
-            <Link params={{ id: '123' }} to={route2} id="link">
+            <Link
+              params={{ id: '123' }}
+              query={{ tab: 'details' }}
+              to={route2}
+              id="link"
+            >
               route1
             </Link>
           ),
@@ -201,6 +206,10 @@ describe('react bindings', () => {
           <RoutesView />
         </RouterProvider>
       </Provider>,
+    );
+
+    expect(container.querySelector('#link')?.getAttribute('href')).toBe(
+      '/faq/123?tab=details',
     );
 
     await userEvent.click(container.querySelector('#link')!);
