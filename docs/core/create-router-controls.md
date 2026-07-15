@@ -23,7 +23,6 @@ function createRouterControls(): RouterControls;
 | `back`            | `Event<void>`                  | Navigate back in history                 |
 | `forward`         | `Event<void>`                  | Navigate forward in history              |
 | `locationUpdated` | `Event<{ pathname, query }>`   | Fires when location changes              |
-| [`trackQuery`]    | `function`                     | Create query parameter trackers          |
 
 ## Usage
 

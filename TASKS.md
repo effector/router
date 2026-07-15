@@ -178,7 +178,7 @@ location snapshot, not on a configured Router instance.
 
 Do not migrate bindings until public core types are stable.
 
-- [ ] **T30 — Verify the public surface.** Compare
+- [x] **T30 — Verify the public surface.** Compare
       `packages/core/lib/index.ts`, generated declarations, package README, and
       docs against D1–D5. Remove stale types, methods, and examples; export the
       new payloads, events, and operators.

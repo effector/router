@@ -143,31 +143,6 @@ export interface Router {
   initialized: Event<LocationState>;
   updated: Event<LocationState>;
 
-  /**
-   * @description Creates query params tracker
-   * @param config Query tacker config
-   * @link https://router.effector.dev/core/track-query.html
-   * @example ```ts
-   * import { parameters } from '@effector/router';
-   * import { router } from '@shared/router';
-   * import { createDialog } from '...';
-   *
-   * const dialog = createDialog();
-   * const tracker = router.trackQuery({
-   *   dialog: 'team-member',
-   *   id: parameters.number,
-   * });
-   *
-   * // triggered for:
-   * // /team?dialog=team-member&id=1
-   * // /team?dialog=team-member&id=10000
-   *
-   * // not triggered for:
-   * // /team?dialog=team&id=1
-   * // /team?id=10000
-   * // /team?dialog=team&id=not_number
-   * ```
-   */
   ownRoutes: MappedRoute[];
   knownRoutes: MappedRoute[];
 
@@ -305,32 +280,4 @@ export interface RouterControls {
     pathname: string;
     query: Query;
   }>;
-
-  /**
-   * @description Creates query params tracker
-   * @param config Query tacker config
-   * @link https://router.effector.dev/core/track-query.html
-   * @example ```ts
-   * import { z } from 'zod/v4';
-   * import { router } from '@shared/router';
-   * import { createDialog } from '...';
-   *
-   * const dialog = createDialog();
-   * const tracker = router.trackQuery({
-   *  parameters: {
-   *    dialog: z.literal('team-member'),
-   *    id: z.cource.number(),
-   *  },
-   * });
-   *
-   * // triggered for:
-   * // /team?dialog=team-member&id=1
-   * // /team?dialog=team-member&id=10000
-   *
-   * // not triggered for:
-   * // /team?dialog=team&id=1
-   * // /team?id=10000
-   * // /team?dialog=team&id=not_number
-   * ```
-   */
 }

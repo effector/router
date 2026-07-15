@@ -263,20 +263,19 @@ const mainRouter = createRouter({
 
 ## API Reference
 
-| Name            | Type                             | Description                                                |
-| --------------- | -------------------------------- | ---------------------------------------------------------- |
-| `$query`        | `Store<Query>`                   | Current query parameters                                   |
-| `$path`         | `Store<string>`                  | Current path                                               |
-| `$history`      | `Store<RouterAdapter \| null>`   | Current history adapter                                    |
-| `$activeRoutes` | `Store<Route<any>[]>`            | Currently active routes                                    |
-| `back`          | `EventCallable<void>`            | Navigate back (if possible)                                |
-| `forward`       | `EventCallable<void>`            | Navigate forward (if possible)                             |
-| `navigate`      | `EventCallable<NavigatePayload>` | Navigate to path with query                                |
-| `setHistory`    | `EventCallable<RouterAdapter>`   | Initialize router with history adapter                     |
-| [`trackQuery`]  | `(config) => QueryTracker`       | Track query parameters, see [trackQuery](./track-query.md) |
-| `registerRoute` | `(route: InputRoute) => void`    | Dynamically register a route                               |
-| `ownRoutes`     | `MappedRoute[]`                  | Routes owned by this router                                |
-| `knownRoutes`   | `MappedRoute[]`                  | All known routes (including nested)                        |
+| Name            | Type                             | Description                            |
+| --------------- | -------------------------------- | -------------------------------------- |
+| `$query`        | `Store<Query>`                   | Current query parameters               |
+| `$path`         | `Store<string>`                  | Current path                           |
+| `$history`      | `Store<RouterAdapter \| null>`   | Current history adapter                |
+| `$activeRoutes` | `Store<Route<any>[]>`            | Currently active routes                |
+| `back`          | `EventCallable<void>`            | Navigate back (if possible)            |
+| `forward`       | `EventCallable<void>`            | Navigate forward (if possible)         |
+| `navigate`      | `EventCallable<NavigatePayload>` | Navigate to path with query            |
+| `setHistory`    | `EventCallable<RouterAdapter>`   | Initialize router with history adapter |
+| `registerRoute` | `(route: InputRoute) => void`    | Dynamically register a route           |
+| `ownRoutes`     | `MappedRoute[]`                  | Routes owned by this router            |
+| `knownRoutes`   | `MappedRoute[]`                  | All known routes (including nested)    |
 
 ## Shared controls configuration
 
@@ -291,6 +290,16 @@ controls.setHistory(historyAdapter(createBrowserHistory()));
 This lets features use `beforeNavigate({ controls, ... })` without depending on
 the application router. Routes in `from`/`to` must be registered on a router
 using the same controls.
+
+Query tracking is also composed from the same controls:
+
+```ts
+const tracker = trackQuery({
+  controls,
+  routes: Object.values(routes),
+  parameters,
+});
+```
 
 ## Types
 
