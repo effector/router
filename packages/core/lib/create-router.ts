@@ -1,4 +1,4 @@
-import { attach, createEvent, sample, scopeBind } from 'effector';
+import { attach, createEvent, merge, sample, scopeBind } from 'effector';
 import type {
   InternalPathlessRoute,
   InternalPathRoute,
@@ -96,7 +96,10 @@ export function createRouter(config: RouterConfig): Router {
     navigationFailed,
     navigate,
     setHistory,
+    initialized,
+    updated,
     locationUpdated,
+    locationInitialized,
   } = controls;
 
   function getPathWithBase(path: string) {
@@ -274,7 +277,7 @@ export function createRouter(config: RouterConfig): Router {
   }
 
   sample({
-    clock: locationUpdated,
+    clock: merge([locationUpdated, locationInitialized]),
     fn: (location) => ({
       path: location.pathname,
       query: location.query,
@@ -298,6 +301,8 @@ export function createRouter(config: RouterConfig): Router {
     navigate,
 
     setHistory,
+    initialized,
+    updated,
     ownRoutes,
     knownRoutes,
 

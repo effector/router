@@ -126,6 +126,9 @@ export interface Router {
 
   setHistory: EventCallable<RouterAdapter>;
 
+  initialized: Event<LocationState>;
+  updated: Event<LocationState>;
+
   /**
    * @description Creates query params tracker
    * @param config Query tacker config
@@ -276,6 +279,9 @@ export interface RouterControls {
   $path: Store<string | null>;
 
   setHistory: EventCallable<RouterAdapter>;
+
+  initialized: Event<LocationState>;
+  updated: Event<LocationState>;
 
   navigate: EventCallable<NavigatePayload>;
 

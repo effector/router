@@ -28,6 +28,10 @@ Before initialization, `router.navigate`, `router.back`, and `router.forward`
 emit `router.navigationFailed` with `reason: 'not-initialized'` instead of
 throwing or starting a navigation attempt.
 
+`router.initialized` fires after every successful `setHistory`, including
+reinitialization. `router.updated` fires only for later path/query changes;
+equal snapshots and hash-only changes are suppressed.
+
 For React apps with Effector scope:
 
 ```ts

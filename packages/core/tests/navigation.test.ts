@@ -27,6 +27,53 @@ function createFixture(initialEntries = ['/']) {
 }
 
 describe('navigation operators', () => {
+  test('publishes initialized once per setHistory and normalized updates only', async () => {
+    const scope = fork();
+    const router = createRouter({ routes: [] });
+    const first = createMemoryHistory({ initialEntries: ['/one?tab=first'] });
+    const second = createMemoryHistory({ initialEntries: ['/two?tab=second'] });
+    const initialized = vi.fn();
+    const updated = vi.fn();
+
+    router.initialized.watch(initialized);
+    router.updated.watch(updated);
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(first),
+    });
+    expect(initialized).toHaveBeenCalledWith({
+      path: '/one',
+      query: { tab: 'first' },
+    });
+    expect(updated).not.toHaveBeenCalled();
+
+    first.push('/one?tab=second');
+    await allSettled(scope);
+    expect(updated).toHaveBeenCalledTimes(1);
+    expect(updated).toHaveBeenLastCalledWith({
+      path: '/one',
+      query: { tab: 'second' },
+    });
+
+    first.push('/one?tab=second#hash-only');
+    await allSettled(scope);
+    first.push('/one?tab=second');
+    await allSettled(scope);
+    expect(updated).toHaveBeenCalledTimes(1);
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(second),
+    });
+    expect(initialized).toHaveBeenCalledTimes(2);
+    expect(initialized).toHaveBeenLastCalledWith({
+      path: '/two',
+      query: { tab: 'second' },
+    });
+    expect(updated).toHaveBeenCalledTimes(1);
+  });
+
   test('reports pre-init navigation failures without creating attempts', async () => {
     const scope = fork();
     const route = createRoute({ path: '/protected' });

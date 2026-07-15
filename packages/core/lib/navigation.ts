@@ -28,6 +28,10 @@ export interface NavigationHold {
 }
 
 export interface InternalRouterControls extends RouterControls {
+  locationInitialized: EventCallable<{
+    pathname: string;
+    query: import('./types').Query;
+  }>;
   internal: {
     navigationStarted: Event<TransitionAttempt<NavigationRequest>>;
     hold: EventCallable<NavigationHold>;

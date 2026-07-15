@@ -32,6 +32,31 @@ import type { TransitionAttempt } from './transition-attempt';
 
 const MAX_REDIRECT_DEPTH = 16;
 
+function isEqualQueryValue(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) return true;
+  if (!Array.isArray(left) || !Array.isArray(right)) return false;
+
+  return (
+    left.length === right.length &&
+    left.every((value, index) => isEqualQueryValue(value, right[index]))
+  );
+}
+
+function isEqualLocation(left: LocationState, right: LocationState): boolean {
+  const leftKeys = Object.keys(left.query);
+  const rightKeys = Object.keys(right.query);
+
+  return (
+    left.path === right.path &&
+    leftKeys.length === rightKeys.length &&
+    leftKeys.every(
+      (key) =>
+        key in right.query &&
+        isEqualQueryValue(left.query[key], right.query[key]),
+    )
+  );
+}
+
 interface NavigationState {
   attemptId: number;
   collected: boolean;
@@ -47,10 +72,15 @@ export function createRouterControls(): RouterControls {
     serialize: 'ignore',
   });
 
-  const $locationState = createStore<LocationState>({
-    query: {},
-    path: null,
-  });
+  const $locationState = createStore<LocationState>(
+    {
+      query: {},
+      path: null,
+    },
+    {
+      updateFilter: (next, current) => !isEqualLocation(next, current),
+    },
+  );
 
   const $subscription = createStore<Subscription | null>(null, {
     serialize: 'ignore',
@@ -63,12 +93,18 @@ export function createRouterControls(): RouterControls {
   const $path = $locationState.map((state) => state.path);
 
   const setHistory = createEvent<RouterAdapter>();
+  const initialized = createEvent<LocationState>();
+  const updated = createEvent<LocationState>();
   const navigate = createEvent<NavigatePayload>();
   const back = createEvent();
   const forward = createEvent();
   const navigationFailed = createEvent<NavigationFailure>();
 
   const locationUpdated = createEvent<{
+    pathname: string;
+    query: Query;
+  }>();
+  const locationInitialized = createEvent<{
     pathname: string;
     query: Query;
   }>();
@@ -323,6 +359,8 @@ export function createRouterControls(): RouterControls {
   const subscribeHistoryFx = createAsyncAction({
     target: {
       locationUpdated,
+      locationInitialized,
+      initialized,
       nativeNavigationRequested,
       $subscription,
       $blockSubscription,
@@ -339,7 +377,7 @@ export function createRouterControls(): RouterControls {
       source.subscription?.unsubscribe();
       source.blockSubscription?.unsubscribe();
 
-      target.locationUpdated({
+      target.locationInitialized({
         pathname: history.location.pathname,
         query: { ...queryString.parse(history.location.search) },
       });
@@ -358,6 +396,11 @@ export function createRouterControls(): RouterControls {
           target.nativeNavigationRequested(transition);
         }) ?? null,
       );
+
+      target.initialized({
+        path: history.location.pathname,
+        query: { ...queryString.parse(history.location.search) },
+      });
     },
   });
 
@@ -380,10 +423,25 @@ export function createRouterControls(): RouterControls {
   sample({ clock: setHistory, target: $history });
   sample({ clock: $history, filter: Boolean, target: subscribeHistoryFx });
   sample({
-    clock: locationUpdated,
+    clock: locationInitialized,
     fn: (location) => ({ path: location.pathname, query: location.query }),
     target: $locationState,
   });
+  const locationChanged = sample({
+    clock: locationUpdated,
+    source: $locationState,
+    filter: (current, next) =>
+      !isEqualLocation(current, {
+        path: next.pathname,
+        query: next.query,
+      }),
+    fn: (_, next) => ({ path: next.pathname, query: next.query }),
+  });
+  sample({
+    clock: locationChanged,
+    target: updated,
+  });
+  sample({ clock: locationChanged, target: $locationState });
   const initializedBack = sample({
     clock: back,
     source: $history,
@@ -433,6 +491,9 @@ export function createRouterControls(): RouterControls {
     back,
     forward,
     navigationFailed,
+    locationInitialized,
+    initialized,
+    updated,
     locationUpdated,
     trackQuery: trackQueryControlsFactory({ $query, navigate }),
     internal: {

@@ -44,6 +44,10 @@ Router controls should be initialized with `setHistory` before use. Before
 initialization, `navigate`, `back`, and `forward` emit
 `controls.navigationFailed` with a discriminated `not-initialized` payload and
 do not throw or create a navigation attempt.
+
+`controls.initialized` and `controls.updated` expose the same location
+lifecycle as Router. Reinitialization emits `initialized`; equal or hash-only
+changes do not emit `updated`.
 :::
 
 ### Navigate to Paths

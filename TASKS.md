@@ -111,7 +111,7 @@ semantics, transition policy, and framework href builders depend on it.
       discriminated payload, direct and route-originated navigation, absence of
       throws/console output/queues, unchanged history and route state, virtual
       routes, global scope, and Fork API isolation.
-- [ ] **T18 — Router lifecycle events.** Add public `initialized` and
+- [x] **T18 — Router lifecycle events.** Add public `initialized` and
       `updated: Event<LocationState>`. `initialized` fires after every successful
       `setHistory`; `updated` fires only after a later value change to path or
       query. An equal snapshot or hash-only change produces neither an event nor
