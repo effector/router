@@ -18,10 +18,6 @@ Stages 6 and 10 are mandatory conformance gates between these contracts.
 Stabilize `@effector/router-paths` first. Route param inference, URL building,
 matching, nested params, and RN screen names depend on it.
 
-- [ ] **T04 — Pathname patterns only.** Add aligned runtime and type-level
-      diagnostics for query, hash, origin/full URL, invalid ranges, unclosed
-      generic/range syntax, and conflicting modifiers. Do not add base, origin,
-      or query configuration to the paths package.
 - [ ] **T05 — Paths conformance matrix.** Move compile-time assertions out of
       production types and into test fixtures. Cover parse/build round trips,
       bounds, optional omission, embedded params, malformed/adversarial input,

@@ -2,6 +2,33 @@ import { describe, expect, test } from 'vitest';
 import { compile } from '../lib/compile';
 
 describe('parse path', () => {
+  test('rejects non-pathname and malformed patterns at compile time', () => {
+    expect(() => compile('profile')).toThrow(
+      'Path pattern must be a pathname starting with "/"',
+    );
+    expect(() => compile('/profile?tab=posts')).toThrow(
+      'Path pattern must not contain a query or hash',
+    );
+    expect(() => compile('/profile#details')).toThrow(
+      'Path pattern must not contain a query or hash',
+    );
+    expect(() => compile('https://example.com/profile')).toThrow(
+      'Path pattern must be a pathname starting with "/"',
+    );
+    expect(() => compile('/profile/:id<')).toThrow(
+      'Path pattern has an unclosed generic or range',
+    );
+    expect(() => compile('/profile/:id{1,}')).toThrow(
+      'Path pattern has an invalid range',
+    );
+    expect(() => compile('/profile/:id{3,2}')).toThrow(
+      'Path pattern has an invalid range',
+    );
+    expect(() => compile('/profile/:id+*')).toThrow(
+      'Path pattern has conflicting modifiers',
+    );
+  });
+
   test('parse root path', () => {
     const { parse } = compile('/');
 

@@ -44,6 +44,10 @@ present array is outside its bounds.
 Number and literal-union values are validated before serialization, so the
 builder cannot produce a URL that its parser rejects.
 
+Path patterns are pathname-only. Query strings, hashes, origins, malformed
+ranges, unclosed generic/range syntax, and conflicting modifiers are rejected
+by `compile` with a descriptive error.
+
 ## Type extraction
 
 ```ts

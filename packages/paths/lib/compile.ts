@@ -2,6 +2,7 @@ import { prepareParser } from './prepare-parser';
 import { ParameterToken, ParseUrlParams, Token } from './types';
 import { prepareBuilder } from './prepare-builder';
 import { tokenizePath } from './tokenize-path';
+import { validateRuntimePath } from './validate-runtime-path';
 
 function removeWhitespace(value: string): string {
   let result = '';
@@ -69,6 +70,8 @@ function parseRange(value: string | undefined) {
  * ```
  */
 export function compile<T extends string, Params = ParseUrlParams<T>>(path: T) {
+  validateRuntimePath(path);
+
   const tokens: Token[] = [];
 
   for (const segment of tokenizePath(path)) {

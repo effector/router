@@ -1,5 +1,5 @@
 import { expectTypeOf, test } from 'vitest';
-import type { ParseUrlParams } from '../lib';
+import type { ParseUrlParams, ValidatePath } from '../lib';
 
 test('optional parameters are optional object properties', () => {
   expectTypeOf<ParseUrlParams<'/user/:id?'>>().toEqualTypeOf<{
@@ -31,4 +31,18 @@ test('optional parameters are optional object properties', () => {
   expectTypeOf<ParseUrlParams<'/files/:ids*?'>>().toEqualTypeOf<{
     ids?: string[];
   }>();
+
+  expectTypeOf<ValidatePath<'/profile'>>().toEqualTypeOf<'/profile'>();
+  expectTypeOf<ValidatePath<'/profile?tab=posts'>>().toMatchTypeOf<
+    ['invalid', string]
+  >();
+  expectTypeOf<ValidatePath<'/profile/:id<'>>().toMatchTypeOf<
+    ['invalid', string]
+  >();
+  expectTypeOf<ValidatePath<'/profile/:id+*'>>().toMatchTypeOf<
+    ['invalid', string]
+  >();
+  expectTypeOf<ValidatePath<'/profile/:id{3,2}'>>().toMatchTypeOf<
+    ['invalid', string]
+  >();
 });

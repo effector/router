@@ -37,6 +37,18 @@ const path = build({ id: 456 });
 // '/user/456'
 ```
 
+## Pathname-only patterns
+
+`compile` accepts pathname patterns only. Query strings, hashes, origins, and
+malformed parameter syntax are rejected before a parser or builder is created:
+
+```ts
+compile('/user/:id'); // valid
+compile('/user?id=123'); // throws: query/hash is not part of a pattern
+compile('https://example.com/user'); // throws: origins are not patterns
+compile('/user/:ids{3,2}'); // throws: invalid range
+```
+
 ## Parameter Types
 
 ### String Parameters (Default)
