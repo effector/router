@@ -144,6 +144,8 @@ without it, the tracker is always active. The tracker reacts automatically—no
 arrays); `entered` emits the schema output after parsing and transforms.
 `exit` removes only schema-owned keys and preserves unrelated query keys,
 including keys listed in `ignoreParams`.
+The same contract is covered for flags, repeated keys, empty arrays, encoding,
+path-only navigation, explicit clears, and adapter round trips.
 
 The lifecycle matrix also covers string/partial adapter round trips, repeated
 initialization, stale-listener cleanup, native POP, Fork isolation, and equal

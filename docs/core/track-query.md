@@ -44,6 +44,10 @@ removes schema-owned keys while preserving unrelated keys; pass
 `ignoreParams` to preserve selected keys explicitly. Route activation and
 deactivation use the same ownership rules.
 
+The query matrix covers flags, repeated keys, empty arrays, reserved-character
+encoding, path-only navigation, explicit clears, route-less and OR-filtered
+trackers, transformed schemas, enter/exit ownership, and adapter round trips.
+
 ## Usage
 
 ### Basic Query Tracking

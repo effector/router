@@ -19,6 +19,8 @@ describe('query codec', () => {
         tags: ['first', null, 'last'],
       }),
     ).toBe('flag&tags=first&tags&tags=last');
+    expect(stringifyQuery({ empty: [] })).toBe('');
+    expect(parseQuery(stringifyQuery({ empty: [] }))).toEqual({});
   });
 
   test('round-trips values and compares key order independently', () => {
@@ -32,5 +34,11 @@ describe('query codec', () => {
       isEqualQuery(query, { flag: null, values: ['two', null, 'one'] }),
     ).toBe(false);
     expect(isEqualQuery(query, { flag: undefined as never })).toBe(false);
+  });
+
+  test('encodes reserved characters without changing repeated-value order', () => {
+    const query = { q: 'a & b', values: ['one/two', 'three?'] };
+
+    expect(parseQuery(stringifyQuery(query))).toEqual(query);
   });
 });

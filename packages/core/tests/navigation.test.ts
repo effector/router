@@ -182,6 +182,31 @@ describe('navigation operators', () => {
     expect(history.location.search).toBe('');
   });
 
+  test('keeps query on path-only navigation and round-trips flags and arrays', async () => {
+    const { router, history } = createFixture(['/?flag&tag=one&tag=two']);
+    const scope = fork();
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+    expect(scope.getState(router.$query)).toEqual({
+      flag: null,
+      tag: ['one', 'two'],
+    });
+
+    await allSettled(router.navigate, {
+      scope,
+      params: { path: '/sign-in' },
+    });
+
+    expect(history.location.search).toBe('?flag&tag=one&tag=two');
+    expect(scope.getState(router.$query)).toEqual({
+      flag: null,
+      tag: ['one', 'two'],
+    });
+  });
+
   test('beforeNavigate holds and proceeds a matching transition', async () => {
     const { controls, routes, router, history } = createFixture();
     const transition = beforeNavigate({ controls, to: routes.protected });

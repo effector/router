@@ -169,7 +169,7 @@ location snapshot, not on a configured Router instance.
 - [x] **T28 — `enter`/`exit` ownership.** Preserve unrelated query keys during
       partial enter/exit. Correctly handle `ignoreParams`, route activation and
       deactivation, same-value changes, and later re-entry into the schema.
-- [ ] **T29 — Query matrix.** Cover flags, repeated keys, empty arrays, encoding,
+- [x] **T29 — Query matrix.** Cover flags, repeated keys, empty arrays, encoding,
       path-only navigation, explicit clear, trackers without routes, OR across
       routes, transformed schemas, enter/exit, and adapter round trips. Update the
       core API reference, examples, README, and changeset.
