@@ -16,17 +16,27 @@ export function prepareBuilder<T>(tokens: Token[]): Builder<T> {
         }
         case 'parameter': {
           const value = params?.[token.name];
+          const { prefix } = token.payload;
 
           if (value === null || value === undefined) {
+            if (prefix) {
+              result.push(prefix);
+            }
+
             continue;
           }
 
           if (Array.isArray(value)) {
-            for (const param of value) {
-              result.push(param.toString());
+            if (value.length === 0 && prefix) {
+              result.push(prefix);
+            }
+
+            for (let index = 0; index < value.length; index++) {
+              const param = value[index].toString();
+              result.push(index === 0 ? `${prefix}${param}` : param);
             }
           } else {
-            result.push(value.toString());
+            result.push(`${prefix}${value.toString()}`);
           }
 
           break;

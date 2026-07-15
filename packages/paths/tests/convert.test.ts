@@ -59,4 +59,16 @@ describe('convert paths', () => {
     expect(convertPath('/@:user+', 'express')).toBe('/@*user');
     expect(convertPath('/name-:user?', 'express')).toBe('/name-{:user}');
   });
+
+  test('handles adversarial malformed segments as literals', () => {
+    const missingGenericEnd = '*0<'.repeat(10_000);
+    const missingRangeEnd = '{{'.repeat(10_000);
+
+    expect(convertPath(`/${missingGenericEnd}`, 'express')).toBe(
+      `/${missingGenericEnd}`,
+    );
+    expect(convertPath(`/${missingRangeEnd}`, 'express')).toBe(
+      `/${missingRangeEnd}`,
+    );
+  });
 });

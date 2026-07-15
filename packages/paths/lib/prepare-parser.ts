@@ -33,17 +33,32 @@ export function prepareParser<T>(tokens: Token[]): Parser<T> {
           continue;
         }
         case 'parameter': {
-          const { arrayProps, genericProps, required } = token.payload;
+          const { arrayProps, genericProps, prefix, required } = token.payload;
 
           if (arrayProps) {
             const array: any[] = [];
             let rawToken;
+            let first = true;
 
             while (true) {
               rawToken = rawTokens.shift();
 
               if (!rawToken) {
                 break;
+              }
+
+              if (first) {
+                first = false;
+
+                if (!rawToken.startsWith(prefix)) {
+                  return null;
+                }
+
+                rawToken = rawToken.slice(prefix.length);
+
+                if (!rawToken) {
+                  break;
+                }
               }
 
               switch (genericProps?.type) {
@@ -75,6 +90,10 @@ export function prepareParser<T>(tokens: Token[]): Parser<T> {
               }
             }
 
+            if (array.length === 0 && prefix && first) {
+              return null;
+            }
+
             if (array.length === 0 && !required) {
               setKey(token.name, undefined);
               break;
@@ -92,7 +111,26 @@ export function prepareParser<T>(tokens: Token[]): Parser<T> {
             break;
           }
 
-          const rawToken = rawTokens.shift();
+          const prefixedRawToken = rawTokens.shift();
+
+          if (!prefixedRawToken) {
+            if (prefix) {
+              return null;
+            }
+
+            if (required) {
+              return null;
+            }
+
+            setKey(token.name, undefined);
+            continue;
+          }
+
+          if (!prefixedRawToken.startsWith(prefix)) {
+            return null;
+          }
+
+          const rawToken = prefixedRawToken.slice(prefix.length);
 
           if (required && !rawToken) {
             return null;

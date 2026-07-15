@@ -26,6 +26,26 @@ describe('parse path', () => {
     });
   });
 
+  test('parse parameters embedded in a segment', () => {
+    const user = compile('/@:user');
+    const namedUser = compile('/name-:user?');
+
+    expect(user.parse('/@alice')).toStrictEqual({
+      path: '/@alice',
+      params: { user: 'alice' },
+    });
+    expect(user.parse('/alice')).toStrictEqual(null);
+    expect(namedUser.parse('/name-alice')).toStrictEqual({
+      path: '/name-alice',
+      params: { user: 'alice' },
+    });
+    expect(namedUser.parse('/name-')).toStrictEqual({
+      path: '/name-',
+      params: { user: undefined },
+    });
+    expect(namedUser.parse('/')).toStrictEqual(null);
+  });
+
   test('parse path with generic parameter (number)', () => {
     const { parse } = compile('/profile/:id<number>');
 
@@ -357,6 +377,11 @@ describe('build path', () => {
     const { build } = compile('/profile/:id');
 
     expect(build({ id: '123' })).toBe('/profile/123');
+  });
+
+  test('build parameters embedded in a segment', () => {
+    expect(compile('/@:user').build({ user: 'alice' })).toBe('/@alice');
+    expect(compile('/name-:user?').build({ user: undefined })).toBe('/name-');
   });
 
   test('build path with generic parameter (number)', () => {

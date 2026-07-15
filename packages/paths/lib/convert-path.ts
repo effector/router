@@ -1,32 +1,9 @@
 type CompabilityMode = 'express';
 
-type ConvertedSegment = {
-  prefix: string;
-  parameter?: string;
-  optional: boolean;
-};
-
-function convertSegment(segment: string): ConvertedSegment {
-  const parameter = segment.match(
-    /^(.*?)([:*])([a-zA-Z0-9_]+)(?:<[^>]+>)?(?:[+*]|\{[^}]+\})?(\?)?$/,
-  );
-
-  if (!parameter) {
-    return { prefix: segment, optional: false };
-  }
-
-  const [, prefix, marker, name, optional] = parameter;
-  const isWildcard = marker === '*' || /(?:[+*]|\{[^}]+\})/.test(segment);
-
-  return {
-    prefix,
-    parameter: `${isWildcard ? '*' : ':'}${name}`,
-    optional: Boolean(optional),
-  };
-}
+import { tokenizePath } from './tokenize-path';
 
 function convertToExpress(path: string): string {
-  const segments = path.split('/').filter(Boolean);
+  const segments = tokenizePath(path);
 
   if (segments.length === 0) {
     return '/';
@@ -36,32 +13,37 @@ function convertToExpress(path: string): string {
   let previousWasOptional = false;
 
   for (const segment of segments) {
-    const converted = convertSegment(segment);
-
-    if (!converted.parameter) {
-      result += `/${converted.prefix}`;
+    if (segment.type === 'literal') {
+      result += `/${segment.value}`;
       previousWasOptional = false;
       continue;
     }
 
-    if (!converted.optional) {
-      result += `/${converted.prefix}${converted.parameter}`;
+    const isWildcard =
+      segment.marker === '*' ||
+      segment.modifier === '+' ||
+      segment.modifier === '*' ||
+      segment.range !== undefined;
+    const parameter = `${isWildcard ? '*' : ':'}${segment.name}`;
+
+    if (!segment.optional) {
+      result += `/${segment.prefix}${parameter}`;
       previousWasOptional = false;
       continue;
     }
 
-    if (converted.prefix) {
-      result += `/${converted.prefix}{${converted.parameter}}`;
+    if (segment.prefix) {
+      result += `/${segment.prefix}{${parameter}}`;
       previousWasOptional = false;
       continue;
     }
 
     if (!result) {
-      result = `/{${converted.parameter}}`;
+      result = `/{${parameter}}`;
     } else if (previousWasOptional) {
-      result += `/{/${converted.parameter}}`;
+      result += `/{/${parameter}}`;
     } else {
-      result += `{/${converted.parameter}}`;
+      result += `{/${parameter}}`;
     }
 
     previousWasOptional = true;

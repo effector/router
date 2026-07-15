@@ -73,20 +73,32 @@ export type UrlParameter<T extends string> =
         ? Parameter<WithoutModificator<Name>, WithModificator<string, T>>
         : never;
 
+type WildcardParameter<T extends string> = T extends `${infer Name}?`
+  ? Parameter<Name, string[] | undefined>
+  : Parameter<T, string[]>;
+
+type SegmentParameter<T extends string> = T extends `${string}:${infer Value}`
+  ? UrlParameter<`:${Value}`>
+  : T extends `${string}*${infer Value}`
+    ? WildcardParameter<Value>
+    : never;
+
+type AddSegmentParameter<Result, Segment extends string> = [
+  SegmentParameter<Segment>,
+] extends [never]
+  ? Result
+  : Result extends void
+    ? SegmentParameter<Segment>
+    : Result & SegmentParameter<Segment>;
+
 type UrlParams<
   T extends string,
   Result = void,
-> = T extends `/:${infer Parameter}/${infer Route}`
-  ? Result extends void
-    ? UrlParams<`/${Route}`, UrlParameter<`:${Parameter}`>>
-    : UrlParams<`/${Route}`, Result & UrlParameter<`:${Parameter}`>>
-  : T extends `/:${infer Parameter}`
-    ? Result extends void
-      ? UrlParameter<`:${Parameter}`>
-      : Result & UrlParameter<`:${Parameter}`>
-    : T extends `/${infer Static}/${infer Next}`
-      ? UrlParams<`/${Next}`, Result>
-      : Result;
+> = T extends `/${infer Segment}/${infer Route}`
+  ? UrlParams<`/${Route}`, AddSegmentParameter<Result, Segment>>
+  : T extends `/${infer Segment}`
+    ? AddSegmentParameter<Result, Segment>
+    : Result;
 
 type Unwrap<Result extends UrlParams<any, void>> = {
   [k in keyof Result]: Result[k];
@@ -141,6 +153,7 @@ export type ConstToken = BaseToken<'const'>;
 export type ParameterToken = BaseToken<
   'parameter',
   {
+    prefix: string;
     required: boolean;
     genericProps?: { type: 'union'; items: string[] } | { type: 'number' };
     arrayProps?: { min?: number; max?: number };
