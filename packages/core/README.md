@@ -140,6 +140,9 @@ Create query trackers with `trackQuery({ controls, routes, parameters })`.
 without it, the tracker is always active. The tracker reacts automatically—no
 `check` clock or router/controls method is required.
 
+`trackQuery.enter` accepts only schema-owned URL values (`string`, `null`, or
+arrays); `entered` emits the schema output after parsing and transforms.
+
 The lifecycle matrix also covers string/partial adapter round trips, repeated
 initialization, stale-listener cleanup, native POP, Fork isolation, and equal
 snapshot suppression.

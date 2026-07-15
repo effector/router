@@ -14,6 +14,7 @@ import type {
   Query,
   QueryTracker,
   QueryTrackerConfig,
+  QueryParametersInput,
   Route,
   RouterControls,
   TrackQueryConfig,
@@ -39,10 +40,10 @@ export function trackQueryFactory({
 
     const $entered = createStore(false);
 
-    const entered = createEvent<z.infer<T>>();
+    const entered = createEvent<z.output<T>>();
     const exited = createEvent();
 
-    const enter = createEvent<z.infer<T>>();
+    const enter = createEvent<QueryParametersInput<T>>();
     const exit = createEvent<{ ignoreParams: string[] } | void>();
 
     const changeEntered = createEvent<boolean>();
@@ -97,12 +98,10 @@ export function trackQueryFactory({
       ],
     });
 
-    // @ts-expect-error TS is wrong
     sample({
       clock: enter,
       source: $query,
       fn: (query, payload) => {
-        // @ts-expect-error TS is also wrong
         return { query: { ...query, ...payload } };
       },
       target: navigate,

@@ -17,6 +17,10 @@ export type Query = Record<string, QueryValue>;
 
 export type QueryInput = Record<string, QueryValue | undefined>;
 
+export type QueryParametersInput<ParametersConfig extends ZodType> = Partial<
+  Record<Extract<keyof z.input<ParametersConfig>, string>, QueryValue>
+>;
+
 export interface PathlessRoute<T extends object | void = void> {
   '@@type': 'pathless-route';
 
@@ -72,10 +76,10 @@ export type TrackQueryConfig<ParametersConfig extends ZodType> =
   };
 
 export interface QueryTracker<ParametersConfig extends ZodType> {
-  entered: Event<z.infer<ParametersConfig>>;
+  entered: Event<z.output<ParametersConfig>>;
   exited: Event<void>;
 
-  enter: EventCallable<z.infer<ParametersConfig>>;
+  enter: EventCallable<QueryParametersInput<ParametersConfig>>;
   exit: EventCallable<{ ignoreParams: string[] } | void>;
 }
 

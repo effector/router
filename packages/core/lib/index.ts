@@ -19,6 +19,7 @@ export type {
   Query,
   QueryInput,
   QueryValue,
+  QueryParametersInput,
   OpenPayloadBase,
   RouteOpenPayload,
   RouteOpenedPayload,

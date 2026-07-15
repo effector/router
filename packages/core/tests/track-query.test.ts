@@ -363,7 +363,10 @@ describe('trackQuery', () => {
       routes: [routes.app, routes.home],
     });
 
-    await allSettled(tracker.enter, { params: { id: 0, role: 'user' }, scope });
+    await allSettled(tracker.enter, {
+      params: { id: '0', role: 'user' },
+      scope,
+    });
 
     expect(scope.getState(router.$query)).toStrictEqual({
       id: '0',
@@ -372,7 +375,7 @@ describe('trackQuery', () => {
     expect(history.location.search).toBe('?id=0&role=user');
 
     await allSettled(tracker.enter, {
-      params: { id: 1, role: 'admin' },
+      params: { id: '1', role: 'admin' },
       scope,
     });
 

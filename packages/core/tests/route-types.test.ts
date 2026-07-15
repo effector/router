@@ -1,7 +1,8 @@
 import { expectTypeOf, test } from 'vitest';
-import { createRoute } from '../lib';
+import { createRoute, createRouterControls, trackQuery } from '../lib';
 import type { Event, EventCallable } from 'effector';
 import type { PathlessRoute, RouteOpenedPayload, VirtualRoute } from '../lib';
+import { z } from 'zod/v4';
 
 test('path and virtual routes share the public lifecycle contract', () => {
   type Params = { id: string };
@@ -34,4 +35,20 @@ test('rejects duplicate parent and child parameter names', () => {
 
   // @ts-expect-error child path cannot redeclare a parent parameter
   createRoute({ path: '/posts/:id', parent });
+});
+
+test('trackQuery accepts URL values and publishes schema output', () => {
+  const controls = createRouterControls();
+  const tracker = trackQuery({
+    controls,
+    parameters: z.object({ page: z.coerce.number() }),
+  });
+
+  tracker.enter({ page: '2' });
+  // @ts-expect-error domain numbers must be converted before enter
+  tracker.enter({ page: 2 });
+  // @ts-expect-error keys outside the schema are rejected
+  tracker.enter({ other: 'value' });
+
+  expectTypeOf(tracker.entered).toMatchTypeOf<Event<{ page: number }>>();
 });

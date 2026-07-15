@@ -160,7 +160,7 @@ location snapshot, not on a configured Router instance.
       `routes`, filter through `$isOpened` with OR semantics, and react without
       `check`. Remove `router.trackQuery`/`controls.trackQuery` methods and provide
       migration documentation.
-- [ ] **T27 — Separate URL input from schema output.** `entered` publishes
+- [x] **T27 — Separate URL input from schema output.** `entered` publishes
       `z.output<ParametersSchema>`. `enter` accepts only schema-owned keys with
       `string | null | Array<string | null>` values. Numbers, dates, booleans,
       and objects are converted externally before `enter`. Export a Query value

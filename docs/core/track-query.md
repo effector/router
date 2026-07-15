@@ -33,6 +33,12 @@ trackQuery<T extends ZodType>(config: {
 | `exit`    | `Event<{ ignoreParams?: string[] } \| void>` | Programmatically remove parameters     |
 | `exited`  | `Event<void>`                                | Fires when parameters no longer match  |
 
+`enter` accepts only keys declared by the schema and URL-compatible values:
+`string`, `null`, or ordered arrays of those values. Convert numbers, dates,
+booleans, and other domain values before calling `enter`. `entered` publishes
+the schema's parsed output, so a schema transform may expose domain values to
+listeners without widening the URL input contract.
+
 ## Usage
 
 ### Basic Query Tracking
