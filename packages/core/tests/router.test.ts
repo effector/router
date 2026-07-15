@@ -338,6 +338,32 @@ describe('router', () => {
     expect(scope.getState(child.$isOpened)).toBeTruthy();
   });
 
+  test('deduplicates equal route params updates', async () => {
+    const scope = fork();
+    const route = createRoute({ path: '/profile/:id' });
+    const router = createRouter({ routes: [route] });
+    const history = createMemoryHistory();
+    const updated = vi.fn();
+
+    route.updated.watch(updated);
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    history.push('/profile/first');
+    await allSettled(scope);
+    history.push('/profile/first');
+    await allSettled(scope);
+    history.push('/profile/second');
+    await allSettled(scope);
+
+    expect(updated).toHaveBeenCalledTimes(2);
+    expect(updated).toHaveBeenNthCalledWith(1, { id: 'first' });
+    expect(updated).toHaveBeenNthCalledWith(2, { id: 'second' });
+  });
+
   test('subrouter', async () => {
     const scope = fork();
 
