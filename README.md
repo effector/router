@@ -25,6 +25,9 @@ has its own README: [core](packages/core), [paths](packages/paths), [react](pack
 The composable navigation lifecycle and its design rationale are recorded in the
 [navigation lifecycle RFC](NAVIGATION_LIFECYCLE_RFC.md).
 
+Current planning is split into [BUGS](BUGS.md), [TASKS](TASKS.md), and
+[DECISIONS](DECISIONS.md).
+
 ## Contributing
 
 Contributions are welcome — bug reports, feature requests, documentation fixes, and pull requests. See
