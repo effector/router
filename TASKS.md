@@ -96,7 +96,7 @@ semantics, transition policy, and framework href builders depend on it.
       targets so omitted `pathname`, `search`, and `hash` retain values from the
       current adapter location. Apply the same contract to historyAdapter and
       queryAdapter's internal location.
-- [ ] **T15 — Query adapter ownership.** Preserve the host pathname/hash and
+- [x] **T15 — Query adapter ownership.** Preserve the host pathname/hash and
       unrelated query keys while updating only the nested route owned by the
       adapter. Cover keyed and whole-search modes, multiple query adapters, a
       shared historyAdapter, and partial nested targets.

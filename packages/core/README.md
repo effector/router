@@ -90,6 +90,11 @@ String and partial object targets resolve omitted pathname, search, and hash
 fields from the adapter's current location. This applies to both history and
 query adapters.
 
+In keyed query mode, only the configured query key is owned by the nested
+router; unrelated keys, host pathname/hash, multiple query adapters, and a
+shared `historyAdapter` remain intact. Whole-search mode intentionally owns the
+entire search section.
+
 ## Documentation
 
 Full guides and API reference: **[router.effector.dev/core](https://router.effector.dev/core)**
