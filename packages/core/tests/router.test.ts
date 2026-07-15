@@ -12,6 +12,20 @@ import { createMemoryHistory } from 'history';
 import { watchCalls } from './utils';
 
 describe('router', () => {
+  test('createRoute without a path is a self-contained virtual route', async () => {
+    const scope = fork();
+    const route = createRoute<{ id: string }>();
+
+    await allSettled(route.open, {
+      scope,
+      params: { params: { id: 'one' } },
+    });
+
+    expect(scope.getState(route.$isOpened)).toBe(true);
+    expect(scope.getState(route.$params)).toStrictEqual({ id: 'one' });
+    expect(route).not.toHaveProperty('path');
+  });
+
   test('opens routes from history in the global scope (#56)', async () => {
     const route = createRoute({ path: '/profile' });
     const router = createRouter({ routes: [route] });

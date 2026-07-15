@@ -62,7 +62,8 @@ profile.$params.watch((p) => console.log('id:', p.id));
 
 `createRoute<Params>()` is the pathless/virtual form. `createVirtualRoute` is
 the deprecated compatibility factory; new code should use the shared
-`createRoute` lifecycle.
+`createRoute` lifecycle. A pathless route opens from its own Effector units,
+does not need router registration, and never writes history.
 
 ## Documentation
 

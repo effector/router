@@ -228,6 +228,13 @@ export function createRoute<Params>(
     target: openFx,
   });
 
+  if (!('path' in config)) {
+    sample({
+      clock: openFx.doneData,
+      target: navigated,
+    });
+  }
+
   sample({
     clock: navigated,
     target: lifecycle.requested,

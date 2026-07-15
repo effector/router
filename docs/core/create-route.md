@@ -68,6 +68,10 @@ searchRoute.open({ query: { q: 'hello' } });
 
 ### Pathless Routes
 
+Calling `createRoute()` without a `path` creates a self-contained virtual
+route. It can be opened directly, does not require router registration, and
+never writes to history.
+
 Routes without paths for dialogs, modals, or other non-URL navigation:
 
 ```ts

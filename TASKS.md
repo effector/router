@@ -23,10 +23,6 @@ matching, nested params, and RN screen names depend on it.
 This stage depends on D5 and creates the common route payload/lifecycle used by
 Router, query operators, and all bindings.
 
-- [ ] **T07 — Implement both `createRoute` forms.** `createRoute({ path })`
-      creates a URL route. `createRoute<Params>()` without a path creates a
-      self-contained virtual route that does not require Router registration and
-      never writes history.
 - [ ] **T08 — Deprecated alias without an early removal.** Implement
       `createVirtualRoute` as a deprecated compatibility wrapper over the shared
       `createRoute()` lifecycle. Preserve its current generic overloads,
