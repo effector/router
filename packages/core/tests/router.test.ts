@@ -12,6 +12,20 @@ import { createMemoryHistory } from 'history';
 import { watchCalls } from './utils';
 
 describe('router', () => {
+  test('opens routes from history in the global scope (#56)', async () => {
+    const route = createRoute({ path: '/profile' });
+    const router = createRouter({ routes: [route] });
+    const history = createMemoryHistory();
+
+    router.setHistory(historyAdapter(history));
+
+    await vi.waitFor(() => expect(router.$path.getState()).toBe('/'));
+
+    history.push('/profile');
+
+    await vi.waitFor(() => expect(route.$isOpened.getState()).toBe(true));
+  });
+
   test('routes opened when path changed', async () => {
     const route1 = createRoute({ path: '/one' });
     const route2 = createRoute({ path: '/two' });
