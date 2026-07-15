@@ -26,8 +26,9 @@ export interface PathlessRoute<T extends object | void = void> {
   opened: Event<RouteOpenedPayload<T>>;
   openedOnServer: Event<RouteOpenedPayload<T>>;
   openedOnClient: Event<RouteOpenedPayload<T>>;
-  updated: Event<T>;
+  updated: Event<RouteOpenedPayload<T>>;
 
+  close: EventCallable<void>;
   closed: Event<void>;
 
   parent?: PathRoute<any> | PathlessRoute<any>;
@@ -194,7 +195,8 @@ export type InternalRoute<T extends object | void = any> =
   | InternalPathRoute<T>
   | InternalPathlessRoute<T>;
 
-export interface VirtualRoute<T, TransformerResult> {
+/** @deprecated Internal compatibility shape for the old two-argument virtual route. */
+export interface LegacyVirtualRoute<T, TransformerResult> {
   '@@type': 'pathless-route';
 
   $params: StoreWritable<TransformerResult>;
@@ -223,6 +225,24 @@ export interface VirtualRoute<T, TransformerResult> {
     onClose: EventCallable<void>;
   };
 }
+
+interface LegacyVirtualRouteMarker {
+  readonly __legacyVirtualRoute?: unique symbol;
+}
+
+/**
+ * @deprecated The two-argument form is retained for `createVirtualRoute` and
+ * `chainRoute` compatibility. Use `createRoute<Params>()` for new virtual
+ * routes.
+ */
+export type VirtualRoute<
+  T = void,
+  TransformerResult = LegacyVirtualRouteMarker,
+> = TransformerResult extends LegacyVirtualRouteMarker
+  ? T extends object | void
+    ? PathlessRoute<T>
+    : never
+  : LegacyVirtualRoute<T, TransformerResult>;
 
 export type LocationState = { path: string; query: Query };
 

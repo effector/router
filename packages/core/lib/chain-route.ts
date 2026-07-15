@@ -6,7 +6,7 @@ import {
   type EventCallable,
   type Unit,
 } from 'effector';
-import type { Route, RouteOpenedPayload, VirtualRoute } from './types';
+import type { LegacyVirtualRoute, Route, RouteOpenedPayload } from './types';
 import { createVirtualRoute } from './create-virtual-route';
 import { createAttemptCoordinator } from './transition-attempt';
 
@@ -15,7 +15,7 @@ type BeforeOpenUnit<T extends object | void = void> =
   | ((payload: void) => unknown);
 
 export interface ChainRouteProps<T extends object | void = void> {
-  route: Route<T> | VirtualRoute<RouteOpenedPayload<T>, T>;
+  route: Route<T> | LegacyVirtualRoute<RouteOpenedPayload<T>, T>;
   beforeOpen: BeforeOpenUnit<T> | BeforeOpenUnit<T>[];
   openOn?: Unit<any> | Unit<any>[];
   cancelOn?: Unit<any> | Unit<any>[];
@@ -40,7 +40,7 @@ function asUnits(unit?: Unit<any> | Unit<any>[]): Unit<any>[] {
  */
 export function chainRoute<T extends object | void = void>(
   props: ChainRouteProps<T>,
-): VirtualRoute<RouteOpenedPayload<T>, T> {
+): LegacyVirtualRoute<RouteOpenedPayload<T>, T> {
   const { route, beforeOpen } = props;
   const openOn = asUnits(props.openOn);
   const cancelOn = asUnits(props.cancelOn);

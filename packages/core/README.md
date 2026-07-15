@@ -40,7 +40,8 @@ profile.$params.watch((p) => console.log('id:', p.id));
 ## What you get
 
 - **Type-safe params** — `createRoute({ path: '/user/:id' })` infers `Route<{ id: string }>`.
-- **Routes as units** — each route exposes `$isOpened`, `$params`, `$isPending` stores and `open`/`opened`/`closed` events.
+- **Routes as units** — path and virtual routes share `$isOpened`, `$params`,
+  `$isPending`, `open`, `close`, `opened`, `updated`, and `closed` units.
 - **Path & pathless routes** — `createRoute()` and `createVirtualRoute()` for modals, dialogs, and nested flows.
 - **Composable navigation** — `beforeNavigate` and `redirect` for pre-commit policy, `chainRoute` for post-commit readiness.
 
@@ -58,6 +59,10 @@ profile.$params.watch((p) => console.log('id:', p.id));
 | `group`                          | Group related routes.                        |
 | `trackQuery`                     | Track and react to query parameters.         |
 | `historyAdapter`, `queryAdapter` | Connect the router to a history source.      |
+
+`createRoute<Params>()` is the pathless/virtual form. `createVirtualRoute` is
+the deprecated compatibility factory; new code should use the shared
+`createRoute` lifecycle.
 
 ## Documentation
 

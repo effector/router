@@ -23,11 +23,6 @@ matching, nested params, and RN screen names depend on it.
 This stage depends on D5 and creates the common route payload/lifecycle used by
 Router, query operators, and all bindings.
 
-- [ ] **T06 — Normalize public route types.** Reconcile `PathRoute`,
-      `VirtualRoute`/`PathlessRoute`, `RouteOpenedPayload`, `open`, `close`,
-      `opened`, `updated`, `closed`, `$params`, `$isOpened`, and `$isPending` into
-      one consistent contract. Remove the duplicate legacy `VirtualRoute` type
-      while retaining compatible deprecated exports for the current major.
 - [ ] **T07 — Implement both `createRoute` forms.** `createRoute({ path })`
       creates a URL route. `createRoute<Params>()` without a path creates a
       self-contained virtual route that does not require Router registration and

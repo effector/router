@@ -195,7 +195,7 @@ export function createRoute<Params>(
   const openedOnClient = createEvent<OpenPayload>();
 
   const navigated = createEvent<OpenPayload>();
-  const updated = createEvent<Params>();
+  const updated = createEvent<RouteOpenedPayload<Params>>();
 
   const closed = createEvent();
 
@@ -259,6 +259,10 @@ export function createRoute<Params>(
 
   sample({
     clock: $params.updates,
+    fn: (params) =>
+      (params === undefined
+        ? undefined
+        : { params }) as RouteOpenedPayload<Params>,
     target: updated,
   });
 
@@ -354,6 +358,7 @@ export function createRoute<Params>(
     openedOnClient,
     openedOnServer,
     updated,
+    close,
 
     ...config,
 

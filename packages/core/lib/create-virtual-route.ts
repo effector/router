@@ -1,6 +1,6 @@
 import { createEvent, createStore, sample, split, type Store } from 'effector';
 
-import type { VirtualRoute } from './types';
+import type { LegacyVirtualRoute } from './types';
 
 interface VirtualRouteOptions<T, TransformerResult> {
   $isPending?: Store<boolean>;
@@ -9,7 +9,7 @@ interface VirtualRouteOptions<T, TransformerResult> {
 
 export function createVirtualRoute<T = void, TransformerResult = void>(
   options: VirtualRouteOptions<T, TransformerResult> = {},
-): VirtualRoute<T, TransformerResult> {
+): LegacyVirtualRoute<T, TransformerResult> {
   const {
     $isPending = createStore(false),
     transformer = (payload) => (payload ?? null) as TransformerResult,

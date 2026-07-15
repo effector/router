@@ -362,8 +362,12 @@ describe('router', () => {
     await allSettled(scope);
 
     expect(updated).toHaveBeenCalledTimes(2);
-    expect(updated).toHaveBeenNthCalledWith(1, { id: 'first' });
-    expect(updated).toHaveBeenNthCalledWith(2, { id: 'second' });
+    expect(updated).toHaveBeenNthCalledWith(1, {
+      params: { id: 'first' },
+    });
+    expect(updated).toHaveBeenNthCalledWith(2, {
+      params: { id: 'second' },
+    });
     expect(paramsUpdated).toHaveBeenCalledTimes(2);
   });
 

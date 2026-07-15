@@ -13,6 +13,8 @@ export { redirect, type RedirectConfig } from './redirect';
 
 export type {
   Route,
+  PathRoute,
+  PathlessRoute,
   Router,
   Query,
   OpenPayloadBase,
