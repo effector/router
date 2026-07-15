@@ -314,7 +314,7 @@ describe('trackQuery', () => {
     await allSettled(tracker.exit, { scope, params: undefined });
 
     expect(exitedCalls).toBeCalled();
-    expect(scope.getState(router.$query)).toStrictEqual({});
+    expect(scope.getState(router.$query)).toStrictEqual({ uid: 'hi!' });
   });
 
   test('ignore parameters', async () => {
@@ -349,6 +349,22 @@ describe('trackQuery', () => {
     });
 
     expect(exitedCalls).toBeCalled();
+    expect(scope.getState(router.$query)).toStrictEqual({ uid: 'hi!' });
+  });
+
+  test('exit removes only schema-owned keys and preserves unrelated query', async () => {
+    const { router, scope, controls } = await prepare();
+    const tracker = trackQuery({
+      controls,
+      parameters: z.object({ any: z.string() }),
+    });
+
+    await allSettled(router.navigate, {
+      scope,
+      params: { path: '/', query: { any: '123', uid: 'hi!' } },
+    });
+    await allSettled(tracker.exit, { scope, params: undefined });
+
     expect(scope.getState(router.$query)).toStrictEqual({ uid: 'hi!' });
   });
 

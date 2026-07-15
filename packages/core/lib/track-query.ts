@@ -37,6 +37,10 @@ export function trackQueryFactory({
     config: QueryTrackerConfig<T>,
   ): QueryTracker<T> => {
     const { parameters } = config;
+    const schemaKeys = Object.keys(
+      ((parameters as unknown as { shape?: Record<string, unknown> }).shape ??
+        {}) as Record<string, unknown>,
+    );
 
     const $entered = createStore(false);
 
@@ -111,19 +115,17 @@ export function trackQueryFactory({
       clock: exit,
       source: $query,
       fn: (query, payload) => {
-        if (payload && payload.ignoreParams) {
-          const copy: Query = {};
+        const ignored = new Set(payload?.ignoreParams ?? []);
+        const owned = new Set(schemaKeys);
+        const copy: Query = {};
 
-          for (const key of payload.ignoreParams) {
-            if (query[key]) {
-              copy[key] = query[key];
-            }
+        for (const [key, value] of Object.entries(query)) {
+          if (!owned.has(key) || ignored.has(key)) {
+            copy[key] = value;
           }
-
-          return { query: copy };
         }
 
-        return { query: {} };
+        return { query: copy };
       },
       target: navigate,
     });

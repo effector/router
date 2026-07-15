@@ -39,6 +39,11 @@ booleans, and other domain values before calling `enter`. `entered` publishes
 the schema's parsed output, so a schema transform may expose domain values to
 listeners without widening the URL input contract.
 
+`enter` merges only the supplied schema keys into the current query. `exit`
+removes schema-owned keys while preserving unrelated keys; pass
+`ignoreParams` to preserve selected keys explicitly. Route activation and
+deactivation use the same ownership rules.
+
 ## Usage
 
 ### Basic Query Tracking

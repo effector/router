@@ -166,7 +166,7 @@ location snapshot, not on a configured Router instance.
       and objects are converted externally before `enter`. Export a Query value
       type, remove production `@ts-expect-error`, and cover both sides with
       positive and negative type fixtures.
-- [ ] **T28 — `enter`/`exit` ownership.** Preserve unrelated query keys during
+- [x] **T28 — `enter`/`exit` ownership.** Preserve unrelated query keys during
       partial enter/exit. Correctly handle `ignoreParams`, route activation and
       deactivation, same-value changes, and later re-entry into the schema.
 - [ ] **T29 — Query matrix.** Cover flags, repeated keys, empty arrays, encoding,
