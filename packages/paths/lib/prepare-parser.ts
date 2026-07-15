@@ -75,6 +75,11 @@ export function prepareParser<T>(tokens: Token[]): Parser<T> {
               }
             }
 
+            if (array.length === 0 && !required) {
+              setKey(token.name, undefined);
+              break;
+            }
+
             if (array.length < (arrayProps.min ?? 0)) {
               return null;
             }
