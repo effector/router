@@ -3,9 +3,10 @@ import type { AnchorHTMLAttributes, ComponentType, FC, ReactNode } from 'react';
 
 type LayoutComponent = ComponentType<{ children: ReactNode }>;
 type RouteViewWithLayout = RouteView & { layout?: LayoutComponent };
+type RouteViewTarget = Pick<Route<any>, '$isOpened'>;
 
 interface CreateBaseRouteViewProps<T extends object | void = void> {
-  route: Route<T> | Router;
+  route: Route<T> | RouteViewTarget | Router;
   layout?: LayoutComponent;
   children?: RouteViewWithLayout[];
 }
@@ -24,7 +25,7 @@ export interface CreateLazyRouteViewProps<
 }
 
 export interface RouteView {
-  route: Route<any> | Router;
+  route: RouteViewTarget | Router;
   view: FC;
   children?: RouteView[];
 }

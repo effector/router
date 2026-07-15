@@ -1,14 +1,16 @@
 import type { Route, Router, OpenPayloadBase } from '@effector/router';
 import type { AnchorHTMLAttributes, Component } from 'vue';
 
+type RouteViewTarget = Pick<Route<any>, '$isOpened'>;
+
 export interface RouteView {
-  route: Route<any> | Router;
+  route: RouteViewTarget | Router;
   view: Component;
   children?: RouteView[];
 }
 
 interface CreateBaseRouteViewProps<T extends object | void = void> {
-  route: Route<T> | Router;
+  route: Route<T> | RouteViewTarget | Router;
   layout?: Component;
   children?: RouteView[];
 }
