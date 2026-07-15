@@ -6,10 +6,6 @@
 
 ## 1. Core и paths
 
-- Исправить B1–B4: global-scope navigation, falsy params, arbitrary-name
-  conversion и optional ranges.
-- Реализовать выбранную модель parent params, pathless routes, partial updates
-  и equality из D3; закрыть B5 и B7.
 - Реализовать query semantics из D1–D2: `navigate`, `trackQuery`, replace,
   serializer и ownership operators.
 - Согласовать `RouterAdapter.location`, partial targets, pre-initialization
@@ -23,12 +19,9 @@
 
 ## 2. RouteView tree и общие bindings
 
-- Исправить B8 и B9: сохранять `children` и RouteView metadata в lazy views и
-  `withLayout`.
 - Реализовать выбранную глубину `Outlet`, nested Router semantics,
   declaration/open-order priority и shared layout identity по D6.
-- Исправить B10: согласовать URL builder и native anchor behavior с выбранной
-  политикой query.
+- Согласовать URL builder и native anchor behavior с выбранной политикой query.
 - Синхронизировать React, Solid и Vue RouteView types, docs и nested tests.
 
 ## 3. React
@@ -37,12 +30,10 @@
   routes.
 - Обновить `<Link>` для query/native navigation после D7 и покрыть modified
   clicks и `_blank`.
-- Закрыть React-specific часть B8, multi-level `Outlet`, `withLayout` и #57.
+- Реализовать multi-level `Outlet`, `withLayout` и #57 в React binding.
 
 ## 4. Solid
 
-- Закрыть B6: выбрать общий viewable-route contract или расширить Solid helper
-  types для `VirtualRoute`.
 - Сохранить metadata в `withLayout`, реализовать/ограничить `Outlet` nesting и
   добавить parent/child tests.
 - Добавить прямые tests для `useLink`, reactive params и active-link policy.
@@ -59,11 +50,11 @@
 ## 6. React Native
 
 - Реализовать выбранный source of truth и ownership `NavigationContainer`/
-  navigation ref (D9); закрыть B11–B13.
+  navigation ref (D9).
 - Добавить adapter/init recipe и убрать неподтверждённые claims про deep links,
   persistence и time travel.
 - Согласовать factory return shape, screen names, `initialRouteName`,
-  `screenOptions` и parameterized tabs; закрыть B14–B15.
+  `screenOptions` и parameterized tabs.
 - Устранить stale-state race и добавить двустороннюю sync для push, replace,
   native back, gestures и tab presses.
 - Создать настоящую RN test suite: render shape, factory contract, names,
