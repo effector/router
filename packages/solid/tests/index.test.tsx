@@ -126,6 +126,33 @@ describe('solid bindings', () => {
     );
   });
 
+  test('link applies activeClass while its route is opened', async () => {
+    const route = createRoute({ path: '/profile' });
+    const scope = fork();
+    const router = createRouter({ routes: [route] });
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(createMemoryHistory()),
+    });
+
+    const { container } = render(() => (
+      <Provider value={scope}>
+        <RouterProvider router={router}>
+          <Link to={route} activeClass="active">
+            profile
+          </Link>
+        </RouterProvider>
+      </Provider>
+    ));
+
+    expect(container.querySelector('a')?.className).toBe('');
+
+    await allSettled(route.open, { scope, params: undefined });
+
+    expect(container.querySelector('a')?.className).toBe('active');
+  });
+
   test('lazy route view preserves nested route views', () => {
     const parentRoute = createRoute({ path: '/parent' });
     const childRoute = createRoute({ path: '/child', parent: parentRoute });
