@@ -18,9 +18,6 @@ Stages 6 and 10 are mandatory conformance gates between these contracts.
 Stabilize `@effector/router-paths` first. Route param inference, URL building,
 matching, nested params, and RN screen names depend on it.
 
-- [ ] **T02 — Shared cardinality.** Apply identical `min`/`max` rules in parser
-      and builder for `+`, `*`, `{min,max}`, and their combinations with `?`.
-      The builder throws a descriptive error; the parser returns `null`.
 - [ ] **T03 — Runtime validation of generic values.** Validate builder input for
       `number`, literal unions, and arrays using the same constraints as the
       parser. Do not build a URL that the same compiled pattern cannot parse.

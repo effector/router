@@ -1,5 +1,45 @@
 import { Builder, Token } from './types';
 
+function validateCardinality(
+  name: string,
+  value: unknown,
+  required: boolean,
+  arrayProps: { min?: number; max?: number },
+) {
+  if (value === null || value === undefined) {
+    if (!required) {
+      return;
+    }
+  }
+
+  const length =
+    value === null || value === undefined
+      ? 0
+      : Array.isArray(value)
+        ? value.length
+        : 1;
+  const min = arrayProps.min ?? 0;
+  const max = arrayProps.max ?? Infinity;
+
+  if (length >= min && length <= max) {
+    return;
+  }
+
+  const description =
+    min > 0 && max < Infinity
+      ? `between ${min} and ${max}`
+      : min > 0
+        ? `at least ${min}`
+        : `at most ${max}`;
+
+  const noun =
+    (min === 1 && max === Infinity) || (min === 0 && max === 1)
+      ? 'value'
+      : 'values';
+
+  throw new Error(`Parameter "${name}" expects ${description} ${noun}`);
+}
+
 export function prepareBuilder<T>(tokens: Token[]): Builder<T> {
   return (params: any) => {
     const result: string[] = [];
@@ -16,7 +56,11 @@ export function prepareBuilder<T>(tokens: Token[]): Builder<T> {
         }
         case 'parameter': {
           const value = params?.[token.name];
-          const { prefix } = token.payload;
+          const { arrayProps, prefix, required } = token.payload;
+
+          if (arrayProps) {
+            validateCardinality(token.name, value, required, arrayProps);
+          }
 
           if (value === null || value === undefined) {
             if (prefix) {

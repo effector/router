@@ -23,4 +23,12 @@ test('optional parameters are optional object properties', () => {
   expectTypeOf<ParseUrlParams<'/files/*path?'>>().toEqualTypeOf<{
     path?: string[];
   }>();
+
+  expectTypeOf<ParseUrlParams<'/files/:ids+?'>>().toEqualTypeOf<{
+    ids?: string[];
+  }>();
+
+  expectTypeOf<ParseUrlParams<'/files/:ids*?'>>().toEqualTypeOf<{
+    ids?: string[];
+  }>();
 });

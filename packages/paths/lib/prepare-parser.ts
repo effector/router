@@ -42,7 +42,7 @@ export function prepareParser<T>(tokens: Token[]): Parser<T> {
             let rawToken;
             let first = true;
 
-            while (true) {
+            while (array.length < (arrayProps.max ?? Infinity)) {
               rawToken = rawTokens.shift();
 
               if (!rawToken) {
@@ -85,10 +85,6 @@ export function prepareParser<T>(tokens: Token[]): Parser<T> {
                   array.push(rawToken);
                   break;
                 }
-              }
-
-              if (array.length >= (arrayProps.max ?? Infinity)) {
-                break;
               }
             }
 

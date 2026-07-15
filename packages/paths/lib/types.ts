@@ -29,13 +29,17 @@ type WithModificator<
       ? Type[]
       : T extends `${infer K}{${infer Start},${infer End}}`
         ? Type[]
-        : T extends `${infer K}+`
+        : T extends `${infer K}+?`
           ? Type[]
-          : T extends `${infer K}*`
+          : T extends `${infer K}*?`
             ? Type[]
-            : T extends `${infer K}?`
-              ? Type
-              : Type;
+            : T extends `${infer K}+`
+              ? Type[]
+              : T extends `${infer K}*`
+                ? Type[]
+                : T extends `${infer K}?`
+                  ? Type
+                  : Type;
 
 type ParameterWithModificator<
   Name extends string,
@@ -50,13 +54,17 @@ type WithoutModificator<T extends string> =
     ? K
     : T extends `${infer K}{${infer Start},${infer End}}`
       ? K
-      : T extends `${infer K}?`
+      : T extends `${infer K}+?`
         ? K
-        : T extends `${infer K}*`
+        : T extends `${infer K}*?`
           ? K
-          : T extends `${infer K}+`
+          : T extends `${infer K}?`
             ? K
-            : T;
+            : T extends `${infer K}*`
+              ? K
+              : T extends `${infer K}+`
+                ? K
+                : T;
 
 type Union<
   T extends string,

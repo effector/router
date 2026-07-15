@@ -172,7 +172,7 @@ parse('/path/w/x/y/z'); // null (max 3 segments)
 
 ### Combining Modifiers
 
-````ts
+```ts
 // Optional range
 const { parse, build } = compile('/items/:ids<number>{1,3}?');
 //                                         ^- { ids?: number[] }
@@ -180,19 +180,24 @@ const { parse, build } = compile('/items/:ids<number>{1,3}?');
 build({}); // '/items'
 build({ ids: [1, 2] }); // '/items/1/2'
 
-An absent optional array is omitted from the parsed params:
-
-```ts
 parse('/items'); // { path: '/items', params: {} }
-````
 
 // Range with type
 const { parse, build } = compile('/tag/:names<create|update|delete>{2,2}');
 // ^- { names: ('create' | 'update' | 'delete')[] }
 
 build({ names: ['create', 'delete'] }); // '/tag/create/delete'
+```
 
-````
+`+` and `*` use the same rules. `+` requires at least one value, while `*`
+allows an empty array. A present value still has to satisfy the bound when the
+segment is optional:
+
+```ts
+const repeated = compile('/tags/:id+?');
+repeated.build({}); // '/tags'
+repeated.build({ id: [] }); // throws: Parameter "id" expects at least 1 value
+```
 
 ## TypeScript Integration
 
@@ -223,7 +228,7 @@ build({ id: 123 });
 // ❌ TypeScript error
 build({ id: '123' }); // Expected number, got string
 build({}); // Missing required parameter
-````
+```
 
 ## Advanced Examples
 

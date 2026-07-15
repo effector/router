@@ -114,6 +114,20 @@ describe('parse path', () => {
     expect(parse('/profile/1/2/3/4/5')).toStrictEqual(null);
   });
 
+  test('parse and build zero-cardinality ranges consistently', () => {
+    const { parse, build } = compile('/profile/:id{0,0}');
+
+    expect(parse('/profile')).toStrictEqual({
+      path: '/profile',
+      params: { id: [] },
+    });
+    expect(parse('/profile/1')).toStrictEqual(null);
+    expect(build({ id: [] })).toBe('/profile');
+    expect(() => build({ id: ['1'] })).toThrow(
+      'Parameter "id" expects at most 0 values',
+    );
+  });
+
   test('parse path with range number parameter', () => {
     const { parse } = compile('/profile/:id<number>{3,4}');
 
@@ -429,6 +443,12 @@ describe('build path', () => {
 
     expect(build({ id: ['123', '321'] })).toBe('/profile/123/321');
     expect(build({ id: ['123'] })).toBe('/profile/123');
+    expect(() => build({ id: [] })).toThrow(
+      'Parameter "id" expects at least 1 value',
+    );
+    expect(() => build({} as { id: string[] })).toThrow(
+      'Parameter "id" expects at least 1 value',
+    );
   });
 
   test('build path with default string parameter and modificator *', () => {
@@ -437,6 +457,36 @@ describe('build path', () => {
     expect(build({ id: ['123', '321'] })).toBe('/profile/123/321');
     expect(build({ id: ['123'] })).toBe('/profile/123');
     expect(build({ id: [] })).toBe('/profile');
+  });
+
+  test('build path enforces explicit array ranges', () => {
+    const { build } = compile('/profile/:id{2,3}');
+
+    expect(build({ id: ['1', '2'] })).toBe('/profile/1/2');
+    expect(build({ id: ['1', '2', '3'] })).toBe('/profile/1/2/3');
+    expect(() => build({ id: ['1'] })).toThrow(
+      'Parameter "id" expects between 2 and 3 values',
+    );
+    expect(() => build({ id: ['1', '2', '3', '4'] })).toThrow(
+      'Parameter "id" expects between 2 and 3 values',
+    );
+  });
+
+  test('optional cardinality still validates present values', () => {
+    const { build } = compile('/profile/:id{2,3}?');
+
+    expect(build({})).toBe('/profile');
+    expect(build({ id: ['1', '2'] })).toBe('/profile/1/2');
+    expect(() => build({ id: ['1'] })).toThrow(
+      'Parameter "id" expects between 2 and 3 values',
+    );
+
+    const repeated = compile('/profile/:id+?');
+    expect(repeated.build({})).toBe('/profile');
+    expect(repeated.build({ id: ['1'] })).toBe('/profile/1');
+    expect(() => repeated.build({ id: [] })).toThrow(
+      'Parameter "id" expects at least 1 value',
+    );
   });
 
   test('build path with default string parameter and modificator ?', () => {
@@ -474,7 +524,9 @@ describe('build path', () => {
     expect(build({ id: ['hello', 'world'] })).toBe('/profile/hello/world');
     expect(build({ id: ['hello', 'hello'] })).toBe('/profile/hello/hello');
     expect(build({ id: ['hello'] })).toBe('/profile/hello');
-    expect(build({ id: [] })).toBe('/profile');
+    expect(() => build({ id: [] })).toThrow(
+      'Parameter "id" expects at least 1 value',
+    );
   });
 
   test('build path with generic parameter (union) and modificator *', () => {
