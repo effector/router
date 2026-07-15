@@ -14,6 +14,10 @@ type Parameter<Name extends string, Payload> = {
   [k in Name]: Payload;
 };
 
+type OptionalParameter<Name extends string, Payload> = {
+  [k in Name]?: Payload;
+};
+
 type WithModificator<
   Type,
   T extends string,
@@ -22,7 +26,7 @@ type WithModificator<
   : T extends `${infer K}{${infer Start},${infer End}}*`
     ? Type[]
     : T extends `${infer K}{${infer Start},${infer End}}?`
-      ? Type[] | undefined
+      ? Type[]
       : T extends `${infer K}{${infer Start},${infer End}}`
         ? Type[]
         : T extends `${infer K}+`
@@ -30,8 +34,16 @@ type WithModificator<
           : T extends `${infer K}*`
             ? Type[]
             : T extends `${infer K}?`
-              ? Type | undefined
+              ? Type
               : Type;
+
+type ParameterWithModificator<
+  Name extends string,
+  Payload,
+  Pattern extends string,
+> = Pattern extends `${string}?`
+  ? OptionalParameter<Name, Payload>
+  : Parameter<Name, Payload>;
 
 type WithoutModificator<T extends string> =
   T extends `${infer K}{${infer Start},${infer End}}${infer Modificator}`
@@ -66,15 +78,23 @@ type GenericType<T extends string> =
 
 export type UrlParameter<T extends string> =
   T extends `:${infer Name}<${infer Type}>${infer Modificator}`
-    ? Parameter<WithoutModificator<Name>, WithModificator<GenericType<Type>, T>>
+    ? ParameterWithModificator<
+        WithoutModificator<Name>,
+        WithModificator<GenericType<Type>, T>,
+        T
+      >
     : T extends `:${infer Name}<${infer Type}>`
       ? Parameter<Name, GenericType<Type>>
       : T extends `:${infer Name}`
-        ? Parameter<WithoutModificator<Name>, WithModificator<string, T>>
+        ? ParameterWithModificator<
+            WithoutModificator<Name>,
+            WithModificator<string, T>,
+            T
+          >
         : never;
 
 type WildcardParameter<T extends string> = T extends `${infer Name}?`
-  ? Parameter<Name, string[] | undefined>
+  ? OptionalParameter<Name, string[]>
   : Parameter<T, string[]>;
 
 type SegmentParameter<T extends string> = T extends `${string}:${infer Value}`
@@ -201,15 +221,15 @@ type Case31 = ParseUrlParams<'/:id<hello| world >'>;
 
 type Tests = [
   Assert<IsEqual<Case1, { id: string }>>,
-  Assert<IsEqual<Case2, { id: string | undefined }>>,
+  Assert<IsEqual<Case2, { id?: string }>>,
   Assert<IsEqual<Case3, { id: string[] }>>,
   Assert<IsEqual<Case4, { id: string[] }>>,
   Assert<IsEqual<Case5, { id: 'string' }>>,
   Assert<IsEqual<Case6, { id: number }>>,
   Assert<IsEqual<Case7, { id: TestsUnion }>>,
-  Assert<IsEqual<Case8, { id: 'string' | undefined }>>,
-  Assert<IsEqual<Case9, { id: number | undefined }>>,
-  Assert<IsEqual<Case10, { id: TestsUnion | undefined }>>,
+  Assert<IsEqual<Case8, { id?: 'string' }>>,
+  Assert<IsEqual<Case9, { id?: number }>>,
+  Assert<IsEqual<Case10, { id?: TestsUnion }>>,
   Assert<IsEqual<Case11, { id: 'string'[] }>>,
   Assert<IsEqual<Case12, { id: number[] }>>,
   Assert<IsEqual<Case13, { id: TestsUnion[] }>>,
@@ -220,9 +240,9 @@ type Tests = [
   Assert<IsEqual<Case18, { id: number[] }>>,
   Assert<IsEqual<Case19, { id: 'string'[] }>>,
   Assert<IsEqual<Case20, { id: TestsUnion[] }>>,
-  Assert<IsEqual<Case21, { id: number[] | undefined }>>,
-  Assert<IsEqual<Case22, { id: 'string'[] | undefined }>>,
-  Assert<IsEqual<Case23, { id: TestsUnion[] | undefined }>>,
+  Assert<IsEqual<Case21, { id?: number[] }>>,
+  Assert<IsEqual<Case22, { id?: 'string'[] }>>,
+  Assert<IsEqual<Case23, { id?: TestsUnion[] }>>,
   Assert<IsEqual<Case24, { id: number[] }>>,
   Assert<IsEqual<Case25, { id: 'string'[] }>>,
   Assert<IsEqual<Case26, { id: TestsUnion[] }>>,

@@ -18,10 +18,6 @@ Stages 6 and 10 are mandatory conformance gates between these contracts.
 Stabilize `@effector/router-paths` first. Route param inference, URL building,
 matching, nested params, and RN screen names depend on it.
 
-- [ ] **T01 — Optional params.** Produce a genuinely optional type shape
-      (`{ id?: string }`, not a required key containing `undefined`). Omit an
-      absent key from the runtime parse result. Cover ordinary, generic,
-      embedded (`/@:user`, `/name-:user`), and array params.
 - [ ] **T02 — Shared cardinality.** Apply identical `min`/`max` rules in parser
       and builder for `+`, `*`, `{min,max}`, and their combinations with `?`.
       The builder throws a descriptive error; the parser returns `null`.

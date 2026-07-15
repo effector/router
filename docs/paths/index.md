@@ -88,16 +88,23 @@ parse('/blog/2024/12/typescript-tips');
 
 ### Optional Parameters (`?`)
 
-```ts
+````ts
 const { parse, build } = compile('/user/:id?');
 //                                        ^- { id?: string }
 
 build({}); // '/user'
 build({ id: '123' }); // '/user/123'
 
+When the segment is absent, the parser omits the optional key:
+
+```ts
+parse('/user'); // { path: '/user', params: {} }
+````
+
 parse('/user'); // { path: '/user', params: {} }
 parse('/user/456'); // { path: '/user/456', params: { id: '456' } }
-```
+
+````
 
 ### Optional with Type
 
@@ -107,7 +114,14 @@ const { parse, build } = compile('/post/:id<number>?');
 
 build({}); // '/post'
 build({ id: 123 }); // '/post/123'
-```
+
+The same omission rule applies to generic optional parameters:
+
+```ts
+parse('/post'); // { path: '/post', params: {} }
+````
+
+````
 
 ### Repeating Parameters (`+`)
 
@@ -123,7 +137,7 @@ build({ tags: ['js', 'ts', 'react'] }); // '/category/js/ts/react'
 parse('/category/javascript'); // { path: '...', params: { tags: ['javascript'] } }
 parse('/category/js/typescript'); // { path: '...', params: { tags: ['js', 'typescript'] } }
 parse('/category'); // null (requires at least one)
-```
+````
 
 ### Zero or More Parameters (`*`)
 
@@ -158,7 +172,7 @@ parse('/path/w/x/y/z'); // null (max 3 segments)
 
 ### Combining Modifiers
 
-```ts
+````ts
 // Optional range
 const { parse, build } = compile('/items/:ids<number>{1,3}?');
 //                                         ^- { ids?: number[] }
@@ -166,12 +180,19 @@ const { parse, build } = compile('/items/:ids<number>{1,3}?');
 build({}); // '/items'
 build({ ids: [1, 2] }); // '/items/1/2'
 
+An absent optional array is omitted from the parsed params:
+
+```ts
+parse('/items'); // { path: '/items', params: {} }
+````
+
 // Range with type
 const { parse, build } = compile('/tag/:names<create|update|delete>{2,2}');
-//                                       ^- { names: ('create' | 'update' | 'delete')[] }
+// ^- { names: ('create' | 'update' | 'delete')[] }
 
 build({ names: ['create', 'delete'] }); // '/tag/create/delete'
-```
+
+````
 
 ## TypeScript Integration
 
@@ -202,7 +223,7 @@ build({ id: 123 });
 // ❌ TypeScript error
 build({ id: '123' }); // Expected number, got string
 build({}); // Missing required parameter
-```
+````
 
 ## Advanced Examples
 

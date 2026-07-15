@@ -37,6 +37,8 @@ compile('/path/:seg{2,3}'); //         { seg: string[] }  range
 ```
 
 Modifiers combine: `'/items/:ids<number>{1,3}?'` → `{ ids?: number[] }`.
+When an optional parameter is absent, `parse` omits its key from `params`:
+`parse('/user')` for `'/user/:id?'` returns `{path: '/user', params: {}}`.
 
 ## Type extraction
 

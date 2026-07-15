@@ -41,7 +41,7 @@ describe('parse path', () => {
     });
     expect(namedUser.parse('/name-')).toStrictEqual({
       path: '/name-',
-      params: { user: undefined },
+      params: {},
     });
     expect(namedUser.parse('/')).toStrictEqual(null);
   });
@@ -157,7 +157,7 @@ describe('parse path', () => {
 
     expect(parse('/profile')).toStrictEqual({
       path: '/profile',
-      params: { id: undefined },
+      params: {},
     });
 
     expect(parse('/profile/1/2')).toStrictEqual(null);
@@ -220,7 +220,29 @@ describe('parse path', () => {
 
     expect(parse('/profile')).toStrictEqual({
       path: '/profile',
-      params: { id: undefined },
+      params: {},
+    });
+  });
+
+  test('omits absent optional generic and array parameters', () => {
+    expect(compile('/profile/:id<number>?').parse('/profile')).toStrictEqual({
+      path: '/profile',
+      params: {},
+    });
+
+    expect(compile('/profile/:ids{1,2}?').parse('/profile')).toStrictEqual({
+      path: '/profile',
+      params: {},
+    });
+
+    expect(compile('/profile/:ids+?').parse('/profile')).toStrictEqual({
+      path: '/profile',
+      params: {},
+    });
+
+    expect(compile('/profile/*ids?').parse('/profile')).toStrictEqual({
+      path: '/profile',
+      params: {},
     });
   });
 
@@ -269,7 +291,7 @@ describe('parse path', () => {
 
     expect(parse('/profile')).toStrictEqual({
       path: '/profile',
-      params: { id: undefined },
+      params: {},
     });
   });
 
@@ -335,7 +357,7 @@ describe('parse path', () => {
 
     expect(parse('/profile')).toStrictEqual({
       path: '/profile',
-      params: { id: undefined },
+      params: {},
     });
   });
 

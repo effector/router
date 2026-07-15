@@ -7,7 +7,9 @@ export function prepareParser<T>(tokens: Token[]): Parser<T> {
       .map((part) => part.trim())
       .filter((part) => part !== '');
 
-    let params: any = null;
+    let params: any = tokens.some((token) => token.type === 'parameter')
+      ? {}
+      : null;
 
     function setKey(key: string, value: any) {
       if (!params) {
@@ -95,7 +97,6 @@ export function prepareParser<T>(tokens: Token[]): Parser<T> {
             }
 
             if (array.length === 0 && !required) {
-              setKey(token.name, undefined);
               break;
             }
 
@@ -122,7 +123,6 @@ export function prepareParser<T>(tokens: Token[]): Parser<T> {
               return null;
             }
 
-            setKey(token.name, undefined);
             continue;
           }
 
@@ -137,8 +137,6 @@ export function prepareParser<T>(tokens: Token[]): Parser<T> {
           }
 
           if (!rawToken) {
-            setKey(token.name, undefined);
-
             continue;
           }
 
