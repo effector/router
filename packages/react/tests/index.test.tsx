@@ -51,6 +51,18 @@ describe('react bindings', () => {
     expect(lazyView.children).toEqual([child]);
   });
 
+  test('preserves nested views when applying a layout', () => {
+    const route = createRoute({ path: '/parent' });
+    const child = createRouteView({
+      route: createRoute({ path: '/child', parent: route }),
+      view: () => null,
+    });
+    const view = createRouteView({ route, view: () => null, children: [child] });
+    const [wrapped] = withLayout(({ children }) => <>{children}</>, [view]);
+
+    expect(wrapped.children).toEqual([child]);
+  });
+
   test('lazy import starts on render and exposes Suspense fallback', async () => {
     let resolve!: (module: { default: () => ReactNode }) => void;
     const route = createRoute({ path: '/lazy' });
