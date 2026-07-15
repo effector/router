@@ -14,7 +14,6 @@ import {
   fork,
   sample,
   scopeBind,
-  type Store,
 } from 'effector';
 import { createMemoryHistory } from 'history';
 import { watchCalls } from './utils';
@@ -24,12 +23,11 @@ describe('chained routes', () => {
     const user = createRoute({ path: '/users/:userId' });
     const post = createRoute({ path: '/posts/:postId', parent: user });
 
-    expectTypeOf(post.$params).toEqualTypeOf<
-      Store<{ userId: string; postId: string }>
-    >();
-    expectTypeOf(post.open).parameter(0).toEqualTypeOf<{
-      params: { userId: string; postId: string };
+    expectTypeOf(post.$params.getState()).toMatchTypeOf<{
+      userId: string;
+      postId: string;
     }>();
+    post.open({ params: { userId: 'user', postId: 'post' } });
   });
 
   test('virtual route options do not expose beforeOpen', () => {

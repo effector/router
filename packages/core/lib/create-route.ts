@@ -17,22 +17,44 @@ import { ParseUrlParams, ValidatePath } from '@effector/router-paths';
 import { createAction } from 'effector-action';
 import { createAttemptCoordinator } from './transition-attempt';
 
-type WithBaseRouteConfig<T = void> = T & {
-  parent?: Route<any>;
+type ParentRoute = Route<any> | undefined;
+
+type ParentRouteParams<Parent extends ParentRoute> =
+  Parent extends Route<infer Params> ? Params : void;
+
+type MergeRouteParams<
+  ParentParams extends object | void,
+  Params extends object | void,
+> = ParentParams extends void
+  ? Params
+  : Params extends void
+    ? ParentParams
+    : ParentParams & Params;
+
+type WithBaseRouteConfig<
+  T = object,
+  Parent extends ParentRoute = undefined,
+> = T & {
+  parent?: Parent;
   /** @deprecated Use `chainRoute` for post-commit preparation. */
   beforeOpen?: Effect<void, any, any>[];
 };
 
-export type CreateRouteConfig<Path> =
+export type CreateRouteConfig<Path, Parent extends ParentRoute = undefined> =
   ValidatePath<Path> extends ['invalid', infer Template]
-    ? WithBaseRouteConfig<{
-        path: Template;
-      }>
-    : WithBaseRouteConfig<{
-        path: Path;
-        parent?: Route<any>;
-        beforeOpen?: Effect<void, any, any>[];
-      }>;
+    ? WithBaseRouteConfig<
+        {
+          path: Template;
+        },
+        Parent
+      >
+    : WithBaseRouteConfig<
+        {
+          path: Path;
+          beforeOpen?: Effect<void, any, any>[];
+        },
+        Parent
+      >;
 /**
  * @description Creates route
  * @param config Route config
@@ -58,6 +80,9 @@ export type CreateRouteConfig<Path> =
  * posts.open(); // profile.$isOpened -> true, posts.$isOpened -> true
  * ```
  */
+export function createRoute<T extends string, Parent extends Route<any>>(
+  config: WithBaseRouteConfig<{ path: T }, Parent> & { parent: Parent },
+): PathRoute<MergeRouteParams<ParentRouteParams<Parent>, ParseUrlParams<T>>>;
 export function createRoute<
   T extends string,
   Params extends object | void = ParseUrlParams<T>,
