@@ -26,6 +26,7 @@ export interface PathlessRoute<T extends object | void = void> {
   opened: Event<RouteOpenedPayload<T>>;
   openedOnServer: Event<RouteOpenedPayload<T>>;
   openedOnClient: Event<RouteOpenedPayload<T>>;
+  updated: Event<T>;
 
   closed: Event<void>;
 

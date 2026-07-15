@@ -344,8 +344,10 @@ describe('router', () => {
     const router = createRouter({ routes: [route] });
     const history = createMemoryHistory();
     const updated = vi.fn();
+    const paramsUpdated = vi.fn();
 
     route.updated.watch(updated);
+    route.$params.updates.watch(paramsUpdated);
 
     await allSettled(router.setHistory, {
       scope,
@@ -362,6 +364,7 @@ describe('router', () => {
     expect(updated).toHaveBeenCalledTimes(2);
     expect(updated).toHaveBeenNthCalledWith(1, { id: 'first' });
     expect(updated).toHaveBeenNthCalledWith(2, { id: 'second' });
+    expect(paramsUpdated).toHaveBeenCalledTimes(2);
   });
 
   test('subrouter', async () => {

@@ -40,6 +40,64 @@ type WithBaseRouteConfig<
   beforeOpen?: Effect<void, any, any>[];
 };
 
+function isSameParamValue(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) {
+    return true;
+  }
+
+  if (!Array.isArray(left) || !Array.isArray(right)) {
+    return false;
+  }
+
+  return (
+    left.length === right.length &&
+    left.every((value, index) => Object.is(value, right[index]))
+  );
+}
+
+function isSameParams(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) {
+    return true;
+  }
+
+  if (
+    !left ||
+    !right ||
+    typeof left !== 'object' ||
+    typeof right !== 'object'
+  ) {
+    return false;
+  }
+
+  const leftEntries = Object.entries(left);
+  const rightEntries = Object.entries(right);
+
+  return (
+    leftEntries.length === rightEntries.length &&
+    leftEntries.every(
+      ([key, value]) =>
+        key in right &&
+        isSameParamValue(value, (right as Record<string, unknown>)[key]),
+    )
+  );
+}
+
+function getPayloadParams<Params>(
+  payload: unknown,
+  defaultParams: Params,
+): Params {
+  if (
+    !payload ||
+    typeof payload !== 'object' ||
+    !('params' in payload) ||
+    !payload.params
+  ) {
+    return defaultParams;
+  }
+
+  return { ...payload.params } as Params;
+}
+
 export type CreateRouteConfig<Path, Parent extends ParentRoute = undefined> =
   ValidatePath<Path> extends ['invalid', infer Template]
     ? WithBaseRouteConfig<
@@ -122,7 +180,9 @@ export function createRoute<Params>(
     concurrency: 'takeLatest',
   });
 
-  const $params = createStore<Params>({} as Params);
+  const $params = createStore<Params>({} as Params, {
+    updateFilter: (next, current) => !isSameParams(next, current),
+  });
 
   const $isOpened = createStore(false);
   const $isPending = lifecycle.$current.map(Boolean);
@@ -135,6 +195,7 @@ export function createRoute<Params>(
   const openedOnClient = createEvent<OpenPayload>();
 
   const navigated = createEvent<OpenPayload>();
+  const updated = createEvent<Params>();
 
   const closed = createEvent();
 
@@ -192,15 +253,13 @@ export function createRoute<Params>(
   createAction({
     clock: forceOpenParentFx.doneData,
     target: { $params },
-    fn: (target, payload) => {
-      if (!payload) {
-        return target.$params(defaultParams);
-      }
+    fn: (target, payload) =>
+      target.$params(getPayloadParams(payload, defaultParams)),
+  });
 
-      return target.$params(
-        'params' in payload ? { ...payload.params } : defaultParams,
-      );
-    },
+  sample({
+    clock: $params.updates,
+    target: updated,
   });
 
   const preparationFailed = sample({
@@ -294,6 +353,7 @@ export function createRoute<Params>(
     opened,
     openedOnClient,
     openedOnServer,
+    updated,
 
     ...config,
 
