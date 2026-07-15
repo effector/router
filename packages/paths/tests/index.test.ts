@@ -135,6 +135,11 @@ describe('parse path', () => {
   test('parse path with range string parameter with modificator ?', () => {
     const { parse } = compile('/profile/:id{3,4}?');
 
+    expect(parse('/profile')).toStrictEqual({
+      path: '/profile',
+      params: { id: undefined },
+    });
+
     expect(parse('/profile/1/2')).toStrictEqual(null);
 
     expect(parse('/profile/1/2/3')).toStrictEqual({
