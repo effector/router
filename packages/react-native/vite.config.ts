@@ -5,6 +5,10 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   mode: 'production',
+  test: {
+    globals: true,
+    environment: 'node',
+  },
   build: {
     lib: {
       entry: resolve(__dirname, 'lib/index.ts'),
