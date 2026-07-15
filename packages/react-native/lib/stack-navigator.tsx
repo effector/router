@@ -5,13 +5,15 @@ import {
   StackNavigatorProps,
   StackNavigationOptions,
 } from '@react-navigation/stack';
+import { useNavigation } from '@react-navigation/native';
 import type { Router } from '@effector/router';
 import type { RouteView } from '@effector/router-react';
-import { useOpenedViews } from '@effector/router-react';
 import { createWatch } from 'effector';
 import { useProvidedScope } from 'effector-react';
 import { getScreenKey, getScreenName } from './route-name';
 import { flattenRouteViews } from './route-views';
+import { syncActiveRoute } from './navigation-sync';
+import { createRouteListeners } from './navigation-events';
 
 export type StackNavigatorConfig = {
   router: Router;
@@ -59,37 +61,20 @@ export function createStackNavigator(config: StackNavigatorConfig): {
   const StackNavigator = function StackNavigator() {
     const scope = useProvidedScope();
     const routeViews = React.useMemo(() => flattenRouteViews(routes), [routes]);
-    const openedViews = useOpenedViews(routeViews);
-    const navigationRef = React.useRef<any>(null);
+    const navigation = useNavigation<{ navigate: (name: string) => void }>();
 
-    // Sync  Router state with React Navigation
+    // Sync Router state with the navigation object from NavigationContainer.
     useEffect(() => {
       const subscription = createWatch({
-        unit: Router.$path,
+        unit: Router.$activeRoutes,
         scope: scope ?? undefined,
-        fn: (path) => {
-          if (!navigationRef.current || !path) return;
-
-          // Find the matching route for the current path
-          const matchingView = openedViews[openedViews.length - 1];
-          if (matchingView) {
-            const routeName = getScreenName(
-              matchingView.route,
-              routeViews.findIndex((r) => r.route === matchingView.route),
-            );
-
-            // Navigate to the route in React Navigation
-            try {
-              navigationRef.current.navigate(routeName);
-            } catch (error) {
-              console.error(error);
-            }
-          }
+        fn: (activeRoutes) => {
+          syncActiveRoute(navigation, activeRoutes, routeViews);
         },
       });
 
       return () => subscription.unsubscribe();
-    }, [openedViews, scope]);
+    }, [navigation, routeViews, scope]);
 
     return (
       <Stack.Navigator
@@ -105,6 +90,7 @@ export function createStackNavigator(config: StackNavigatorConfig): {
               key={routeKey}
               name={routeName}
               component={routeView.view}
+              listeners={createRouteListeners(routeView.route)}
             />
           );
         })}

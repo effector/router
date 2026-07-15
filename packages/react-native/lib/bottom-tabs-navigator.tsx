@@ -5,12 +5,15 @@ import {
   BottomTabNavigationOptions,
   BottomTabNavigatorProps,
 } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
 import type { Router } from '@effector/router';
 import type { RouteView } from '@effector/router-react';
 import { createWatch } from 'effector';
 import { useProvidedScope } from 'effector-react';
 import { getScreenKey, getScreenName, getScreenTitle } from './route-name';
 import { flattenRouteViews } from './route-views';
+import { syncActiveRoute } from './navigation-sync';
+import { createRouteListeners, openRoute } from './navigation-events';
 
 export type BottomTabsNavigatorConfig = {
   router: Router;
@@ -58,54 +61,22 @@ export function createBottomTabsNavigator(config: BottomTabsNavigatorConfig): {
   const BottomTabsNavigator = function BottomTabsNavigator() {
     const scope = useProvidedScope();
     const routeViews = React.useMemo(() => flattenRouteViews(routes), [routes]);
-    const navigationRef = React.useRef<any>(null);
+    const navigation = useNavigation<{ navigate: (name: string) => void }>();
 
-    // Sync  Router state with React Navigation
+    // Sync Router state with the navigation object from NavigationContainer.
     useEffect(() => {
       const subscription = createWatch({
         unit: Router.$activeRoutes,
         scope: scope ?? undefined,
         fn: (activeRoutes) => {
-          if (!navigationRef.current || activeRoutes.length === 0) return;
-
-          // Find the last active route
-          const lastActiveRoute = activeRoutes[activeRoutes.length - 1];
-          const matchingIndex = routeViews.findIndex(
-            (r) => r.route === lastActiveRoute,
-          );
-
-          if (matchingIndex !== -1) {
-            const routeName = getScreenName(
-              routeViews[matchingIndex].route,
-              matchingIndex,
-            );
-
-            // Navigate to the route in React Navigation
-            try {
-              navigationRef.current.navigate(routeName);
-            } catch (error) {
-              console.error(error);
-              // Route might not be mounted yet
-            }
-          }
+          syncActiveRoute(navigation, activeRoutes, routeViews);
         },
       });
 
       return () => subscription.unsubscribe();
-    }, [scope]);
+    }, [navigation, routeViews, scope]);
 
     // Handle tab press to open route in  Router
-    const createTabPressHandler = React.useCallback((routeView: RouteView) => {
-      return () => {
-        if (
-          'open' in routeView.route &&
-          typeof routeView.route.open === 'function'
-        ) {
-          routeView.route.open();
-        }
-      };
-    }, []);
-
     return (
       <Tab.Navigator
         screenOptions={screenOptions}
@@ -123,11 +94,12 @@ export function createBottomTabsNavigator(config: BottomTabsNavigatorConfig): {
               component={routeView.view}
               options={{ title }}
               listeners={{
+                ...createRouteListeners(routeView.route),
                 tabPress: (e) => {
                   // Prevent default navigation
                   e.preventDefault();
                   // Open route via  Router
-                  createTabPressHandler(routeView)();
+                  openRoute(routeView.route);
                 },
               }}
             />

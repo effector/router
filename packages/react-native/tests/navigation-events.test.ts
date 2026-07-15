@@ -6,7 +6,7 @@ describe('React Navigation events', () => {
   test('opens the route on a native screen focus (#72)', () => {
     const route = createRoute({ path: '/profile' });
     const opened = vi.fn();
-    route.opened.watch(opened);
+    route.open.watch(opened);
 
     createRouteListeners(route).focus();
 
