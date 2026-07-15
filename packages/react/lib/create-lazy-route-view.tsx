@@ -48,5 +48,6 @@ export function createLazyRouteView<T extends object | void = void>(
   return {
     route: props.route,
     view,
+    children: props.children,
   };
 }

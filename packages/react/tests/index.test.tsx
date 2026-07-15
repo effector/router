@@ -44,7 +44,7 @@ describe('react bindings', () => {
     });
     const lazyView = createLazyRouteView({
       route,
-      view: async () => ({ default: () => null }),
+      view: () => Promise.resolve({ default: () => null }),
       children: [child],
     });
 
