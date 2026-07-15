@@ -133,11 +133,36 @@ actions; the actual new location arrives through `listen`.
 
 **Accepted:** `$path` has type `Store<string | null>` and is `null` before
 `setHistory`; `$query` is `{}` before initialization. `setHistory` loads the
-adapter's initial snapshot. `navigate`, `back`, and `forward` before
-initialization finish with a controlled error and are not queued. Path routes
-do not activate before history is available. Virtual routes work independently.
-Calling `setHistory` again unsubscribes the previous adapter and reloads the new
-snapshot.
+adapter's initial snapshot. Calling `setHistory` again unsubscribes the previous
+adapter and reloads the new snapshot.
+
+`navigate`, `back`, and `forward` before initialization emit one public failure
+event. Router and its controls expose the same Effector unit:
+
+```ts
+type NavigationFailure =
+  | {
+      operation: 'navigate';
+      reason: 'not-initialized';
+      payload: NavigatePayload;
+    }
+  | {
+      operation: 'back' | 'forward';
+      reason: 'not-initialized';
+    };
+
+controls.navigationFailed: Event<NavigationFailure>;
+router.navigationFailed: Event<NavigationFailure>;
+```
+
+The event is emitted synchronously in the command's Effector transaction. It
+stays in the calling Fork API scope; `allSettled(command, { scope })` resolves
+after scoped subscribers have observed the failure. The command does not throw,
+write a console diagnostic, enter `beforeNavigate`, or create a queue. History,
+location stores, and path-route state remain unchanged. A path route's `open`
+fails through the same `navigate` branch, while virtual routes continue to work
+independently. `navigationFailed` covers only a command issued without an
+initialized adapter; failures from an attached adapter are outside this event.
 
 ### D4.3 Additional router events
 
@@ -232,10 +257,48 @@ attributes, and non-`_self` behavior match the React Link contract.
 
 **Accepted:** Effector Router is the only canonical source of truth. React
 Navigation renders native UI and reports user intent. Native back, gestures,
-tab presses, and deep links are translated by the adapter into controls/route
+tab presses, and deep links are translated by the binding into controls/route
 events, then Router synchronizes React Navigation. `NavigationContainer`
-remains app-owned. The binding receives explicitly supplied refs/listeners and
-suppresses echo loops caused by its own Router-to-RN updates.
+remains app-owned. Router creation and `controls.setHistory(...)` remain
+application configuration; the binding does not create a Router or attach a
+history adapter.
+
+The navigator component receives the app-owned container ref through one prop:
+
+```ts
+type NativeNavigatorProps<ParamList extends ParamListBase = ParamListBase> = {
+  navigationRef: NavigationContainerRefWithCurrent<ParamList>;
+};
+
+interface NativeNavigator {
+  <ParamList extends ParamListBase = ParamListBase>(
+    props: NativeNavigatorProps<ParamList>,
+  ): React.ReactElement;
+}
+```
+
+The application creates the ref with React Navigation, passes the same ref to
+`NavigationContainer` and the returned navigator component, and retains full
+ownership of the container's `onReady` and `onStateChange` props. The binding
+does not add a public bridge object, callback pair, or normalized native-intent
+unit.
+
+On mount, the component subscribes to the ref's native `ready` and `state`
+events, then checks `isReady()` so an already-fired readiness transition is not
+missed. `ready` has no payload. `state` keeps React Navigation's native event
+payload; because it may contain partial state, the binding treats it as a signal
+and reads the complete snapshot through `getRootState()` and
+`getCurrentRoute()`. Before readiness, no React Navigation command is sent and
+no command queue is created; readiness synchronizes only the latest Router
+state. Screen `focus`, `beforeRemove`, completed transition/gesture, and
+`tabPress` listeners retain their native payload types and are normalized
+privately to existing route/control units. The debugging-only
+`__unsafe_action__` event is not used.
+
+All ref listeners and Effector watchers are removed on unmount. Watchers and
+native callbacks bind to the Effector scope in which the navigator is rendered.
+Binding-originated Router-to-RN updates are marked privately and suppressed when
+the corresponding native notification returns.
 
 Adapter initialization, deep links, persistence, back/gestures, cleanup, and
 scopes depend on this decision.
@@ -243,7 +306,8 @@ scopes depend on this decision.
 ### D9.2 Navigator API
 
 **Accepted:** `createStackNavigator` and `createBottomTabsNavigator` return a
-React component directly, without a `{ Navigator }` wrapper.
+`NativeNavigator` directly, without a `{ Navigator }` wrapper. The returned
+component requires the `navigationRef` prop defined by D9.1.
 
 An RN screen name is the complete registered path template, including parent
 segments. Stack and Tabs do not transform it and do not use an index fallback.

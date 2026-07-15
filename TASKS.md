@@ -99,13 +99,13 @@ semantics, transition policy, and framework href builders depend on it.
       `Store<string | null>`, keep `$query = {}` before initialization, and load
       the initial snapshot atomically. A repeated `setHistory` unsubscribes old
       listen/block subscriptions before connecting the new adapter.
-- [ ] **T17 — Contract checkpoint: pre-init failure surface.** Amend D4.2 with
-      the exact Effector contract for observing `navigate`/`back`/`forward`
-      failures before `setHistory`: unit name and payload, synchronicity, and Fork
-      API behavior. Runtime work must not choose between throwing, a silent
-      no-op, a console diagnostic, and a new public event. After acceptance,
-      cover all three operations: history and route state remain unchanged, no
-      queue is created, and virtual routes still work.
+- [ ] **T17 — Observable pre-init command failure.** Add the shared public
+      `navigationFailed: Event<NavigationFailure>` unit to Router and controls.
+      Reject `navigate`, `back`, and `forward` synchronously before creating a
+      navigation attempt when history is not initialized. Cover the exact
+      discriminated payload, direct and route-originated navigation, absence of
+      throws/console output/queues, unchanged history and route state, virtual
+      routes, global scope, and Fork API isolation.
 - [ ] **T18 — Router lifecycle events.** Add public `initialized` and
       `updated: Event<LocationState>`. `initialized` fires after every successful
       `setHistory`; `updated` fires only after a later value change to path or
@@ -250,31 +250,35 @@ This stage depends on final route payloads (D3) and query policy (D1–D2).
 RN is the final binding stage because it depends on final route identity, nested
 params, the active Router tree, and navigation semantics.
 
-- [ ] **T45 — Contract checkpoint: RN bridge signature.** Amend D9 with the
-      exact TypeScript config signature through which an app-owned
-      `NavigationContainer` provides its navigation ref and native state/action
-      notifications to the binding. Define ref creation ownership, readiness,
-      subscribe/unsubscribe, and notification payload. Runtime work must not
-      choose public field names before acceptance. A hidden container and second
-      Router are forbidden.
-- [ ] **T46 — Navigator return and API types.** `createStackNavigator` and
-      `createBottomTabsNavigator` return React components directly. Add RN-specific
-      RouteView `options`. Pass navigator `screenOptions` and per-screen `options`
-      through as native object/callback values without manually merging them.
+- [ ] **T45 — App-owned RN ref bridge.** Make `createStackNavigator` and
+      `createBottomTabsNavigator` return `NativeNavigator` components directly.
+      Require the app-owned `navigationRef` component prop; do not create a
+      container, Router, history adapter, callback pair, or public intent unit.
+      Subscribe to native `ready`/`state`, handle an already-ready ref, read a
+      complete state snapshot, establish the readiness gate used by later
+      synchronization, bind callbacks to the rendered Effector scope, and remove
+      ref/Effector subscriptions on unmount. Add public type fixtures and focused
+      lifecycle tests.
+- [ ] **T46 — Navigator option types.** Add RN-specific RouteView `options`.
+      Pass navigator `screenOptions` and per-screen `options` through as native
+      object/callback values without manually merging them. Stack and Tabs retain
+      their distinct native option types.
 - [ ] **T47 — Stable screen names.** Derive a name from the complete registered
       path template, including parent and base segments, without an index
       fallback. Validate `initialRouteName` only for routes without required
       params. Reject parameterized routes in Bottom Tabs.
 - [ ] **T48 — Router as source of truth.** Implement Router-to-RN synchronization
-      with params and push/replace intent. Suppress echo loops from binding-owned
-      updates and remove stale-state races during fast transitions and
-      initialization.
+      with params and push/replace intent. Before native readiness, retain only
+      the latest Router snapshot and synchronize it when ready. Suppress echo
+      loops from binding-owned updates and remove stale-state races during fast
+      transitions and initialization.
 - [ ] **T49 — Native intents.** Translate screen focus, native back/remove, a
       completed back gesture, and tab press into route/controls intent without
       mutating RN state directly inside the handler. Deep-link URL parsing and
-      Linking configuration remain app-owned; the binding accepts only the
-      normalized intent defined by T45. Verify unsubscribe and Fork API scope
-      binding for callbacks.
+      Linking configuration remain app-owned. Normalize only the public ref and
+      screen-listener notifications defined by D9.1; do not use
+      `__unsafe_action__` or export a native-intent unit. Verify unsubscribe and
+      Fork API scope binding for callbacks.
 - [ ] **T50 — Real RN integration suite.** Render the component shape with an
       app-owned `NavigationContainer`. Cover direct return, complete names,
       params, initial-route restrictions, tabs, option callbacks, push/replace,
