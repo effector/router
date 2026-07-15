@@ -36,6 +36,27 @@ describe('historyAdapter location', () => {
       hash: '#native',
     });
   });
+
+  test('resolves omitted string and object fields from current location', () => {
+    const history = createMemoryHistory({
+      initialEntries: ['/start?tab=one#top'],
+    });
+    const adapter = historyAdapter(history);
+
+    adapter.push('/next');
+    expect(adapter.location).toMatchObject({
+      pathname: '/next',
+      search: '?tab=one',
+      hash: '#top',
+    });
+
+    adapter.replace({ search: '?tab=two' });
+    expect(adapter.location).toMatchObject({
+      pathname: '/next',
+      search: '?tab=two',
+      hash: '#top',
+    });
+  });
 });
 
 describe('queryAdapter', () => {
@@ -62,6 +83,27 @@ describe('queryAdapter', () => {
       pathname: '/native',
       search: '?tab=three',
       hash: '#native',
+    });
+  });
+
+  test('resolves partial nested targets against the current nested location', () => {
+    const history = createMemoryHistory({
+      initialEntries: ['/host?%2Fnested%3Ftab%3Done%23top'],
+    });
+    const adapter = queryAdapter(history);
+
+    adapter.push({ pathname: '/next' });
+    expect(adapter.location).toEqual({
+      pathname: '/next',
+      search: '?tab=one',
+      hash: '#top',
+    });
+
+    adapter.replace({ hash: '#bottom' });
+    expect(adapter.location).toEqual({
+      pathname: '/next',
+      search: '?tab=one',
+      hash: '#bottom',
     });
   });
 

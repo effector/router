@@ -1,7 +1,14 @@
 import type { History, Transition } from 'history';
 import type { RouterAdapter } from './types';
+import { normalizeTo } from './normalize-to';
 
 export function historyAdapter(history: History): RouterAdapter {
+  const getLocation = () => {
+    const { pathname, search, hash } = history.location;
+
+    return { pathname, search, hash };
+  };
+
   let blockCallback: Parameters<NonNullable<RouterAdapter['block']>>[0] | null =
     null;
   let unblock: (() => void) | null = null;
@@ -36,13 +43,13 @@ export function historyAdapter(history: History): RouterAdapter {
 
   return {
     get location() {
-      const { pathname, search, hash } = history.location;
-
-      return { pathname, search, hash };
+      return getLocation();
     },
 
-    push: (to) => runWithoutBlocker(() => history.push(to)),
-    replace: (to) => runWithoutBlocker(() => history.replace(to)),
+    push: (to) =>
+      runWithoutBlocker(() => history.push(normalizeTo(getLocation(), to))),
+    replace: (to) =>
+      runWithoutBlocker(() => history.replace(normalizeTo(getLocation(), to))),
 
     goBack: history.back.bind(history),
     goForward: history.forward.bind(history),

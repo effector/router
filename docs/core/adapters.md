@@ -15,6 +15,10 @@ Every adapter exposes a live `location` snapshot with exactly `pathname`,
 `search`, and `hash`. Reading it after `push`, `replace`, or a native history
 change returns the current value; it is not the object captured at creation.
 
+`push` and `replace` accept either a full history string or a partial location
+object. Any omitted field is retained from the adapter's current location; the
+same rule is used for nested targets handled by `queryAdapter`.
+
 ## Built-in Adapters
 
 ### historyAdapter

@@ -1,5 +1,6 @@
 import { createPath, parsePath, type History, type Transition } from 'history';
 import type { RouterAdapter, RouterLocation, To } from './types';
+import { normalizeTo } from './normalize-to';
 
 export interface QueryAdapterOptions {
   /**
@@ -110,7 +111,10 @@ export function queryAdapter(
 
   const navigate = (to: To) => ({
     pathname: history.location.pathname,
-    search: strategy.search(history.location.search, to),
+    search: strategy.search(
+      history.location.search,
+      normalizeTo(strategy.extract(history.location), to),
+    ),
     hash: history.location.hash,
   });
 

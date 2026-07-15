@@ -92,7 +92,7 @@ semantics, transition policy, and framework href builders depend on it.
       `{ pathname, search, hash }` snapshot current after initial read, `push`,
       `replace`, listener updates, and native navigation. Do not retain the stale
       location object captured when the adapter was created.
-- [ ] **T14 — Partial navigation targets.** Normalize string and partial object
+- [x] **T14 — Partial navigation targets.** Normalize string and partial object
       targets so omitted `pathname`, `search`, and `hash` retain values from the
       current adapter location. Apply the same contract to historyAdapter and
       queryAdapter's internal location.

@@ -86,6 +86,10 @@ does not need router registration, and never writes history.
 reflects adapter pushes, replaces, and native history updates instead of the
 location object captured during adapter creation.
 
+String and partial object targets resolve omitted pathname, search, and hash
+fields from the adapter's current location. This applies to both history and
+query adapters.
+
 ## Documentation
 
 Full guides and API reference: **[router.effector.dev/core](https://router.effector.dev/core)**
