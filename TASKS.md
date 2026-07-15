@@ -182,7 +182,7 @@ Do not migrate bindings until public core types are stable.
       `packages/core/lib/index.ts`, generated declarations, package README, and
       docs against D1–D5. Remove stale types, methods, and examples; export the
       new payloads, events, and operators.
-- [ ] **T31 — Executable core examples.** Move essential snippets into compile
+- [x] **T31 — Executable core examples.** Move essential snippets into compile
       or runtime fixtures: FSD controls ownership, path/virtual routes, nested
       params, notFound, query tracking, and adapter initialization.
 - [ ] **T32 — Lifecycle compatibility gate.** Re-run and, where required,
