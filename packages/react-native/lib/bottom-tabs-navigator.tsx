@@ -10,6 +10,7 @@ import type { RouteView } from '@effector/router-react';
 import { createWatch } from 'effector';
 import { useProvidedScope } from 'effector-react';
 import { getScreenKey, getScreenName, getScreenTitle } from './route-name';
+import { flattenRouteViews } from './route-views';
 
 export type BottomTabsNavigatorConfig = {
   router: Router;
@@ -56,6 +57,7 @@ export function createBottomTabsNavigator(config: BottomTabsNavigatorConfig): {
 
   const BottomTabsNavigator = function BottomTabsNavigator() {
     const scope = useProvidedScope();
+    const routeViews = React.useMemo(() => flattenRouteViews(routes), [routes]);
     const navigationRef = React.useRef<any>(null);
 
     // Sync  Router state with React Navigation
@@ -68,13 +70,13 @@ export function createBottomTabsNavigator(config: BottomTabsNavigatorConfig): {
 
           // Find the last active route
           const lastActiveRoute = activeRoutes[activeRoutes.length - 1];
-          const matchingIndex = routes.findIndex(
+          const matchingIndex = routeViews.findIndex(
             (r) => r.route === lastActiveRoute,
           );
 
           if (matchingIndex !== -1) {
             const routeName = getScreenName(
-              routes[matchingIndex].route,
+              routeViews[matchingIndex].route,
               matchingIndex,
             );
 
@@ -109,7 +111,7 @@ export function createBottomTabsNavigator(config: BottomTabsNavigatorConfig): {
         screenOptions={screenOptions}
         initialRouteName={initialRouteName}
       >
-        {routes.map((routeView, index) => {
+        {routeViews.map((routeView, index) => {
           const routeName = getScreenName(routeView.route, index);
           const routeKey = getScreenKey(routeView.route, index);
           const title = getScreenTitle(routeView.route, index);

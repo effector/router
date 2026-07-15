@@ -11,6 +11,7 @@ import { useOpenedViews } from '@effector/router-react';
 import { createWatch } from 'effector';
 import { useProvidedScope } from 'effector-react';
 import { getScreenKey, getScreenName } from './route-name';
+import { flattenRouteViews } from './route-views';
 
 export type StackNavigatorConfig = {
   router: Router;
@@ -57,7 +58,8 @@ export function createStackNavigator(config: StackNavigatorConfig): {
 
   const StackNavigator = function StackNavigator() {
     const scope = useProvidedScope();
-    const openedViews = useOpenedViews(routes);
+    const routeViews = React.useMemo(() => flattenRouteViews(routes), [routes]);
+    const openedViews = useOpenedViews(routeViews);
     const navigationRef = React.useRef<any>(null);
 
     // Sync  Router state with React Navigation
@@ -73,7 +75,7 @@ export function createStackNavigator(config: StackNavigatorConfig): {
           if (matchingView) {
             const routeName = getScreenName(
               matchingView.route,
-              routes.findIndex((r) => r.route === matchingView.route),
+              routeViews.findIndex((r) => r.route === matchingView.route),
             );
 
             // Navigate to the route in React Navigation
@@ -94,7 +96,7 @@ export function createStackNavigator(config: StackNavigatorConfig): {
         screenOptions={screenOptions}
         initialRouteName={initialRouteName}
       >
-        {routes.map((routeView, index) => {
+        {routeViews.map((routeView, index) => {
           const routeName = getScreenName(routeView.route, index);
           const routeKey = getScreenKey(routeView.route, index);
 
