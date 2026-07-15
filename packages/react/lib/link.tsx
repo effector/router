@@ -35,7 +35,7 @@ export const Link: ForwardedLink = forwardRef<
 >((props, ref) => {
   const { to, params, onClick, replace, query, ...anchorProps } = props;
 
-  const { path, onOpen } = useLink(to, params);
+  const { path, onOpen } = useLink(to, params, query);
 
   return (
     <a

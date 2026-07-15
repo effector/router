@@ -42,6 +42,7 @@ export function Link<Params extends object | void = void>(
   const { path, onOpen } = useLink<Params>(
     local.to as Route<Params>,
     () => local.params as Params,
+    () => local.query,
   );
 
   const handleClick: JSX.EventHandler<HTMLAnchorElement, MouseEvent> = (

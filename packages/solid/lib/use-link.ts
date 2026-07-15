@@ -1,7 +1,8 @@
-import type { Route, InternalRoute } from '@effector/router';
+import type { Query, Route, InternalRoute } from '@effector/router';
 import { createMemo, type Accessor } from 'solid-js';
 import { useRouterContext } from './use-router';
 import { useUnit } from 'effector-solid';
+import queryString from 'query-string';
 
 /**
  * @description Imperative navigation helper. Resolves a route to a reactive
@@ -12,6 +13,7 @@ import { useUnit } from 'effector-solid';
 export function useLink<T extends object | void = void>(
   to: Route<T>,
   params: Accessor<T> = (() => undefined) as Accessor<T>,
+  query: Accessor<Query | undefined> = () => undefined,
 ) {
   const { knownRoutes } = useRouterContext();
   const target = knownRoutes.find(
@@ -27,7 +29,12 @@ export function useLink<T extends object | void = void>(
 
   const { onOpen } = useUnit(to);
 
-  const path = createMemo(() => target.build(params() ?? undefined));
+  const path = createMemo(() => {
+    const pathname = target.build(params() ?? undefined);
+    const search = query() ? queryString.stringify(query()) : '';
+
+    return search ? `${pathname}?${search}` : pathname;
+  });
 
   return {
     path,
