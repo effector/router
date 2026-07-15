@@ -4,11 +4,12 @@ import {
   createStackNavigator as createReactNavigationStackNavigator,
   StackNavigationOptions,
 } from '@react-navigation/stack';
-import type { Router, Route } from '@effector/router';
+import type { Router } from '@effector/router';
 import type { RouteView } from '@effector/router-react';
 import { useOpenedViews } from '@effector/router-react';
 import { createWatch } from 'effector';
 import { useProvidedScope } from 'effector-react';
+import { getScreenKey, getScreenName } from './route-name';
 
 export type StackNavigatorConfig = {
   router: Router;
@@ -20,20 +21,6 @@ export type StackNavigatorConfig = {
 export type { StackNavigationOptions as StackNavigatorOptions };
 
 const Stack = createReactNavigationStackNavigator();
-
-function getRouteKey(route: Route<any> | Router, index: number): string {
-  if ('path' in route && route.path) {
-    return route.path;
-  }
-  return `route-${index}`;
-}
-
-function getRouteName(route: Route<any> | Router, index: number): string {
-  if ('path' in route && route.path) {
-    return route.path;
-  }
-  return `Route${index}`;
-}
 
 /**
  * Creates an  Stack Navigator that integrates with React Navigation
@@ -83,7 +70,7 @@ export function createStackNavigator(config: StackNavigatorConfig): {
           // Find the matching route for the current path
           const matchingView = openedViews[openedViews.length - 1];
           if (matchingView) {
-            const routeName = getRouteName(
+            const routeName = getScreenName(
               matchingView.route,
               routes.findIndex((r) => r.route === matchingView.route),
             );
@@ -107,8 +94,8 @@ export function createStackNavigator(config: StackNavigatorConfig): {
         initialRouteName={initialRouteName}
       >
         {routes.map((routeView, index) => {
-          const routeName = getRouteName(routeView.route, index);
-          const routeKey = getRouteKey(routeView.route, index);
+          const routeName = getScreenName(routeView.route, index);
+          const routeKey = getScreenKey(routeView.route, index);
 
           return (
             <Stack.Screen

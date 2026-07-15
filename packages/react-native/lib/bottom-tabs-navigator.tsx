@@ -4,10 +4,11 @@ import {
   createBottomTabNavigator,
   BottomTabNavigationOptions,
 } from '@react-navigation/bottom-tabs';
-import type { Router, Route } from '@effector/router';
+import type { Router } from '@effector/router';
 import type { RouteView } from '@effector/router-react';
 import { createWatch } from 'effector';
 import { useProvidedScope } from 'effector-react';
+import { getScreenKey, getScreenName, getScreenTitle } from './route-name';
 
 export type BottomTabsNavigatorConfig = {
   router: Router;
@@ -19,28 +20,6 @@ export type BottomTabsNavigatorConfig = {
 export type { BottomTabNavigationOptions };
 
 const Tab = createBottomTabNavigator();
-
-function getRouteKey(route: Route<any> | Router, index: number): string {
-  if ('path' in route && route.path) {
-    return route.path;
-  }
-  return `tab-${index}`;
-}
-
-function getRouteName(route: Route<any> | Router, index: number): string {
-  if ('path' in route && route.path) {
-    return route.path.replace(/\//g, '') || `Tab${index}`;
-  }
-  return `Tab${index}`;
-}
-
-function getRouteTitle(route: Route<any> | Router, index: number): string {
-  if ('path' in route && route.path) {
-    const pathParts = route.path.split('/').filter(Boolean);
-    return pathParts[pathParts.length - 1] || `Tab ${index + 1}`;
-  }
-  return `Tab ${index + 1}`;
-}
 
 /**
  * Creates an  Bottom Tabs Navigator that integrates with React Navigation
@@ -93,7 +72,7 @@ export function createBottomTabsNavigator(config: BottomTabsNavigatorConfig): {
           );
 
           if (matchingIndex !== -1) {
-            const routeName = getRouteName(
+            const routeName = getScreenName(
               routes[matchingIndex].route,
               matchingIndex,
             );
@@ -130,9 +109,9 @@ export function createBottomTabsNavigator(config: BottomTabsNavigatorConfig): {
         initialRouteName={initialRouteName}
       >
         {routes.map((routeView, index) => {
-          const routeName = getRouteName(routeView.route, index);
-          const routeKey = getRouteKey(routeView.route, index);
-          const title = getRouteTitle(routeView.route, index);
+          const routeName = getScreenName(routeView.route, index);
+          const routeKey = getScreenKey(routeView.route, index);
+          const title = getScreenTitle(routeView.route, index);
 
           return (
             <Tab.Screen
