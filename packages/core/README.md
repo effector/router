@@ -49,6 +49,10 @@ Routes without required params accept `open()`, `open({})`, and
 `open({ params: {} })` interchangeably. Parameterized opens use only the
 current payload and never merge missing values from previous state.
 
+Nested routes expose the complete parent/child params on the child route while
+each parent activation stores only the params declared by that route's path.
+Duplicate parameter names are rejected by the path validator.
+
 ## Core API
 
 | Export                           | Purpose                                      |

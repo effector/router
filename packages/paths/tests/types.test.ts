@@ -45,6 +45,9 @@ test('optional parameters are optional object properties', () => {
   expectTypeOf<ValidatePath<'/profile/:id{3,2}'>>().toMatchTypeOf<
     ['invalid', string]
   >();
+  expectTypeOf<ValidatePath<'/profile/:id/:id'>>().toMatchTypeOf<
+    ['invalid', string]
+  >();
 });
 
 type IsEqual<Left, Right> =

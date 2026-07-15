@@ -385,6 +385,27 @@ describe('router', () => {
     expect(scope.getState(child.$isOpened)).toBeTruthy();
   });
 
+  test('child params include parent params while parent keeps its own params', async () => {
+    const scope = fork();
+    const parent = createRoute({ path: '/users/:userId' });
+    const child = createRoute({ path: '/posts/:postId', parent });
+    const router = createRouter({ routes: [parent, child] });
+    const history = createMemoryHistory();
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+    history.push('/users/alice/posts/one');
+    await allSettled(scope);
+
+    expect(scope.getState(parent.$params)).toStrictEqual({ userId: 'alice' });
+    expect(scope.getState(child.$params)).toStrictEqual({
+      userId: 'alice',
+      postId: 'one',
+    });
+  });
+
   test('deduplicates equal route params updates', async () => {
     const scope = fork();
     const route = createRoute({ path: '/profile/:id' });

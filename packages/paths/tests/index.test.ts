@@ -27,6 +27,9 @@ describe('parse path', () => {
     expect(() => compile('/profile/:id+*')).toThrow(
       'Path pattern has conflicting modifiers',
     );
+    expect(() => compile('/profile/:id/:id')).toThrow(
+      'duplicate parameter name "id"',
+    );
   });
 
   test('parse root path', () => {

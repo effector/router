@@ -77,6 +77,10 @@ For routes without required params, `route.open()`, `route.open({})`, and
 payload. Parameterized routes use only the params supplied by the current open;
 missing values are never merged from previous route state.
 
+When a route has a parent, the child receives the intersection of parent and
+child params. The parent route keeps only the params declared by its own path.
+Duplicate names are rejected during path validation.
+
 Routes without paths for dialogs, modals, or other non-URL navigation:
 
 ```ts

@@ -17,6 +17,8 @@ export function validateRuntimePath(path: unknown): asserts path is string {
     fail('must not contain an origin');
   }
 
+  const parameterNames = new Set<string>();
+
   for (const segment of path.split('/').filter(Boolean)) {
     if (segment.includes('#')) {
       fail('must not contain a query or hash');
@@ -78,8 +80,16 @@ export function validateRuntimePath(path: unknown): asserts path is string {
       }
     }
 
-    if (tokenizeSegment(segment).type === 'literal') {
+    const token = tokenizeSegment(segment);
+
+    if (token.type === 'literal') {
       fail('has an invalid parameter syntax');
     }
+
+    if (parameterNames.has(token.name)) {
+      fail(`contains duplicate parameter name "${token.name}"`);
+    }
+
+    parameterNames.add(token.name);
   }
 }

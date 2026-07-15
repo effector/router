@@ -47,6 +47,8 @@ builder cannot produce a URL that its parser rejects.
 Path patterns are pathname-only. Query strings, hashes, origins, malformed
 ranges, unclosed generic/range syntax, and conflicting modifiers are rejected
 by `compile` with a descriptive error.
+Duplicate parameter names are rejected as well, including when the pattern is
+provided as a runtime `string`.
 
 Parser, builder, and inferred parameter types are covered by one conformance
 matrix, including round-trips, optional omission, embedded parameters, and

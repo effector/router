@@ -172,7 +172,10 @@ export interface InternalRouter extends Router {
   internal: InternalRouterProps;
 }
 
-type InternalOpenedPayload<T> = RouteOpenedPayload<T> & { navigate?: boolean };
+type InternalOpenedPayload<T> = RouteOpenedPayload<T> & {
+  navigate?: boolean;
+  parent?: boolean;
+};
 
 export interface InternalRouteParams<T> {
   close: EventCallable<void>;

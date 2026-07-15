@@ -28,3 +28,10 @@ test('routes without params accept equivalent empty open payloads', () => {
   route.open({});
   route.open({ params: {} });
 });
+
+test('rejects duplicate parent and child parameter names', () => {
+  const parent = createRoute({ path: '/users/:id' });
+
+  // @ts-expect-error child path cannot redeclare a parent parameter
+  createRoute({ path: '/posts/:id', parent });
+});

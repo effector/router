@@ -193,6 +193,22 @@ type ValidateParameterToken<RawParam extends string> =
           : never
         : ValidateTokenBase<RawParam>;
 
+type StripParameterSuffix<Value extends string> =
+  Value extends `${infer Name}<${string}`
+    ? Name
+    : Value extends `${infer Name}{${string}`
+      ? Name
+      : Value extends `${infer Name}${'?' | '+' | '*'}`
+        ? Name
+        : Value;
+
+type ParameterName<Token extends string> =
+  Token extends `${string}:${infer Raw}`
+    ? StripParameterSuffix<Raw>
+    : Token extends `*${infer Raw}`
+      ? StripParameterSuffix<Raw>
+      : never;
+
 type ValidateToken<Token> = Token extends `:${infer RawParam}`
   ? ValidateParameterToken<RawParam>
   : Token extends `${string}?${string}` | `${string}#${string}`
@@ -203,13 +219,22 @@ type ValidateTokens<
   Path,
   Current,
   Res extends string[] = [],
+  Seen extends string = never,
 > = Current extends [infer Token, ...infer Rest]
   ? ValidateToken<ReplaceAll<Token, ' ', ''>> extends [
       'invalid',
       infer TokenReplacer,
     ]
     ? ['invalid', JoinPath<[...Res, TokenReplacer, ...Rest]>]
-    : ValidateTokens<Path, Rest, [...Res, Token & string]>
+    : [ParameterName<ReplaceAll<Token & string, ' ', ''>>] extends [infer Name]
+      ? [Name] extends [never]
+        ? ValidateTokens<Path, Rest, [...Res, Token & string], Seen>
+        : Name extends string
+          ? Name extends Seen
+            ? ['invalid', JoinPath<[...Res, Token & string, ...Rest]>]
+            : ValidateTokens<Path, Rest, [...Res, Token & string], Seen | Name>
+          : never
+      : never
   : Path;
 
 type ValidatePathname<Path extends string> = Path extends `//${string}`

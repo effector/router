@@ -31,6 +31,14 @@ type MergeRouteParams<
     ? ParentParams
     : ParentParams & Params;
 
+type HasDuplicateParams<Parent extends ParentRoute, Path extends string> =
+  Extract<
+    keyof ParentRouteParams<Parent>,
+    keyof ParseUrlParams<Path>
+  > extends never
+    ? false
+    : true;
+
 type WithBaseRouteConfig<
   T = object,
   Parent extends ParentRoute = undefined,
@@ -98,6 +106,20 @@ function getPayloadParams<Params>(
   return { ...payload.params } as Params;
 }
 
+function getPathParamNames(path: string): string[] {
+  const names: string[] = [];
+
+  for (const segment of path.split('/').filter(Boolean)) {
+    const matches = segment.match(/[:*]([A-Za-z0-9_]+)/g) ?? [];
+
+    for (const match of matches) {
+      names.push(match.slice(1));
+    }
+  }
+
+  return names;
+}
+
 /** Normalize equivalent empty payloads at the route lifecycle boundary. */
 function normalizeOpenPayload<Params>(
   payload: unknown,
@@ -162,7 +184,12 @@ export type CreateRouteConfig<Path, Parent extends ParentRoute = undefined> =
  * ```
  */
 export function createRoute<T extends string, Parent extends Route<any>>(
-  config: WithBaseRouteConfig<{ path: T }, Parent> & { parent: Parent },
+  config: WithBaseRouteConfig<
+    { path: T } & (HasDuplicateParams<Parent, T> extends true
+      ? { path: never }
+      : {}),
+    Parent
+  > & { parent: Parent },
 ): PathRoute<MergeRouteParams<ParentRouteParams<Parent>, ParseUrlParams<T>>>;
 export function createRoute<
   T extends string,
@@ -193,6 +220,7 @@ export function createRoute<Params>(
         await parent.internal.forceOpenParentFx({
           ...normalizedPayload,
           navigate: false,
+          parent: true,
         });
       }
 
@@ -248,6 +276,35 @@ export function createRoute<Params>(
   );
 
   const defaultParams = {} as Params;
+  const ownParamNames =
+    'path' in config ? getPathParamNames(config.path) : undefined;
+
+  function getOwnParams(payload: unknown): Params {
+    const params = getPayloadParams(payload, defaultParams);
+
+    const isParentActivation =
+      Boolean(payload) &&
+      typeof payload === 'object' &&
+      (payload as Record<string, unknown>).parent === true;
+
+    if ('parent' in config && config.parent && !isParentActivation) {
+      return params;
+    }
+
+    if (!ownParamNames) {
+      return params;
+    }
+
+    const ownParams = Object.fromEntries(
+      ownParamNames
+        .filter(
+          (name) => params && typeof params === 'object' && name in params,
+        )
+        .map((name) => [name, (params as Record<string, unknown>)[name]]),
+    );
+
+    return ownParams as Params;
+  }
 
   sample({
     clock: open,
@@ -286,8 +343,7 @@ export function createRoute<Params>(
   createAction({
     clock: forceOpenParentFx.doneData,
     target: { $params },
-    fn: (target, payload) =>
-      target.$params(getPayloadParams(payload, defaultParams)),
+    fn: (target, payload) => target.$params(getOwnParams(payload)),
   });
 
   sample({
@@ -337,6 +393,7 @@ export function createRoute<Params>(
       // don't accidentally suppress navigation in the target route.
       const openedPayload = { ...((payload ?? {}) as Record<string, unknown>) };
       delete openedPayload.navigate;
+      delete openedPayload.parent;
       const eventPayload = openedPayload as OpenPayload;
 
       if (typeof window === 'undefined') {
