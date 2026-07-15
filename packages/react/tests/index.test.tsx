@@ -21,6 +21,7 @@ import {
   chainRoute,
   createRoute,
   createRouter,
+  createVirtualRoute,
   historyAdapter,
 } from '@effector/router';
 import { createMemoryHistory } from 'history';
@@ -28,6 +29,13 @@ import { render, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 describe('react bindings', () => {
+  test('accepts a virtual route in a route view', () => {
+    const route = createVirtualRoute();
+    const routeView = createRouteView({ route, view: () => null });
+
+    expect(routeView.route).toBe(route);
+  });
+
   test('lazy import starts on render and exposes Suspense fallback', async () => {
     let resolve!: (module: { default: () => ReactNode }) => void;
     const route = createRoute({ path: '/lazy' });
