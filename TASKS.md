@@ -133,7 +133,7 @@ RouteView. Both layers must observe the final active route tree.
       `createRouter`. Open it only when no route matches and close it when a known
       URL is restored. Without a fallback, an unknown URL activates no special
       route.
-- [ ] **T22 — Nested propagation.** Give a nested `notFound` priority in its
+- [x] **T22 — Nested propagation.** Give a nested `notFound` priority in its
       subtree and propagate a missing match to the nearest ancestor fallback when
       no local fallback exists. Cover an unknown remainder below a matched parent
       or base. Never open local and ancestor fallbacks together.

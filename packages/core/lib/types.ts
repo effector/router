@@ -184,6 +184,7 @@ export interface Router {
 export interface InternalRouterProps {
   parent: Router | null;
   base?: string;
+  handlesPath: (path: string) => boolean;
 }
 
 export interface InternalRouter extends Router {

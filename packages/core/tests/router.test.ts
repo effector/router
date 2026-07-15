@@ -178,6 +178,52 @@ describe('router', () => {
     expect(scope.getState(known.$isOpened)).toBe(true);
   });
 
+  test('prefers a nested notFound route and propagates to the nearest fallback', async () => {
+    const scope = fork();
+    const rootNotFound = createRoute();
+    const nestedNotFound = createRoute();
+    const nested = createRouter({
+      base: '/settings',
+      routes: [createRoute({ path: '/' })],
+      notFound: nestedNotFound,
+    });
+    const router = createRouter({
+      routes: [createRoute({ path: '/' }), nested],
+      notFound: rootNotFound,
+    });
+    const history = createMemoryHistory();
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    history.push('/settings/missing');
+    await allSettled(scope);
+
+    expect(scope.getState(nestedNotFound.$isOpened)).toBe(true);
+    expect(scope.getState(rootNotFound.$isOpened)).toBe(false);
+
+    const nestedWithoutFallback = createRouter({
+      base: '/admin',
+      routes: [createRoute({ path: '/' })],
+    });
+    const rootWithPropagation = createRouter({
+      routes: [nestedWithoutFallback],
+      notFound: rootNotFound,
+    });
+    const secondHistory = createMemoryHistory();
+
+    await allSettled(rootWithPropagation.setHistory, {
+      scope,
+      params: historyAdapter(secondHistory),
+    });
+    secondHistory.push('/admin/missing');
+    await allSettled(scope);
+
+    expect(scope.getState(rootNotFound.$isOpened)).toBe(true);
+  });
+
   test('routes closed when path changed', async () => {
     const route1 = createRoute({ path: '/one' });
     const route2 = createRoute({ path: '/two' });

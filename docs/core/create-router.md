@@ -108,6 +108,12 @@ const router = createRouter({
 });
 ```
 
+For nested routers, matching is resolved from the deepest configured router
+outward. A nested `notFound` handles an unknown remainder inside its base and
+prevents an ancestor fallback from opening. If the nested router has no
+fallback, the missing location propagates to the nearest ancestor that does.
+Local and ancestor fallbacks are never open together.
+
 ### `base` (optional)
 
 Base path prefix for all routes in this router:

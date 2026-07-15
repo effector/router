@@ -117,6 +117,7 @@ export function createRouter(config: RouterConfig): Router {
   let parent: Router | null = null;
 
   const knownRoutes: MappedRoute[] = [];
+  const nestedRouters: InternalRouter[] = [];
 
   function mapRoute(inputRoute: InputRoute): MappedRoute | null {
     if (inputIs.pathlessRoute(inputRoute)) {
@@ -185,6 +186,7 @@ export function createRouter(config: RouterConfig): Router {
     }
 
     if (inputIs.router(inputRoute)) {
+      nestedRouters.push(inputRoute as InternalRouter);
       knownRoutes.push(...inputRoute.knownRoutes);
     }
 
@@ -199,11 +201,32 @@ export function createRouter(config: RouterConfig): Router {
   type MatchResult = {
     matches: RouteMatch[];
     activeRoutes: Route<any>[];
+    nestedHandled: boolean;
   };
+
+  function isWithinBase(path: string, routerBase: string | undefined) {
+    const normalizedBase = routerBase && routerBase !== '/' ? routerBase : '';
+
+    return (
+      normalizedBase === '' ||
+      path === normalizedBase ||
+      path.startsWith(`${normalizedBase}/`)
+    );
+  }
+
+  function handlesPath(path: string) {
+    const result = matchRoutes(path);
+
+    return (
+      result.matches.length > 0 ||
+      (internalNotFound !== undefined && isWithinBase(path, base)) ||
+      nestedRouters.some((router) => router.internal.handlesPath(path))
+    );
+  }
 
   function matchRoutes(path: string | null): MatchResult {
     if (!path) {
-      return { matches: [], activeRoutes: [] };
+      return { matches: [], activeRoutes: [], nestedHandled: false };
     }
 
     const matches: RouteMatch[] = [];
@@ -219,13 +242,19 @@ export function createRouter(config: RouterConfig): Router {
     return {
       matches,
       activeRoutes: matches.map(({ route }) => route),
+      nestedHandled: nestedRouters.some((router) =>
+        router.internal.handlesPath(path),
+      ),
     };
   }
 
   const $activeRoutes = $path.map((path) => {
     const result = matchRoutes(path);
 
-    return path && result.matches.length === 0 && notFound
+    return path &&
+      result.matches.length === 0 &&
+      !result.nestedHandled &&
+      notFound
       ? [notFound]
       : result.activeRoutes;
   });
@@ -263,7 +292,10 @@ export function createRouter(config: RouterConfig): Router {
           safe: true,
         });
 
-        if (matches.length === 0) {
+        if (
+          matches.length === 0 &&
+          !nestedRouters.some((router) => router.internal.handlesPath(path))
+        ) {
           const notFoundNavigate = scopeBind(
             internalNotFound.internal.navigated,
             {
@@ -355,6 +387,7 @@ export function createRouter(config: RouterConfig): Router {
       },
 
       base,
+      handlesPath,
     },
 
     trackQuery: trackQueryFactory({ $activeRoutes, $query, navigate }),

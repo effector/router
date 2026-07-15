@@ -46,6 +46,11 @@ const notFound = createRoute();
 const router = createRouter({ routes: [home, profile], notFound });
 ```
 
+Nested routers apply the same rule from the inside out: a nested `notFound`
+handles an unknown remainder within its base, while a missing nested fallback
+propagates to the nearest ancestor fallback. The two fallbacks are never open
+at the same time.
+
 ## What you get
 
 - **Type-safe params** — `createRoute({ path: '/user/:id' })` infers `Route<{ id: string }>`.
