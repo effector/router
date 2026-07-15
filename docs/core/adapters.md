@@ -11,6 +11,10 @@ An adapter translates between effector/router's internal navigation system and e
 - Listening to navigation events
 - Providing back/forward navigation
 
+Every adapter exposes a live `location` snapshot with exactly `pathname`,
+`search`, and `hash`. Reading it after `push`, `replace`, or a native history
+change returns the current value; it is not the object captured at creation.
+
 ## Built-in Adapters
 
 ### historyAdapter

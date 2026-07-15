@@ -147,7 +147,9 @@ export function queryAdapter(
   };
 
   return {
-    location: strategy.extract(history.location),
+    get location() {
+      return strategy.extract(history.location);
+    },
 
     push: (to: To) => {
       runWithoutBlocker(() => history.push(navigate(to)));

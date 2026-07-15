@@ -82,6 +82,10 @@ the deprecated compatibility factory; new code should use the shared
 `createRoute` lifecycle. A pathless route opens from its own Effector units,
 does not need router registration, and never writes history.
 
+`RouterAdapter.location` is a live `{ pathname, search, hash }` snapshot. It
+reflects adapter pushes, replaces, and native history updates instead of the
+location object captured during adapter creation.
+
 ## Documentation
 
 Full guides and API reference: **[router.effector.dev/core](https://router.effector.dev/core)**

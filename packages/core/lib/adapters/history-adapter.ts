@@ -35,7 +35,11 @@ export function historyAdapter(history: History): RouterAdapter {
   };
 
   return {
-    location: history.location,
+    get location() {
+      const { pathname, search, hash } = history.location;
+
+      return { pathname, search, hash };
+    },
 
     push: (to) => runWithoutBlocker(() => history.push(to)),
     replace: (to) => runWithoutBlocker(() => history.replace(to)),

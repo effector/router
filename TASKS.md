@@ -88,7 +88,7 @@ Router, query operators, and all bindings.
 After Route is stable, establish one location-state source of truth. Query
 semantics, transition policy, and framework href builders depend on it.
 
-- [ ] **T13 — Live `RouterAdapter.location`.** Keep a complete synchronous
+- [x] **T13 — Live `RouterAdapter.location`.** Keep a complete synchronous
       `{ pathname, search, hash }` snapshot current after initial read, `push`,
       `replace`, listener updates, and native navigation. Do not retain the stale
       location object captured when the adapter was created.

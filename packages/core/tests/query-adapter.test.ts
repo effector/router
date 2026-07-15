@@ -2,7 +2,69 @@ import { createMemoryHistory } from 'history';
 import { describe, expect, test } from 'vitest';
 import { historyAdapter, queryAdapter } from '../lib';
 
+describe('historyAdapter location', () => {
+  test('always reflects the current history snapshot', () => {
+    const history = createMemoryHistory({
+      initialEntries: ['/start?tab=one#top'],
+    });
+    const adapter = historyAdapter(history);
+
+    expect(adapter.location).toMatchObject({
+      pathname: '/start',
+      search: '?tab=one',
+      hash: '#top',
+    });
+
+    adapter.push('/next?tab=two#middle');
+    expect(adapter.location).toMatchObject({
+      pathname: '/next',
+      search: '?tab=two',
+      hash: '#middle',
+    });
+
+    adapter.replace('/final?tab=three#bottom');
+    expect(adapter.location).toMatchObject({
+      pathname: '/final',
+      search: '?tab=three',
+      hash: '#bottom',
+    });
+
+    history.push('/native?tab=four#native');
+    expect(adapter.location).toMatchObject({
+      pathname: '/native',
+      search: '?tab=four',
+      hash: '#native',
+    });
+  });
+});
+
 describe('queryAdapter', () => {
+  test('location reflects push, replace, and native history updates', () => {
+    const history = createMemoryHistory({ initialEntries: ['/host'] });
+    const adapter = queryAdapter(history);
+
+    adapter.push('/nested?tab=one#top');
+    expect(adapter.location).toEqual({
+      pathname: '/nested',
+      search: '?tab=one',
+      hash: '#top',
+    });
+
+    adapter.replace('/nested?tab=two#middle');
+    expect(adapter.location).toEqual({
+      pathname: '/nested',
+      search: '?tab=two',
+      hash: '#middle',
+    });
+
+    history.push('/host?%2Fnative%3Ftab%3Dthree%23native');
+    expect(adapter.location).toEqual({
+      pathname: '/native',
+      search: '?tab=three',
+      hash: '#native',
+    });
+  });
+
   test('does not throw on empty search', () => {
     const history = createMemoryHistory({
       initialEntries: ['/users'],
