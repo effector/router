@@ -307,8 +307,14 @@ type NavigatePayload = {
 ### Query
 
 ```ts
-type Query = Record<string, string | null | Array<string | null>>;
+type QueryValue = string | null | Array<string | null>;
+type Query = Record<string, QueryValue>;
+type QueryInput = Record<string, QueryValue | undefined>;
 ```
+
+The core codec parses repeated keys into ordered arrays, serializes `null` as a
+flag, and omits `undefined` keys. `$query` stores the normalized `Query`; input
+payloads may use `QueryInput` when a key must be removed.
 
 ### InputRoute
 

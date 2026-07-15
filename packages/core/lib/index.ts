@@ -17,7 +17,10 @@ export type {
   PathlessRoute,
   Router,
   Query,
+  QueryInput,
+  QueryValue,
   OpenPayloadBase,
+  RouteOpenPayload,
   RouteOpenedPayload,
   NavigatePayload,
   QueryTracker,
@@ -35,3 +38,4 @@ export {
 } from './adapters';
 
 export { is } from './utils';
+export { isEqualQuery, parseQuery, stringifyQuery } from './query-codec';

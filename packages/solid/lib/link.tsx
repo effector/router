@@ -1,4 +1,4 @@
-import type { Route, RouteOpenedPayload } from '@effector/router';
+import type { Route, RouteOpenPayload } from '@effector/router';
 import { splitProps, type JSX } from 'solid-js';
 import type { LinkProps } from './types';
 import { useLink } from './use-link';
@@ -78,7 +78,7 @@ export function Link<Params extends object | void = void>(
       params: local.params || {},
       replace: local.replace,
       query: local.query,
-    } as RouteOpenedPayload<Params>);
+    } as RouteOpenPayload<Params>);
   };
 
   return (

@@ -1,5 +1,5 @@
 import { defineComponent, h, type PropType } from 'vue';
-import type { Query, Route, RouteOpenedPayload } from '@effector/router';
+import type { QueryInput, Route, RouteOpenedPayload } from '@effector/router';
 import { useLink } from './use-link';
 
 /**
@@ -24,7 +24,7 @@ export const Link = defineComponent({
       type: Boolean as PropType<boolean | undefined>,
       default: undefined,
     },
-    query: { type: Object as PropType<Query>, default: undefined },
+    query: { type: Object as PropType<QueryInput>, default: undefined },
     target: { type: String as PropType<string>, default: undefined },
     onClick: {
       type: Function as PropType<(event: MouseEvent) => void>,

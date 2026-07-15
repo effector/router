@@ -147,7 +147,7 @@ RouteView. Both layers must observe the final active route tree.
 Implement query after D4 so the operator depends only on controls and a stable
 location snapshot, not on a configured Router instance.
 
-- [ ] **T24 — One Query codec.** Centralize parsing/stringifying for
+- [x] **T24 — One Query codec.** Centralize parsing/stringifying for
       `Query = Record<string, string | null | Array<string | null>>`:
       `undefined` removes a key, `null` encodes a flag, and arrays use repeated
       keys. Preserve array value order and use value equality.

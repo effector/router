@@ -1,4 +1,4 @@
-import type { Query, Route, InternalRoute } from '@effector/router';
+import type { QueryInput, Route, InternalRoute } from '@effector/router';
 import { createMemo, type Accessor } from 'solid-js';
 import { useRouterContext } from './use-router';
 import { useUnit } from 'effector-solid';
@@ -13,7 +13,7 @@ import queryString from 'query-string';
 export function useLink<T extends object | void = void>(
   to: Route<T>,
   params: Accessor<T> = (() => undefined) as Accessor<T>,
-  query: Accessor<Query | undefined> = () => undefined,
+  query: Accessor<QueryInput | undefined> = () => undefined,
 ) {
   const { knownRoutes } = useRouterContext();
   const target = knownRoutes.find(

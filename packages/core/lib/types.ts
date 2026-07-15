@@ -11,7 +11,11 @@ import type { z, ZodType } from 'zod/v4';
 import type { Builder, Parser } from '@effector/router-paths';
 import type { RouterAdapter } from './adapters';
 
-export type Query = Record<string, string | null | Array<string | null>>;
+export type QueryValue = string | null | Array<string | null>;
+
+export type Query = Record<string, QueryValue>;
+
+export type QueryInput = Record<string, QueryValue | undefined>;
 
 export interface PathlessRoute<T extends object | void = void> {
   '@@type': 'pathless-route';
@@ -72,7 +76,7 @@ export interface QueryTracker<ParametersConfig extends ZodType> {
 }
 
 export type OpenPayloadBase = {
-  query?: Query;
+  query?: QueryInput;
   replace?: boolean;
 };
 
@@ -87,7 +91,7 @@ export type RouteOpenPayload<T> = T extends void
   : RouteOpenedPayload<T>;
 
 export type NavigatePayload = {
-  query?: Query;
+  query?: QueryInput;
   path?: string;
   replace?: boolean;
 };

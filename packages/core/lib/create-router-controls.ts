@@ -8,7 +8,6 @@ import {
   type Subscription,
 } from 'effector';
 
-import queryString from 'query-string';
 import { createAsyncAction } from 'effector-action';
 
 import type {
@@ -29,32 +28,12 @@ import {
 } from './navigation';
 import { createAttemptCoordinator } from './transition-attempt';
 import type { TransitionAttempt } from './transition-attempt';
+import { isEqualQuery, parseQuery, stringifyQuery } from './query-codec';
 
 const MAX_REDIRECT_DEPTH = 16;
 
-function isEqualQueryValue(left: unknown, right: unknown): boolean {
-  if (Object.is(left, right)) return true;
-  if (!Array.isArray(left) || !Array.isArray(right)) return false;
-
-  return (
-    left.length === right.length &&
-    left.every((value, index) => isEqualQueryValue(value, right[index]))
-  );
-}
-
 function isEqualLocation(left: LocationState, right: LocationState): boolean {
-  const leftKeys = Object.keys(left.query);
-  const rightKeys = Object.keys(right.query);
-
-  return (
-    left.path === right.path &&
-    leftKeys.length === rightKeys.length &&
-    leftKeys.every(
-      (key) =>
-        key in right.query &&
-        isEqualQueryValue(left.query[key], right.query[key]),
-    )
-  );
+  return left.path === right.path && isEqualQuery(left.query, right.query);
 }
 
 interface NavigationState {
@@ -222,7 +201,7 @@ export function createRouterControls(): RouterControls {
       const { path, query, replace } = request.navigation;
       const target = {
         pathname: path,
-        search: `?${queryString.stringify(query)}`,
+        search: stringifyQuery(query) ? `?${stringifyQuery(query)}` : '',
       };
 
       if (replace) history.replace(target);
@@ -295,7 +274,7 @@ export function createRouterControls(): RouterControls {
         from: location.path ?? '/',
         navigation: {
           path: transition.location.pathname,
-          query: { ...queryString.parse(transition.location.search) },
+          query: parseQuery(transition.location.search),
           replace: transition.action === 'REPLACE',
         },
         kind: 'native',
@@ -379,14 +358,14 @@ export function createRouterControls(): RouterControls {
 
       target.locationInitialized({
         pathname: history.location.pathname,
-        query: { ...queryString.parse(history.location.search) },
+        query: parseQuery(history.location.search),
       });
 
       target.$subscription(
         history.listen((location) => {
           target.locationUpdated({
             pathname: location.pathname,
-            query: { ...queryString.parse(location.search) },
+            query: parseQuery(location.search),
           });
         }),
       );
@@ -399,7 +378,7 @@ export function createRouterControls(): RouterControls {
 
       target.initialized({
         path: history.location.pathname,
-        query: { ...queryString.parse(history.location.search) },
+        query: parseQuery(history.location.search),
       });
     },
   });

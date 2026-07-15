@@ -290,7 +290,11 @@ When `path` or `query` is omitted, controls reuse the current value. Therefore
 Query parameters are represented as:
 
 ```typescript
-type Query = Record<string, string | string[] | undefined>;
+type Query = Record<string, string | null | Array<string | null>>;
+type QueryInput = Record<
+  string,
+  string | null | Array<string | null> | undefined
+>;
 ```
 
 Examples:
@@ -306,11 +310,14 @@ Examples:
   tags: ['javascript', 'typescript'];
 }
 
-// Remove parameter
+// Remove parameter (undefined is omitted from the URL)
 {
   filter: undefined;
 }
 ```
+
+`null` is serialized as a flag (`?enabled`), arrays use repeated keys in the
+same order, and object key order does not affect value equality.
 
 ## Best Practices
 

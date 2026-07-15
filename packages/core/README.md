@@ -126,6 +126,11 @@ Router also exposes `initialized` after every successful `setHistory` and
 `updated` after later normalized path/query changes. Equal snapshots and
 hash-only changes produce neither an event nor a store update.
 
+Query values use one codec across controls and core navigation: `null` becomes
+a flag, arrays become repeated keys in order, `undefined` removes a key, and
+key order is ignored for equality. Use `QueryInput` for navigation payloads
+that include removals; `$query` always exposes the normalized `Query` value.
+
 The lifecycle matrix also covers string/partial adapter round trips, repeated
 initialization, stale-listener cleanup, native POP, Fork isolation, and equal
 snapshot suppression.
