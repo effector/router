@@ -49,6 +49,10 @@ compile('https://example.com/user'); // throws: origins are not patterns
 compile('/user/:ids{3,2}'); // throws: invalid range
 ```
 
+The parser, builder, and `ParseUrlParams` types are kept in sync by a shared
+conformance matrix covering round-trips, optional omission, embedded values,
+array bounds, malformed patterns, and full-URL rejection.
+
 ## Parameter Types
 
 ### String Parameters (Default)

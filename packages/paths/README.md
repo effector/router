@@ -48,6 +48,10 @@ Path patterns are pathname-only. Query strings, hashes, origins, malformed
 ranges, unclosed generic/range syntax, and conflicting modifiers are rejected
 by `compile` with a descriptive error.
 
+Parser, builder, and inferred parameter types are covered by one conformance
+matrix, including round-trips, optional omission, embedded parameters, and
+array bounds.
+
 ## Type extraction
 
 ```ts

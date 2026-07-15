@@ -18,12 +18,6 @@ Stages 6 and 10 are mandatory conformance gates between these contracts.
 Stabilize `@effector/router-paths` first. Route param inference, URL building,
 matching, nested params, and RN screen names depend on it.
 
-- [ ] **T05 — Paths conformance matrix.** Move compile-time assertions out of
-      production types and into test fixtures. Cover parse/build round trips,
-      bounds, optional omission, embedded params, malformed/adversarial input,
-      and full-URL rejection. Then update the package README, docs, and
-      changeset.
-
 ## 2. Unified Route model — D3
 
 This stage depends on D5 and creates the common route payload/lifecycle used by
