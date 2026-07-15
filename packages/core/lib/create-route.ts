@@ -348,7 +348,9 @@ export function createRoute<Params>(
 
   sample({
     clock: $params.updates,
-    fn: (params) =>
+    source: $isOpened,
+    filter: Boolean,
+    fn: (_, params) =>
       (params === undefined
         ? undefined
         : { params }) as RouteOpenedPayload<Params>,

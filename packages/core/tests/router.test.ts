@@ -429,14 +429,43 @@ describe('router', () => {
     history.push('/profile/second');
     await allSettled(scope);
 
-    expect(updated).toHaveBeenCalledTimes(2);
+    expect(updated).toHaveBeenCalledTimes(1);
     expect(updated).toHaveBeenNthCalledWith(1, {
-      params: { id: 'first' },
-    });
-    expect(updated).toHaveBeenNthCalledWith(2, {
       params: { id: 'second' },
     });
     expect(paramsUpdated).toHaveBeenCalledTimes(2);
+  });
+
+  test('compares params by values, preserving array order and key presence', async () => {
+    const scope = fork();
+    const route = createRoute<{
+      values: string[];
+      marker?: string | null;
+    }>();
+    const updated = vi.fn();
+    route.updated.watch(updated);
+
+    await allSettled(route.open, {
+      scope,
+      params: { params: { values: ['one', 'two'], marker: null } },
+    });
+    await allSettled(route.open, {
+      scope,
+      params: { params: { marker: null, values: ['two', 'one'] } },
+    });
+    await allSettled(route.open, {
+      scope,
+      params: { params: { values: ['two', 'one'] } },
+    });
+    await allSettled(route.close, { scope });
+
+    expect(updated).toHaveBeenCalledTimes(2);
+    expect(updated).toHaveBeenNthCalledWith(1, {
+      params: { marker: null, values: ['two', 'one'] },
+    });
+    expect(updated).toHaveBeenNthCalledWith(2, {
+      params: { values: ['two', 'one'] },
+    });
   });
 
   test('subrouter', async () => {

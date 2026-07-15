@@ -81,6 +81,11 @@ When a route has a parent, the child receives the intersection of parent and
 child params. The parent route keeps only the params declared by its own path.
 Duplicate names are rejected during path validation.
 
+The first activation emits `opened`, not `updated`. Later value changes emit one
+`updated` payload; equal params, query-only changes, and closing the route do
+not emit it. Param comparison ignores object key order but preserves array order
+and the difference between `null` and an absent key.
+
 Routes without paths for dialogs, modals, or other non-URL navigation:
 
 ```ts

@@ -27,12 +27,6 @@ Router, query operators, and all bindings.
       types and runtime treat `open()`, `open({})`, and
       `open({ params: {} })` as equivalent. A route with required params accepts
       the complete set and never merges missing values from current state.
-- [ ] **T11 — Value equality and `route.updated`.** Compare params independent of
-      object key order, while preserving array order and the distinction between
-      `null` and absence. First activation emits only `opened`. A value-different
-      update to an open route emits one `updated` with the complete
-      `RouteOpenedPayload<T>`. Same-value, query-only, and close operations do not
-      emit it.
 - [ ] **T12 — Route regression/type matrix.** Cover path and virtual routes,
       payload overloads, the deprecated alias, parent chains deeper than one
       level, conflicting params, replacement updates, SSR/client events, Fork

@@ -53,6 +53,11 @@ Nested routes expose the complete parent/child params on the child route while
 each parent activation stores only the params declared by that route's path.
 Duplicate parameter names are rejected by the path validator.
 
+`route.updated` compares parameter values independent of object key order. It
+preserves array order and distinguishes `null` from an absent key, skips the
+first activation, and does not fire for equal params, query-only changes, or
+close operations.
+
 ## Core API
 
 | Export                           | Purpose                                      |
