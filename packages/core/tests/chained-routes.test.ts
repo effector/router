@@ -14,11 +14,24 @@ import {
   fork,
   sample,
   scopeBind,
+  type Store,
 } from 'effector';
 import { createMemoryHistory } from 'history';
 import { watchCalls } from './utils';
 
 describe('chained routes', () => {
+  test('child route params include parent route params (#23)', () => {
+    const user = createRoute({ path: '/users/:userId' });
+    const post = createRoute({ path: '/posts/:postId', parent: user });
+
+    expectTypeOf(post.$params).toEqualTypeOf<
+      Store<{ userId: string; postId: string }>
+    >();
+    expectTypeOf(post.open).parameter(0).toEqualTypeOf<{
+      params: { userId: string; postId: string };
+    }>();
+  });
+
   test('virtual route options do not expose beforeOpen', () => {
     type Options = NonNullable<Parameters<typeof createVirtualRoute>[0]>;
     type HasBeforeOpen = 'beforeOpen' extends keyof Options ? true : false;
