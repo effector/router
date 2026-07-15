@@ -36,6 +36,21 @@ describe('react bindings', () => {
     expect(routeView.route).toBe(route);
   });
 
+  test('preserves nested views in a lazy route view (#70)', () => {
+    const route = createRoute({ path: '/parent' });
+    const child = createRouteView({
+      route: createRoute({ path: '/child', parent: route }),
+      view: () => null,
+    });
+    const lazyView = createLazyRouteView({
+      route,
+      view: async () => ({ default: () => null }),
+      children: [child],
+    });
+
+    expect(lazyView.children).toEqual([child]);
+  });
+
   test('lazy import starts on render and exposes Suspense fallback', async () => {
     let resolve!: (module: { default: () => ReactNode }) => void;
     const route = createRoute({ path: '/lazy' });
