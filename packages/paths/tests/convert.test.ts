@@ -54,4 +54,9 @@ describe('convert paths', () => {
       '/api{/:version}/{/*path}',
     );
   });
+
+  test('converts parameters embedded in a segment', () => {
+    expect(convertPath('/@:user+', 'express')).toBe('/@*user');
+    expect(convertPath('/name-:user?', 'express')).toBe('/name-{:user}');
+  });
 });
