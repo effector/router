@@ -99,6 +99,10 @@ Before initialization, `$path` is `null` and `$query` is `{}`. Each
 `setHistory` loads its adapter snapshot and disconnects the previous adapter's
 listeners before subscribing to the new one.
 
+Calling `navigate`, `back`, or `forward` before initialization emits one
+`navigationFailed` event with `reason: 'not-initialized'`; it does not throw or
+create a navigation attempt. The same event is exposed by Router and controls.
+
 ## Documentation
 
 Full guides and API reference: **[router.effector.dev/core](https://router.effector.dev/core)**

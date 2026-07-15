@@ -104,7 +104,7 @@ semantics, transition policy, and framework href builders depend on it.
       `Store<string | null>`, keep `$query = {}` before initialization, and load
       the initial snapshot atomically. A repeated `setHistory` unsubscribes old
       listen/block subscriptions before connecting the new adapter.
-- [ ] **T17 — Observable pre-init command failure.** Add the shared public
+- [x] **T17 — Observable pre-init command failure.** Add the shared public
       `navigationFailed: Event<NavigationFailure>` unit to Router and controls.
       Reject `navigate`, `back`, and `forward` synchronously before creating a
       navigation attempt when history is not initialized. Cover the exact

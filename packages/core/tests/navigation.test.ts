@@ -27,6 +27,46 @@ function createFixture(initialEntries = ['/']) {
 }
 
 describe('navigation operators', () => {
+  test('reports pre-init navigation failures without creating attempts', async () => {
+    const scope = fork();
+    const route = createRoute({ path: '/protected' });
+    const router = createRouter({ routes: [route] });
+    const history = createMemoryHistory({ initialEntries: ['/'] });
+    const failures = vi.fn();
+
+    router.navigationFailed.watch(failures);
+
+    await allSettled(router.navigate, {
+      scope,
+      params: { path: '/protected' },
+    });
+    await allSettled(router.back, { scope });
+    await allSettled(router.forward, { scope });
+    await allSettled(route.open as any, { scope });
+    await allSettled(createRoute().open as any, { scope });
+
+    expect(failures.mock.calls).toEqual([
+      [
+        {
+          operation: 'navigate',
+          reason: 'not-initialized',
+          payload: { path: '/protected' },
+        },
+      ],
+      [{ operation: 'back', reason: 'not-initialized' }],
+      [{ operation: 'forward', reason: 'not-initialized' }],
+      [
+        {
+          operation: 'navigate',
+          reason: 'not-initialized',
+          payload: { path: '/protected', query: {} },
+        },
+      ],
+    ]);
+    expect(history.location.pathname).toBe('/');
+    expect(scope.getState(route.$isOpened)).toBe(false);
+  });
+
   test('navigate path does not require query and preserves current query', async () => {
     const { controls, router, history } = createFixture(['/?keep=yes']);
     const scope = fork();

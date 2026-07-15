@@ -14,6 +14,7 @@ import { createAsyncAction } from 'effector-action';
 import type {
   LocationState,
   NavigatePayload,
+  NavigationFailure,
   PathRoute,
   Query,
   RouterControls,
@@ -65,6 +66,7 @@ export function createRouterControls(): RouterControls {
   const navigate = createEvent<NavigatePayload>();
   const back = createEvent();
   const forward = createEvent();
+  const navigationFailed = createEvent<NavigationFailure>();
 
   const locationUpdated = createEvent<{
     pathname: string;
@@ -210,8 +212,27 @@ export function createRouterControls(): RouterControls {
     target: retryNativeFx,
   });
 
-  const commandCandidate = sample({
+  const initializedNavigate = sample({
     clock: navigate,
+    source: $history,
+    filter: Boolean,
+    fn: (_, payload) => payload,
+  });
+
+  sample({
+    clock: navigate,
+    source: $history,
+    filter: (history): history is null => history === null,
+    fn: (_, payload): NavigationFailure => ({
+      operation: 'navigate',
+      reason: 'not-initialized',
+      payload,
+    }),
+    target: navigationFailed,
+  });
+
+  const commandCandidate = sample({
+    clock: initializedNavigate,
     source: $locationState,
     fn: (location, payload) => {
       const internalPayload = payload as InternalNavigatePayload;
@@ -363,8 +384,39 @@ export function createRouterControls(): RouterControls {
     fn: (location) => ({ path: location.pathname, query: location.query }),
     target: $locationState,
   });
-  sample({ clock: back, target: goBackFx });
-  sample({ clock: forward, target: goForwardFx });
+  const initializedBack = sample({
+    clock: back,
+    source: $history,
+    filter: Boolean,
+  });
+  const initializedForward = sample({
+    clock: forward,
+    source: $history,
+    filter: Boolean,
+  });
+
+  sample({ clock: initializedBack, target: goBackFx });
+  sample({ clock: initializedForward, target: goForwardFx });
+  sample({
+    clock: back,
+    source: $history,
+    filter: (history): history is null => history === null,
+    fn: (): NavigationFailure => ({
+      operation: 'back',
+      reason: 'not-initialized',
+    }),
+    target: navigationFailed,
+  });
+  sample({
+    clock: forward,
+    source: $history,
+    filter: (history): history is null => history === null,
+    fn: (): NavigationFailure => ({
+      operation: 'forward',
+      reason: 'not-initialized',
+    }),
+    target: navigationFailed,
+  });
 
   const routeParsers = new WeakMap<
     PathRoute<any>,
@@ -380,6 +432,7 @@ export function createRouterControls(): RouterControls {
     navigate,
     back,
     forward,
+    navigationFailed,
     locationUpdated,
     trackQuery: trackQueryControlsFactory({ $query, navigate }),
     internal: {

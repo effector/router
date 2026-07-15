@@ -92,6 +92,17 @@ export type NavigatePayload = {
   replace?: boolean;
 };
 
+export type NavigationFailure =
+  | {
+      operation: 'navigate';
+      reason: 'not-initialized';
+      payload: NavigatePayload;
+    }
+  | {
+      operation: 'back' | 'forward';
+      reason: 'not-initialized';
+    };
+
 export type MappedRoute = {
   route: InternalRoute<any>;
   path: string;
@@ -110,6 +121,8 @@ export interface Router {
   back: EventCallable<void>;
   forward: EventCallable<void>;
   navigate: EventCallable<NavigatePayload>;
+
+  navigationFailed: Event<NavigationFailure>;
 
   setHistory: EventCallable<RouterAdapter>;
 
@@ -265,6 +278,8 @@ export interface RouterControls {
   setHistory: EventCallable<RouterAdapter>;
 
   navigate: EventCallable<NavigatePayload>;
+
+  navigationFailed: Event<NavigationFailure>;
 
   back: EventCallable<void>;
   forward: EventCallable<void>;

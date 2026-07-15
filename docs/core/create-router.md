@@ -24,6 +24,10 @@ const history = createBrowserHistory();
 router.setHistory(historyAdapter(history));
 ```
 
+Before initialization, `router.navigate`, `router.back`, and `router.forward`
+emit `router.navigationFailed` with `reason: 'not-initialized'` instead of
+throwing or starting a navigation attempt.
+
 For React apps with Effector scope:
 
 ```ts

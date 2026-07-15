@@ -40,7 +40,10 @@ controls.setHistory(historyAdapter(createBrowserHistory()));
 ```
 
 ::: warning Initialization Required
-Router controls must be initialized with `setHistory` before use. Without a history adapter, navigation methods will throw errors.
+Router controls should be initialized with `setHistory` before use. Before
+initialization, `navigate`, `back`, and `forward` emit
+`controls.navigationFailed` with a discriminated `not-initialized` payload and
+do not throw or create a navigation attempt.
 :::
 
 ### Navigate to Paths

@@ -93,6 +93,7 @@ export function createRouter(config: RouterConfig): Router {
     $history,
     back,
     forward,
+    navigationFailed,
     navigate,
     setHistory,
     locationUpdated,
@@ -292,6 +293,7 @@ export function createRouter(config: RouterConfig): Router {
 
     back,
     forward,
+    navigationFailed,
 
     navigate,
 
