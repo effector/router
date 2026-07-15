@@ -260,6 +260,7 @@ export function createRouterControls(): RouterControls {
 
       return {
         accepted: !next.redirect || redirectDepth <= MAX_REDIRECT_DEPTH,
+        attemptId: current?.id,
         request: { ...next, redirectDepth } satisfies NavigationRequest,
       };
     },
@@ -282,9 +283,19 @@ export function createRouterControls(): RouterControls {
     );
   });
 
-  sample({
+  const redirectLoop = sample({
     clock: classifiedCandidate,
-    filter: ({ accepted }) => !accepted,
+    filter: ({ accepted, attemptId }) => !accepted && attemptId !== undefined,
+    fn: ({ attemptId }) => attemptId as number,
+  });
+
+  sample({
+    clock: redirectLoop,
+    target: coordinator.cancel,
+  });
+
+  sample({
+    clock: redirectLoop,
     target: reportRedirectLoopFx,
   });
 

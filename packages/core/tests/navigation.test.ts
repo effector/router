@@ -227,7 +227,11 @@ describe('navigation operators', () => {
     const controls = createRouterControls();
     const first = createRoute({ path: '/first' });
     const second = createRoute({ path: '/second' });
-    const router = createRouter({ routes: [first, second], controls });
+    const afterLoop = createRoute({ path: '/after-loop' });
+    const router = createRouter({
+      routes: [first, second, afterLoop],
+      controls,
+    });
     const history = createMemoryHistory();
     const fromFirst = beforeNavigate({ controls, to: first });
     const fromSecond = beforeNavigate({ controls, to: second });
@@ -253,6 +257,10 @@ describe('navigation operators', () => {
       expect(history.location.pathname).toBe('/');
       expect(scope.getState(first.$isOpened)).toBe(false);
       expect(scope.getState(second.$isOpened)).toBe(false);
+
+      await allSettled(afterLoop.open, { scope, params: {} });
+
+      expect(history.location.pathname).toBe('/after-loop');
     } finally {
       report.mockRestore();
     }

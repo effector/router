@@ -1,6 +1,7 @@
 # Navigation lifecycle RFC
 
-Status: implemented on `sovax/minimal-navigation-lifecycle` on 2026-07-15.
+Status: accepted contract; implementation is covered by core and binding
+regression tests.
 
 ## Goal
 
@@ -50,9 +51,11 @@ transition.proceed // EventCallable<void>
 transition.cancel  // EventCallable<void>
 ```
 
-`filter: true` means “hold this matching transition”. Complex policy is
-pre-composed with `Store.map`/`combine`; the operator does not duplicate
-Effector's `source`/`filter` API. `from` and `to` are combined with AND.
+When `filter` is omitted, a matching transition is held. A `Store<boolean>` or
+predicate function can disable the hold for a particular state/navigation.
+Complex policy is pre-composed with `Store.map`/`combine`; the operator does not
+duplicate Effector's `source`/`filter` API. `from` and `to` are combined with
+AND.
 
 All matching operators must call `proceed`; any one may cancel. While an
 attempt is held, later ordinary intents are ignored. This avoids exposing a
@@ -167,8 +170,8 @@ and adapter choice.
   params.
 - Redirect while held: the old attempt is discarded and the redirect becomes a
   new semantic attempt.
-- Redirect loop: after 16 consecutive pre-commit redirects the attempt is
-  cancelled and a diagnostic is emitted.
+- Redirect loop: after 16 consecutive pre-commit redirects the current held
+  attempt is cancelled and a diagnostic is emitted.
 - Repeated ordinary intent while held: ignored.
 - Repeated chained activation: latest activation wins.
 
