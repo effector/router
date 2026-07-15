@@ -98,6 +98,29 @@ function getPayloadParams<Params>(
   return { ...payload.params } as Params;
 }
 
+/** Normalize equivalent empty payloads at the route lifecycle boundary. */
+function normalizeOpenPayload<Params>(
+  payload: unknown,
+): RouteOpenedPayload<Params> {
+  if (!payload || typeof payload !== 'object') {
+    return {} as RouteOpenedPayload<Params>;
+  }
+
+  const normalized = { ...(payload as Record<string, unknown>) };
+  const params = normalized.params;
+
+  if (
+    params &&
+    typeof params === 'object' &&
+    !Array.isArray(params) &&
+    Object.keys(params).length === 0
+  ) {
+    delete normalized.params;
+  }
+
+  return normalized as RouteOpenedPayload<Params>;
+}
+
 export type CreateRouteConfig<Path, Parent extends ParentRoute = undefined> =
   ValidatePath<Path> extends ['invalid', infer Template]
     ? WithBaseRouteConfig<
@@ -157,20 +180,23 @@ export function createRoute<Params>(
 
   // Opening a path route is a navigation intent. Preparation starts only
   // after the adapter confirms the resulting location.
-  const openFx = createEffect<OpenPayload, OpenPayload>((payload) => payload);
+  const openFx = createEffect<OpenPayload, OpenPayload>((payload) =>
+    normalizeOpenPayload<Params>(payload),
+  );
 
   const forceOpenParentFx = createEffect<OpenPayload, OpenPayload>(
     async (payload) => {
+      const normalizedPayload = normalizeOpenPayload<Params>(payload);
       const parent = config.parent as InternalRoute | undefined;
 
       if (parent) {
         await parent.internal.forceOpenParentFx({
-          ...(payload ?? { params: {} }),
+          ...normalizedPayload,
           navigate: false,
         });
       }
 
-      return payload;
+      return normalizedPayload;
     },
   );
 

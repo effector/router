@@ -72,6 +72,11 @@ Calling `createRoute()` without a `path` creates a self-contained virtual
 route. It can be opened directly, does not require router registration, and
 never writes to history.
 
+For routes without required params, `route.open()`, `route.open({})`, and
+`route.open({ params: {} })` are equivalent and produce one canonical empty
+payload. Parameterized routes use only the params supplied by the current open;
+missing values are never merged from previous route state.
+
 Routes without paths for dialogs, modals, or other non-URL navigation:
 
 ```ts

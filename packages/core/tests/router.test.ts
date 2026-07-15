@@ -26,6 +26,39 @@ describe('router', () => {
     expect(route).not.toHaveProperty('path');
   });
 
+  test('normalizes equivalent empty payloads and does not merge params', async () => {
+    const opened = vi.fn();
+
+    for (const payload of [undefined, {}, { params: {} }] as const) {
+      const scope = fork();
+      const route = createRoute();
+      route.opened.watch(opened);
+
+      if (payload === undefined) {
+        await allSettled(route.open as any, { scope });
+      } else {
+        await allSettled(route.open as any, { scope, params: payload });
+      }
+
+      expect(scope.getState(route.$params)).toStrictEqual({});
+    }
+
+    const scope = fork();
+    const route = createRoute<{ id: string; slug: string }>();
+
+    await allSettled(route.open, {
+      scope,
+      params: { params: { id: 'one', slug: 'first' } },
+    });
+    await allSettled(route.open, {
+      scope,
+      params: { params: { id: 'two' } as { id: string; slug: string } },
+    });
+
+    expect(scope.getState(route.$params)).toStrictEqual({ id: 'two' });
+    expect(opened.mock.calls.slice(0, 3)).toEqual([[{}], [{}], [{}]]);
+  });
+
   test('opens routes from history in the global scope (#56)', async () => {
     const route = createRoute({ path: '/profile' });
     const router = createRouter({ routes: [route] });

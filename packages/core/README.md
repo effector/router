@@ -45,6 +45,10 @@ profile.$params.watch((p) => console.log('id:', p.id));
 - **Path & pathless routes** — `createRoute()` and `createVirtualRoute()` for modals, dialogs, and nested flows.
 - **Composable navigation** — `beforeNavigate` and `redirect` for pre-commit policy, `chainRoute` for post-commit readiness.
 
+Routes without required params accept `open()`, `open({})`, and
+`open({ params: {} })` interchangeably. Parameterized opens use only the
+current payload and never merge missing values from previous state.
+
 ## Core API
 
 | Export                           | Purpose                                      |

@@ -21,7 +21,7 @@ export interface PathlessRoute<T extends object | void = void> {
   $isOpened: Store<boolean>;
   $isPending: Store<boolean>;
 
-  open: EventCallable<RouteOpenedPayload<T>>;
+  open: EventCallable<RouteOpenPayload<T>>;
 
   opened: Event<RouteOpenedPayload<T>>;
   openedOnServer: Event<RouteOpenedPayload<T>>;
@@ -40,7 +40,7 @@ export interface PathlessRoute<T extends object | void = void> {
     isOpened: Store<boolean>;
     isPending: Store<boolean>;
 
-    onOpen: EventCallable<RouteOpenedPayload<T>>;
+    onOpen: EventCallable<RouteOpenPayload<T>>;
   };
 }
 
@@ -79,6 +79,12 @@ export type OpenPayloadBase = {
 export type RouteOpenedPayload<T> = T extends void
   ? void | OpenPayloadBase
   : { params: T } & OpenPayloadBase;
+
+export type RouteOpenPayload<T> = T extends void
+  ?
+      | RouteOpenedPayload<T>
+      | (OpenPayloadBase & { params: Record<string, never> })
+  : RouteOpenedPayload<T>;
 
 export type NavigatePayload = {
   query?: Query;
