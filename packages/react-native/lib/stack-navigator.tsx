@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useEffect } from 'react';
 import {
   createStackNavigator as createReactNavigationStackNavigator,
+  StackNavigatorProps,
   StackNavigationOptions,
 } from '@react-navigation/stack';
 import type { Router } from '@effector/router';
@@ -14,7 +15,7 @@ import { getScreenKey, getScreenName } from './route-name';
 export type StackNavigatorConfig = {
   router: Router;
   routes: RouteView[];
-  screenOptions?: StackNavigationOptions;
+  screenOptions?: StackNavigatorProps['screenOptions'];
   initialRouteName?: string;
 };
 
@@ -102,7 +103,6 @@ export function createStackNavigator(config: StackNavigatorConfig): {
               key={routeKey}
               name={routeName}
               component={routeView.view}
-              options={screenOptions}
             />
           );
         })}

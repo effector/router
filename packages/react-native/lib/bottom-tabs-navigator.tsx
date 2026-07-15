@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import {
   createBottomTabNavigator,
   BottomTabNavigationOptions,
+  BottomTabNavigatorProps,
 } from '@react-navigation/bottom-tabs';
 import type { Router } from '@effector/router';
 import type { RouteView } from '@effector/router-react';
@@ -13,7 +14,7 @@ import { getScreenKey, getScreenName, getScreenTitle } from './route-name';
 export type BottomTabsNavigatorConfig = {
   router: Router;
   routes: RouteView[];
-  screenOptions?: BottomTabNavigationOptions;
+  screenOptions?: BottomTabNavigatorProps['screenOptions'];
   initialRouteName?: string;
 };
 
@@ -118,10 +119,7 @@ export function createBottomTabsNavigator(config: BottomTabsNavigatorConfig): {
               key={routeKey}
               name={routeName}
               component={routeView.view}
-              options={{
-                title,
-                ...screenOptions,
-              }}
+              options={{ title }}
               listeners={{
                 tabPress: (e) => {
                   // Prevent default navigation
