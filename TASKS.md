@@ -129,7 +129,7 @@ RouteView. Both layers must observe the final active route tree.
 - [x] **T20 — Explicit match result.** Centralize matched-route calculation for
       root and nested routers so activation, `$activeRoutes`, stale-route close,
       and not-found consume one result, including dynamic `registerRoute` calls.
-- [ ] **T21 — Root `notFound`.** Add an optional virtual `notFound` to
+- [x] **T21 — Root `notFound`.** Add an optional virtual `notFound` to
       `createRouter`. Open it only when no route matches and close it when a known
       URL is restored. Without a fallback, an unknown URL activates no special
       route.

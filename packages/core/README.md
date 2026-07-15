@@ -37,6 +37,15 @@ profile.$isOpened.watch((open) => console.log('profile open:', open));
 profile.$params.watch((p) => console.log('id:', p.id));
 ```
 
+An optional pathless `notFound` route handles unknown locations at the router
+root. It is opened with the current query, exposed as the only
+`router.$activeRoutes` entry, and closed when a registered route matches again:
+
+```ts
+const notFound = createRoute();
+const router = createRouter({ routes: [home, profile], notFound });
+```
+
 ## What you get
 
 - **Type-safe params** — `createRoute({ path: '/user/:id' })` infers `Route<{ id: string }>`.

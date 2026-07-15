@@ -153,6 +153,31 @@ describe('router', () => {
     expect(scope.getState(route.$isOpened)).toBe(true);
   });
 
+  test('opens a root notFound route for unknown paths and closes it when restored', async () => {
+    const scope = fork();
+    const known = createRoute({ path: '/known' });
+    const notFound = createRoute();
+    const router = createRouter({ routes: [known], notFound });
+    const history = createMemoryHistory();
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+    history.push('/missing');
+    await allSettled(scope);
+
+    expect(scope.getState(notFound.$isOpened)).toBe(true);
+    expect(scope.getState(known.$isOpened)).toBe(false);
+    expect(scope.getState(router.$activeRoutes)).toEqual([notFound]);
+
+    history.push('/known');
+    await allSettled(scope);
+
+    expect(scope.getState(notFound.$isOpened)).toBe(false);
+    expect(scope.getState(known.$isOpened)).toBe(true);
+  });
+
   test('routes closed when path changed', async () => {
     const route1 = createRoute({ path: '/one' });
     const route2 = createRoute({ path: '/two' });

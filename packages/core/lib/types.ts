@@ -118,6 +118,8 @@ export interface Router {
   $history: Store<RouterAdapter | null>;
   $activeRoutes: Store<Route<any>[]>;
 
+  notFound?: PathlessRoute<any>;
+
   back: EventCallable<void>;
   forward: EventCallable<void>;
   navigate: EventCallable<NavigatePayload>;

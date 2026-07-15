@@ -91,6 +91,23 @@ const router = createRouter({
 });
 ```
 
+### `notFound` (optional)
+
+Pass a pathless route to handle a location for which this router has no
+matching route. The fallback is opened with the current query, appears as the
+only entry in `$activeRoutes`, and is closed automatically when a known route
+matches again. If `notFound` is omitted, an unknown location leaves all routes
+closed and does not activate a special route.
+
+```ts
+const notFound = createRoute();
+
+const router = createRouter({
+  routes: [homeRoute, profileRoute],
+  notFound,
+});
+```
+
 ### `base` (optional)
 
 Base path prefix for all routes in this router:

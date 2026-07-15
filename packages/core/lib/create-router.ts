@@ -32,6 +32,7 @@ interface RouterConfig {
   base?: string;
   routes: InputRoute[];
   controls?: RouterControls;
+  notFound?: PathlessRoute<any>;
 }
 
 const inputIs = {
@@ -84,7 +85,8 @@ const inputIs = {
  * ```
  */
 export function createRouter(config: RouterConfig): Router {
-  const { base = '/', routes } = config;
+  const { base = '/', routes, notFound } = config;
+  const internalNotFound = notFound as InternalPathlessRoute<any> | undefined;
   const controls = (config.controls ??
     createRouterControls()) as InternalRouterControls;
   const {
@@ -220,7 +222,13 @@ export function createRouter(config: RouterConfig): Router {
     };
   }
 
-  const $activeRoutes = $path.map((path) => matchRoutes(path).activeRoutes);
+  const $activeRoutes = $path.map((path) => {
+    const result = matchRoutes(path);
+
+    return path && result.matches.length === 0 && notFound
+      ? [notFound]
+      : result.activeRoutes;
+  });
 
   const openRoutesByPathFx = attach({
     source: { query: $query, path: $path },
@@ -248,6 +256,24 @@ export function createRouter(config: RouterConfig): Router {
           query,
           params,
         });
+      }
+
+      if (internalNotFound) {
+        const notFoundClose = scopeBind(internalNotFound.internal.close, {
+          safe: true,
+        });
+
+        if (matches.length === 0) {
+          const notFoundNavigate = scopeBind(
+            internalNotFound.internal.navigated,
+            {
+              safe: true,
+            },
+          );
+          notFoundNavigate({ query });
+        } else {
+          notFoundClose();
+        }
       }
     },
   });
@@ -301,6 +327,7 @@ export function createRouter(config: RouterConfig): Router {
     $query,
     $path,
     $history,
+    notFound,
 
     $activeRoutes,
 
