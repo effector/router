@@ -213,7 +213,7 @@ export function createRouter(config: RouterConfig): Router {
 
       for (const { route, parse } of ownRoutes) {
         const matchResult = parse(path);
-        const routeClose = scopeBind(route.internal.close);
+        const routeClose = scopeBind(route.internal.close, { safe: true });
 
         if (!matchResult) {
           routeClose();
@@ -223,7 +223,9 @@ export function createRouter(config: RouterConfig): Router {
       }
 
       for (const { route, params } of matchedRoutes) {
-        const routeNavigate = scopeBind(route.internal.navigated);
+        const routeNavigate = scopeBind(route.internal.navigated, {
+          safe: true,
+        });
         routeNavigate({
           query,
           params,
