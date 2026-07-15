@@ -5,222 +5,264 @@
 работы переходят в [TASKS.md](TASKS.md). Конкретные воспроизводимые дефекты
 находятся в [BUGS.md](BUGS.md).
 
-## D1. Семантика query при навигации
+## D1. Семантика query при навигации — принято
 
-**Вопрос:** что означает `navigate({query})` и аналогичный payload route/link?
+`navigate({query})` использует replace-семантику: переданный объект становится
+полным query URL. Если поле `query` не передано, текущий query сохраняется при
+смене `path`. Пустой объект `query: {}` явно очищает query.
 
-- **Replace:** переданный query становится полным query URL. Поведение
-  предсказуемо и совпадает с текущей сериализацией, но для частичного изменения
-  нужно явно прочитать текущий query.
-- **Merge:** переданные ключи накладываются на текущий query. Удобнее для UI,
-  но сложнее для удаления ключей, повторяемости и nested routers.
-- **Два явных оператора:** базовый `navigate` делает replace, а отдельный
-  `mergeQuery` выражает частичное изменение.
+Отдельный `mergeQuery` оператор пока не вводится. Частичное изменение можно
+собрать обычной Effector-композицией (`sample`, `combine`, чтение текущего
+`$query`) и передать уже полный объект в `navigate`.
 
-Нужно также определить, сохраняется ли текущий query при `navigate({path})` и
-какие правила применяются к `null`, `undefined` и массивам.
+Правила для `null`, `undefined` и массивов относятся к D2, чтобы не смешивать
+семантику навигации с форматом сериализации.
 
-## D2. Query type, serializer и ownership `trackQuery`
+## D2. Query type, serializer и ownership `trackQuery` — принято
 
-**Вопрос:** где находится каноническая модель query и кто владеет синхронизацией?
+Core хранит узкий URL-совместимый `Query`:
+`Record<string, string | null | Array<string | null>>`. Generic serializer в
+router API не вводится. Преобразование в числа, даты и другие доменные типы
+остаётся на стороне схемы `trackQuery` (например, через Zod `transform`).
 
-- Узкий core type: `string | null | Array<string | null>` и mapping внутри
-  `trackQuery`.
-- Generic serializer-backed type: application передаёт codec с round-trip
-  guarantees для number, dates и сложных объектов.
-- Гибрид: core хранит строковую модель, а mapping/serializer остаётся
-  application operator.
+`trackQuery` — standalone operator:
 
-Отдельно нужно выбрать ownership:
+```ts
+trackQuery({
+  controls,
+  routes?: Route[],
+  parameters,
+})
+```
 
-- оставить `router.trackQuery` как facade;
-- добавить standalone `trackQuery`/`syncQuery` operators;
-- оставить оба уровня, но определить migration и приоритет.
+`routes` фильтрует tracker по `$isOpened` переданных routes; достаточно, чтобы
+был открыт хотя бы один route. Если `routes` не передан, tracker активен всегда.
+Метод `router.trackQuery` и поле `check` в новый контракт не входят. Tracker
+реактивно проверяет query и активность routes; one-shot сценарии собираются
+снаружи обычной Effector-композицией.
 
-Нужно зафиксировать `entered`, `exit`, `ignoreParams`, unrelated query keys,
-`replace` policy и mapping non-primitive values.
+`undefined` не является значением query и означает отсутствие ключа, `null`
+представляет URL-флаг без значения, массивы сериализуются повторяющимися
+ключами. `entered`, `exit`, `ignoreParams` и сохранение unrelated keys при
+частичном выходе остаются частью tracker API.
 
 ## D3. Route params и identity
 
 ### D3.1 Parent params
 
-- **Intersection:** child route получает params parent и собственного path. URL
-  и types совпадают, но generic inference становится сложнее.
-- **Child-only:** сохранить текущую простоту типов и требовать явный payload
-  parent на уровне router/application.
+**Принято: intersection.** Child route получает объединённые params parent и
+собственного path. Его `$params`, `Link` и `useLink` используют полный набор;
+parent route сохраняет только параметры своего path. Конфликтующие имена
+параметров должны быть запрещены на уровне path/type validation.
 
 ### D3.2 Pathless и virtual routes
 
-- Разрешить standalone `createRoute().open()` как UI state.
-- Считать pathless `createRoute` только route-моделью, которая открывается
-  через registration/history.
-- Рекомендовать `createVirtualRoute` для standalone UI state и оставить
-  pathless `createRoute` только для mapped URL routes.
+**Принято: единая фабрика.** `createRoute({ path })` возвращает `PathRoute`, а
+`createRoute<Params>()` без path возвращает `VirtualRoute` с единым
+`RouteOpenedPayload<Params>` payload (`{ params }`). `createVirtualRoute`
+остаётся deprecated alias на текущем major и удаляется только в следующем
+major. Virtual route не пишет в history и не регистрируется как URL route.
 
 ### D3.3 Partial params updates
 
-- **Replace:** каждый open содержит полный обязательный набор path params.
-- **Merge:** отсутствующие params берутся из текущего route state.
-- **Builder-level merge:** merge разрешён только через отдельный operator, а
-  `route.open` остаётся полным payload.
+**Принято: replace.** Каждый `open` содержит полный обязательный набор path
+params. Отсутствующие params не читаются из текущего route state и не
+подмешиваются автоматически. Partial update собирается снаружи обычной
+Effector-композицией, если это требуется конкретному приложению. Для routes
+без обязательных params формы `open()`, `open({})` и `open({ params: {} })`
+эквивалентны и нормализуются к пустому payload.
 
 ### D3.4 Equality и update events
 
-Нужно выбрать shallow/deep/value equality для `$params`, `$query` и `route.updated`,
-а также решить, является ли повторная навигация на тот же URL observable event.
+**Принято:** `$params` и `$query` используют value-based equality: порядок
+ключей не важен, порядок элементов массива важен, `null` и отсутствие ключа
+различаются. Одинаковые значения не создают store update.
+
+`route.updated` обязателен для `PathRoute` и `VirtualRoute` и имеет payload
+`RouteOpenedPayload<T>`. Первое открытие вызывает только `opened`; если уже
+открытый route получает отличающиеся по значению params, вызывается `updated`.
+Унаследованные parent params входят в это сравнение. Одинаковые params и close
+не вызывают `updated`. Query-only navigation не считается route update и
+наблюдается через `$query`/query tracker. Политика повторной навигации на тот
+же URL относится к D4 adapter lifecycle.
 
 ## D4. Router и adapter lifecycle
 
 ### D4.1 `RouterAdapter.location`
 
-- Adapter всегда хранит полную синхронную location snapshot.
-- Partial object targets нормализуются в core.
-- Каждый adapter сам определяет fallback для omitted pathname/search/hash.
-
-Нужно выбрать один контракт для `historyAdapter` и `queryAdapter`, включая
-состояние после `push`, `replace`, `back` и `forward`.
+**Принято:** adapter всегда хранит полный синхронный location snapshot
+`{ pathname, search, hash }`. `push` и `replace` принимают string или partial
+location; omitted поля сохраняются из текущей location. `historyAdapter`
+работает с обычным URL, а `queryAdapter` сохраняет host pathname/hash и меняет
+только принадлежащую ему query-часть. `back`/`forward` инициируют native
+history action, а фактическая новая location приходит через `listen`.
 
 ### D4.2 До `setHistory`
 
-- Публичный `$path: Store<string | null>`.
-- Реальный initial path из router configuration.
-- Ошибка при чтении navigation state до инициализации.
+**Принято:** `$path` имеет тип `Store<string | null>` и равен `null` до
+`setHistory`; `$query` до инициализации равен `{}`. `setHistory` загружает
+начальный snapshot adapter. `navigate`, `back` и `forward` до инициализации
+завершаются контролируемой ошибкой и не ставятся в очередь. Path routes до
+history не активируются, virtual routes могут работать независимо. Повторный
+`setHistory` отписывает предыдущий adapter и повторно загружает snapshot.
 
 ### D4.3 Дополнительные router events
 
-Нужно решить, нужны ли публичные `initialized` и `updated`, их payload,
-повторный `setHistory` и поведение nested routers.
+**Принято:** Router публикует `initialized` и `updated` с payload
+`LocationState` (`{ path, query }`). `initialized` срабатывает после каждого
+успешного `setHistory`, включая повторную инициализацию после отписки старого
+adapter. `updated` срабатывает на последующие изменения нормализованных
+`path/query`; одинаковый snapshot и изменение только hash его не вызывают.
 
 ### D4.4 External URLs и not-found
 
-- External URL — отдельный target/operator, которым управляет adapter.
-- External URL — обычная string navigation с escape hatch на уровне adapter.
-- Not-found — route, event/callback или результат match; отдельно определить
-  nested-router propagation.
+**External URLs отложены.** Core пока не добавляет отдельный external target;
+внешние переходы остаются application/adapter escape hatch.
+
+**Принято: `notFound` route с propagation.** `createRouter` принимает optional
+`notFound` virtual route. Root `notFound` может централизованно обработать
+отсутствие match во всём зарегистрированном nested tree. Nested router может
+иметь собственный `notFound`; он имеет приоритет в своей зоне. Если локального
+fallback нет, отсутствие match поднимается к ближайшему ancestor с
+`notFound`. При отсутствии fallback URL не открывает специальный route.
 
 ## D5. Язык paths
 
 ### D5.1 Optional params
 
-- Type shape `{id?: string}` и parse result `{}`.
-- Type shape `{id: string | undefined}` и parse result `{id: undefined}`.
-- Разделить compile-time optionality и runtime parse result отдельным codec.
+**Принято:** optional parameters имеют type shape `{ id?: string }`, а
+отсутствующий параметр не добавляется в runtime parse result. Отдельный codec
+для optionality не вводится.
 
 ### D5.2 Cardinality
 
-- Builder валидирует `+` и ranges и выбрасывает при нарушении границ.
-- Cardinality проверяется только parser-ом; builder принимает подготовленные
-  значения.
-- Ограничения переносятся в отдельный validation operator.
+**Принято:** parser и builder используют одни и те же cardinality constraints.
+Builder выбрасывает при нарушении границ, parser возвращает `null`. `+`
+означает `min: 1`, `*` — `min: 0`, `{min,max}` задаёт явные границы. Modifier
+`?` разрешает отсутствующий сегмент, но не отменяет ограничения для
+присутствующего значения. Отдельный validation operator не вводится.
 
 ### D5.3 Generic syntax и full URL
 
-Нужно выбрать, какие named generics поддерживаются одинаково в TS/runtime
-(`string`, `number`, union и т.д.), а также компилирует ли paths package только
-pathname или full URL с origin/base.
+**Принято:** type-level и runtime одинаково поддерживают `string` по
+умолчанию, `number`, literal unions, массивы и cardinality modifiers.
+`@effector/router-paths` компилирует только pathname pattern; query, hash,
+origin и base path принадлежат router/adapter configuration. Произвольные
+generic codecs в paths package не вводятся.
 
 ## D6. Общий RouteView tree
 
 ### D6.1 Lazy и nested children
 
-- Lazy views обязаны сохранять тот же recursive `children` contract, что и eager
-  views.
-- Lazy views ограничиваются одним уровнем, а `children` удаляется из public API.
+**Принято:** lazy и eager RouteView используют один recursive `children`
+contract. Lazy importer отвечает только за `view`; `children` сохраняется и
+передаётся в `Outlet` на любом уровне. Отдельного one-level API для lazy views
+не вводится.
 
 ### D6.2 `Outlet` depth
 
-- Recursive context provider на каждом уровне.
-- Явное ограничение одним уровнем с более узким type contract.
+**Принято:** `Outlet` использует recursive context provider на каждом уровне.
+Root `createRoutesView` и каждый `Outlet` передают context с children
+выбранного RouteView. Ограничение глубины и отдельный one-level contract не
+вводятся.
 
 ### D6.3 Metadata и layouts
 
-- `withLayout` сохраняет все RouteView metadata и children.
-- `withLayout` получает узкий transform contract и не обещает сохранение дерева.
-- Shared layout identity относится к общему RouteView API или к каждому binding
-  отдельно.
+**Принято:** `withLayout` сохраняет `route`, `children` и все существующие
+RouteView metadata; wrapper меняет только `view`. Layout identity не входит в
+framework-neutral RouteView contract и реализуется binding-specific helper-ом
+React/Solid/Vue.
 
 ### D6.4 Selection priority и nested Router
 
-- Declaration order определяет победивший view.
-- Фактический open order определяет победивший view.
-- Сначала filtering parent/child, затем declaration/open priority.
-
-Нужно также определить, одинаково ли `route: Router` работает для eager/lazy
-views в React, Solid и Vue.
+**Принято:** сначала отбираются активные views и удаляются parent views, если
+активен их child. Среди оставшихся siblings победителем считается последний
+объявленный view (declaration order). Open-order state для UI selection не
+хранится. `route: Router` считается активным при наличии active routes и
+делегирует дальнейший выбор nested tree его собственному binding renderer.
 
 ## D7. React API
 
 ### D7.1 `useRouter`
 
-- Оставить текущий Effector unit shape:
-  `{query, path, activeRoutes, onBack, onForward, onNavigate}`.
-- Вернуть router object со stores/events и именами `$path`, `$query`, `back`,
-  `forward`, `navigate`, как в части документации.
-- Предоставить два явно разных hooks для unit shape и router object.
+**Принято:** `useRouter()` сохраняет Effector unit shape
+`{ query, path, activeRoutes, onBack, onForward, onNavigate }`, а
+`useRouterContext()` возвращает raw Router из provider. Второй hook не
+дублирует reactive unit API.
 
 ### D7.2 `useLink`
 
-- `onOpen` остаётся raw event, а params передаются явно в `onOpen({params})`.
-- Hook возвращает handler, захвативший переданные params/query.
+**Принято:** `useLink` возвращает raw `onOpen`; params, query и replace
+передаются явно в `onOpen({ params, query, replace })`. Hook не создаёт
+скрывающий callback-handler.
 
 ### D7.3 Native `<Link href>`
 
-- `href` всегда содержит path, params и query, чтобы native navigation совпадала
-  с intercepted click.
-- Native modified clicks считаются отдельным browser behavior, а docs сужают
-  обещание эквивалентности.
+**Принято:** `href` всегда содержит path, params и query. Interception
+применяется только к обычному same-origin `_self` click; `target` не `_self`,
+modified clicks и пользовательский `preventDefault` сохраняют native browser
+behavior. Native и intercepted navigation используют одну URL-семантику.
 
 ## D8. Vue API и provider boundary
 
 ### D8.1 `RouterProvider`
 
-- Provider обязателен для всех views, links и composables, с runtime validation.
-- Provider нужен только context consumers (`useRouter`, `useLink`, `Link`), а
-  unit-based APIs работают без него.
+**Принято:** `RouterProvider` обязателен только для context consumers
+(`useRouter`, `useRouterContext`, `useLink`, `Link`) с явной runtime
+validation. `createRoutesView`, `createRouteView`, `Outlet` и
+`useIsOpened(route)` работают без provider при переданных routes/units.
 
 ### D8.2 Vue `Link`
 
-Нужно выбрать реальный type/runtime contract для `params`:
-
-- применить exported conditional `LinkProps` к компоненту;
-- сохранить optional `any` params и честно описать это в docs.
-
-Одновременно нужно закрепить `query`, `replace`, `target`, modifiers,
-`preventDefault`, anchor attrs и non-`_self` behavior.
+**Принято:** Vue `Link` использует exported generic `LinkProps<Params>` с
+conditional required params; отдельная `createLink` factory не вводится.
+Runtime prop остаётся object, а ограничения Vue template inference описываются
+в docs. `query`, `replace`, target, modifiers, `preventDefault`, anchor attrs
+и non-`_self` behavior совпадают с контрактом React Link.
 
 ## D9. React Native integration
 
 ### D9.1 Source of truth
 
-- React Navigation владеет native stack/tabs, Router подписывается на native
-  actions.
-- Effector Router — source of truth, React Navigation получает commands через
-  owned ref/container.
-- Двусторонняя модель с явными reconciliation rules.
+**Принято:** Effector Router — единственный canonical source of truth; React
+Navigation рендерит native UI и сообщает пользовательские intents. Native
+back, gestures, tab press и deep link переводятся adapter-ом в
+controls/route events, после чего Router синхронизирует React Navigation.
+`NavigationContainer` остаётся app-owned, binding получает явно переданные
+ref/listeners и подавляет echo-loop от собственных Router → RN updates.
 
 От этого зависят adapter/init recipe, deep links, persistence, back/gestures,
 cleanup и scopes.
 
 ### D9.2 Navigator API
 
-- Factory возвращает component напрямую.
-- Factory возвращает `{Navigator}`.
+**Принято:** `createStackNavigator` и `createBottomTabsNavigator` возвращают
+React component напрямую, без `{ Navigator }` wrapper.
 
-Нужно также выбрать ownership `screenOptions`, deterministic screen names,
-`initialRouteName`, per-route options и правила parameterized tabs.
+RN screen name — полный зарегистрированный path template, включая parent
+segments; Stack и Tabs не преобразуют его и не используют index fallback.
+`initialRouteName` использует то же имя и допускается только для route без
+required params. Parameterized routes открываются через Router/deep link с
+реальными params и запрещены в Bottom Tabs.
+
+`screenOptions` принадлежит navigator config, а `options` — конкретному RN
+RouteView. Оба поля используют native React Navigation object/callback types;
+navigator передаёт их как есть и не выполняет ручной merge. Stack и Tabs
+используют свои option types.
 
 ## D10. Application-layer policies
 
 ### D10.1 Scroll restoration
 
-- Core behavior.
-- Binding helper.
-- Application integration recipe на базе router lifecycle.
+**Принято:** scroll restoration — application-level integration recipe поверх
+`router.updated`. Core и bindings не получают обязательный scroll API; app
+решает момент после render/paint, history key, POP behavior и особенности
+browser/native/modal UI.
 
 ### D10.2 Route errors
 
-- Core публикует error state/event.
-- Binding предоставляет error boundary/page primitive.
-- Application сама связывает preparation Effect с error route/page.
-
-Эти решения не должны вводить второй transition/task/barrier API в core.
+**Принято:** route errors принадлежат application layer. Core не публикует
+общий error store/event, bindings не добавляют специальный router error
+boundary. Обычные `Effect.fail`/`failData` явно связываются приложением с
+error route/page, retry и telemetry. Второй transition/task/barrier API в core
+не вводится.
