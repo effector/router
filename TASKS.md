@@ -100,7 +100,7 @@ semantics, transition policy, and framework href builders depend on it.
       unrelated query keys while updating only the nested route owned by the
       adapter. Cover keyed and whole-search modes, multiple query adapters, a
       shared historyAdapter, and partial nested targets.
-- [ ] **T16 — State before and after `setHistory`.** Change `$path` to
+- [x] **T16 — State before and after `setHistory`.** Change `$path` to
       `Store<string | null>`, keep `$query = {}` before initialization, and load
       the initial snapshot atomically. A repeated `setHistory` unsubscribes old
       listen/block subscriptions before connecting the new adapter.

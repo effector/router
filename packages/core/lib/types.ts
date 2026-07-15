@@ -103,7 +103,7 @@ export interface Router {
   '@@type': 'router';
 
   $query: Store<Query>;
-  $path: Store<string>;
+  $path: Store<string | null>;
   $history: Store<RouterAdapter | null>;
   $activeRoutes: Store<Route<any>[]>;
 
@@ -154,7 +154,7 @@ export interface Router {
 
   '@@unitShape': () => {
     query: Store<Query>;
-    path: Store<string>;
+    path: Store<string | null>;
     activeRoutes: Store<Route<any>[]>;
 
     onBack: EventCallable<void>;
@@ -253,14 +253,14 @@ export type VirtualRoute<
     : never
   : LegacyVirtualRoute<T, TransformerResult>;
 
-export type LocationState = { path: string; query: Query };
+export type LocationState = { path: string | null; query: Query };
 
 export interface RouterControls {
   $history: StoreWritable<RouterAdapter | null>;
   $locationState: StoreWritable<LocationState>;
 
   $query: Store<Query>;
-  $path: Store<string>;
+  $path: Store<string | null>;
 
   setHistory: EventCallable<RouterAdapter>;
 

@@ -48,7 +48,7 @@ export function createRouterControls(): RouterControls {
 
   const $locationState = createStore<LocationState>({
     query: {},
-    path: null as unknown as string,
+    path: null,
   });
 
   const $subscription = createStore<Subscription | null>(null, {
@@ -217,9 +217,9 @@ export function createRouterControls(): RouterControls {
       const internalPayload = payload as InternalNavigatePayload;
 
       return {
-        from: location.path,
+        from: location.path ?? '/',
         navigation: {
-          path: payload.path ?? location.path,
+          path: payload.path ?? location.path ?? '/',
           query: payload.query ?? location.query,
           replace: payload.replace,
         },
@@ -235,7 +235,7 @@ export function createRouterControls(): RouterControls {
     source: $locationState,
     fn: (location, transition) =>
       ({
-        from: location.path,
+        from: location.path ?? '/',
         navigation: {
           path: transition.location.pathname,
           query: { ...queryString.parse(transition.location.search) },

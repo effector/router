@@ -17,6 +17,39 @@ import { createMemoryHistory } from 'history';
 import { watchCalls } from './utils';
 
 describe('router', () => {
+  test('keeps null path and empty query before history, then replaces subscriptions atomically', async () => {
+    const scope = fork();
+    const route = createRoute({ path: '/one' });
+    const router = createRouter({ routes: [route] });
+    const first = createMemoryHistory({
+      initialEntries: ['/one?source=first'],
+    });
+    const second = createMemoryHistory({
+      initialEntries: ['/two?source=second'],
+    });
+
+    expect(scope.getState(router.$path)).toBeNull();
+    expect(scope.getState(router.$query)).toStrictEqual({});
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(first),
+    });
+    expect(scope.getState(router.$path)).toBe('/one');
+    expect(scope.getState(router.$query)).toStrictEqual({ source: 'first' });
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(second),
+    });
+    expect(scope.getState(router.$path)).toBe('/two');
+    expect(scope.getState(router.$query)).toStrictEqual({ source: 'second' });
+
+    first.push('/stale');
+    await allSettled(scope);
+    expect(scope.getState(router.$path)).toBe('/two');
+  });
+
   test('createRoute without a path is a self-contained virtual route', async () => {
     const scope = fork();
     const route = createRoute<{ id: string }>();

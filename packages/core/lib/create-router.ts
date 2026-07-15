@@ -204,6 +204,10 @@ export function createRouter(config: RouterConfig): Router {
   const openRoutesByPathFx = attach({
     source: { query: $query, path: $path },
     effect: ({ query, path }) => {
+      if (!path) {
+        return;
+      }
+
       type RouteWithParams = {
         route: InternalRoute<any>;
         params: Record<string, string>;

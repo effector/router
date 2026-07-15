@@ -95,6 +95,10 @@ router; unrelated keys, host pathname/hash, multiple query adapters, and a
 shared `historyAdapter` remain intact. Whole-search mode intentionally owns the
 entire search section.
 
+Before initialization, `$path` is `null` and `$query` is `{}`. Each
+`setHistory` loads its adapter snapshot and disconnects the previous adapter's
+listeners before subscribing to the new one.
+
 ## Documentation
 
 Full guides and API reference: **[router.effector.dev/core](https://router.effector.dev/core)**

@@ -19,6 +19,10 @@ change returns the current value; it is not the object captured at creation.
 object. Any omitted field is retained from the adapter's current location; the
 same rule is used for nested targets handled by `queryAdapter`.
 
+Before `setHistory`, router state is explicit: `$path` is `null` and `$query`
+is `{}`. Initialization loads the adapter snapshot atomically. Replacing the
+adapter removes the previous listen/block subscriptions first.
+
 ## Built-in Adapters
 
 ### historyAdapter
