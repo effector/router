@@ -264,6 +264,10 @@ commit, use `beforeNavigate` instead.
 
 ### Open with Query Parameters
 
+Omitting `query` preserves the current URL query when a path route opens. A
+provided object replaces it, and `query: {}` clears it. The same semantics are
+used by redirects and links.
+
 ```ts
 const searchRoute = createRoute({ path: '/search' });
 

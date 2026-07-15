@@ -136,7 +136,7 @@ describe('navigation operators', () => {
         {
           operation: 'navigate',
           reason: 'not-initialized',
-          payload: { path: '/protected', query: {} },
+          payload: { path: '/protected' },
         },
       ],
     ]);
@@ -159,6 +159,27 @@ describe('navigation operators', () => {
 
     expect(history.location.pathname).toBe('/sign-in');
     expect(history.location.search).toBe('?keep=yes');
+  });
+
+  test('replaces query when provided and clears it with an empty object', async () => {
+    const { router, routes, history } = createFixture(['/?keep=yes']);
+    const scope = fork();
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+    await allSettled(routes.protected.open, {
+      scope,
+      params: { query: { next: 'one' } },
+    });
+    expect(history.location.search).toBe('?next=one');
+
+    await allSettled(router.navigate, {
+      scope,
+      params: { path: '/sign-in', query: {} },
+    });
+    expect(history.location.search).toBe('');
   });
 
   test('beforeNavigate holds and proceeds a matching transition', async () => {

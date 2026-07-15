@@ -325,9 +325,15 @@ export function createRouter(config: RouterConfig): Router {
           path: build(
             payload && 'params' in payload ? payload.params : undefined,
           ),
-          query: payload?.query ?? {},
-          replace: payload?.replace,
         };
+
+        if (payload?.replace !== undefined) {
+          navigateParams.replace = payload.replace;
+        }
+
+        if (payload && 'query' in payload && payload.query !== undefined) {
+          navigateParams.query = payload.query;
+        }
 
         const internalPayload = payload as
           | Record<PropertyKey, unknown>

@@ -16,6 +16,8 @@ export function useLink<T extends object | void = void>(
   query: Accessor<QueryInput | undefined> = () => undefined,
 ) {
   const { knownRoutes } = useRouterContext();
+  const router = useRouterContext();
+  const currentQuery = useUnit(router.$query);
   const target = knownRoutes.find(
     ({ route }) => route === (to as unknown as InternalRoute<any>),
   );
@@ -31,8 +33,10 @@ export function useLink<T extends object | void = void>(
 
   const path = createMemo(() => {
     const pathname = target.build(params() ?? undefined);
-    const currentQuery = query();
-    const search = currentQuery ? queryString.stringify(currentQuery) : '';
+    const queryValue = query();
+    const effectiveQuery =
+      queryValue === undefined ? currentQuery() : queryValue;
+    const search = effectiveQuery ? queryString.stringify(effectiveQuery) : '';
 
     return search ? `${pathname}?${search}` : pathname;
   });

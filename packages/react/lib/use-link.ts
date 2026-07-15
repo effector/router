@@ -10,6 +10,8 @@ export function useLink<T extends object | void = void>(
   query?: QueryInput,
 ) {
   const { knownRoutes } = useRouterContext();
+  const router = useRouterContext();
+  const currentQuery = useUnit(router.$query);
   const target = knownRoutes.find(
     ({ route }) => route === (to as unknown as InternalRoute<any>),
   );
@@ -24,7 +26,10 @@ export function useLink<T extends object | void = void>(
   }
 
   return {
-    path: createHref(target.build(params ?? undefined), query),
+    path: createHref(
+      target.build(params ?? undefined),
+      query === undefined ? currentQuery : query,
+    ),
     onOpen,
   };
 }

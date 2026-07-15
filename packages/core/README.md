@@ -131,6 +131,10 @@ a flag, arrays become repeated keys in order, `undefined` removes a key, and
 key order is ignored for equality. Use `QueryInput` for navigation payloads
 that include removals; `$query` always exposes the normalized `Query` value.
 
+Navigation preserves the current query when `query` is omitted, replaces the
+whole query when an object is provided, and clears it with `query: {}`. Route
+opens and redirects follow the same rules as controls.
+
 The lifecycle matrix also covers string/partial adapter round trips, repeated
 initialization, stale-listener cleanup, native POP, Fork isolation, and equal
 snapshot suppression.

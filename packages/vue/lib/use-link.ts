@@ -11,6 +11,7 @@ import { useRouterContext } from './use-router';
  */
 export function useLink<T extends object | void = void>(to: Route<T>) {
   const router = useRouterContext();
+  const currentQuery = useUnit(router.$query);
 
   // `to` may arrive as a Vue reactive proxy (e.g. from component props);
   // unwrap it so the identity check against knownRoutes works.
@@ -34,7 +35,10 @@ export function useLink<T extends object | void = void>(to: Route<T>) {
   return {
     build: (params?: T, query?: QueryInput) => {
       const path = target.build(params ?? undefined);
-      const search = query ? queryString.stringify(query) : '';
+      const effectiveQuery = query === undefined ? currentQuery.value : query;
+      const search = effectiveQuery
+        ? queryString.stringify(effectiveQuery)
+        : '';
 
       return search ? `${path}?${search}` : path;
     },

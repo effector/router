@@ -285,6 +285,11 @@ interface NavigatePayload {
 When `path` or `query` is omitted, controls reuse the current value. Therefore
 `controls.navigate({ path: '/settings' })` preserves the current query.
 
+When `query` is provided, it replaces the complete query. Use `query: {}` to
+clear every key; use `undefined` for individual keys that should be absent.
+Route `open`, redirect targets, and framework link hrefs use the same effective
+URL rule, so a clicked link and native navigation resolve to the same query.
+
 ## Query Type
 
 Query parameters are represented as:

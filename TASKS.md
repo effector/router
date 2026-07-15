@@ -151,7 +151,7 @@ location snapshot, not on a configured Router instance.
       `Query = Record<string, string | null | Array<string | null>>`:
       `undefined` removes a key, `null` encodes a flag, and arrays use repeated
       keys. Preserve array value order and use value equality.
-- [ ] **T25 — Complete `navigate({ query })` semantics.** An omitted `query`
+- [x] **T25 — Complete `navigate({ query })` semantics.** An omitted `query`
       preserves the current query, a provided object fully replaces it, and `{}`
       clears it. Apply the same effective-URL semantics to `route.open`, redirect,
       and href builders so native and intercepted navigation agree.
