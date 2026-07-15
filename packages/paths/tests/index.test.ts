@@ -360,6 +360,11 @@ describe('build path', () => {
     expect(build({ id: 123 })).toBe('/profile/123');
   });
 
+  test('build path preserves falsy parameter values', () => {
+    expect(compile('/profile/:id<number>').build({ id: 0 })).toBe('/profile/0');
+    expect(compile('/profile/:id').build({ id: '' })).toBe('/profile/');
+  });
+
   test('build path with generic parameter (union)', () => {
     const { build } = compile('/profile/:id<hello|world>');
 
