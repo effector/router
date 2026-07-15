@@ -1,5 +1,6 @@
-import { createEvent, createStore, sample, split, type Store } from 'effector';
+import { createEvent, createStore, sample, type Store } from 'effector';
 
+import { createRoute } from './create-route';
 import type { LegacyVirtualRoute } from './types';
 
 interface VirtualRouteOptions<T, TransformerResult> {
@@ -7,6 +8,11 @@ interface VirtualRouteOptions<T, TransformerResult> {
   transformer?: (payload: T) => TransformerResult;
 }
 
+/**
+ * @deprecated Use `createRoute<Params>()` and ordinary Effector composition.
+ * This compatibility factory keeps its transformer and external pending store
+ * while delegating route activation to the shared pathless lifecycle.
+ */
 export function createVirtualRoute<T = void, TransformerResult = void>(
   options: VirtualRouteOptions<T, TransformerResult> = {},
 ): LegacyVirtualRoute<T, TransformerResult> {
@@ -15,23 +21,22 @@ export function createVirtualRoute<T = void, TransformerResult = void>(
     transformer = (payload) => (payload ?? null) as TransformerResult,
   } = options;
 
-  const $params = createStore<TransformerResult>(null as TransformerResult);
+  const route = createRoute<any>();
+  const $payload = createStore<T>(undefined as T, { skipVoid: false });
+  const $params = createStore<TransformerResult>(null as TransformerResult, {
+    skipVoid: false,
+  });
   const $isOpened = createStore(false);
 
   const open = createEvent<T>();
   const opened = createEvent<T>();
-
   const openedOnServer = createEvent<T>();
   const openedOnClient = createEvent<T>();
-
-  const close = createEvent();
-  const closed = createEvent();
-
   const cancelled = createEvent();
 
   sample({
     clock: open,
-    target: [opened],
+    target: $payload,
   });
 
   sample({
@@ -40,22 +45,43 @@ export function createVirtualRoute<T = void, TransformerResult = void>(
     target: $params,
   });
 
-  split({
-    source: opened,
-    match: () => (typeof window === 'undefined' ? 'server' : 'client'),
-    cases: {
-      server: openedOnServer,
-      client: openedOnClient,
+  sample({
+    clock: open,
+    fn: (payload) => {
+      const transformed = transformer(payload);
+
+      return transformed === undefined ? undefined : { params: transformed };
     },
+    target: route.open,
   });
 
   sample({
-    clock: close,
-    target: closed,
+    clock: route.opened,
+    source: $payload,
+    target: opened,
   });
 
   sample({
-    clock: [opened.map(() => true), closed.map(() => false)],
+    clock: route.opened,
+    fn: () => true,
+    target: $isOpened,
+  });
+
+  sample({
+    clock: route.openedOnServer,
+    source: $payload,
+    target: openedOnServer,
+  });
+
+  sample({
+    clock: route.openedOnClient,
+    source: $payload,
+    target: openedOnClient,
+  });
+
+  sample({
+    clock: route.closed,
+    fn: () => false,
     target: $isOpened,
   });
 
@@ -68,13 +94,11 @@ export function createVirtualRoute<T = void, TransformerResult = void>(
 
     open,
     opened,
-
     openedOnClient,
     openedOnServer,
 
-    close,
-    closed,
-
+    close: route.close,
+    closed: route.closed,
     cancelled,
 
     path: '',
@@ -85,7 +109,7 @@ export function createVirtualRoute<T = void, TransformerResult = void>(
       isPending: $isPending,
 
       onOpen: open,
-      onClose: close,
+      onClose: route.close,
     }),
   };
 }

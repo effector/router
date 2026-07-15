@@ -15,6 +15,10 @@ function createVirtualRoute<T = void, Params = void>({
 with ordinary Effector units or use [`chainRoute`](/core/chain-route) when the
 virtual route represents post-commit preparation.
 
+This factory is deprecated but remains compatible through the current major:
+its transformer and external `$isPending` store are preserved. New code can
+replace it with `createRoute<Params>()` and ordinary Effector composition.
+
 ## Basic UI state
 
 ```ts

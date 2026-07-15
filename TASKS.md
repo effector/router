@@ -23,12 +23,6 @@ matching, nested params, and RN screen names depend on it.
 This stage depends on D5 and creates the common route payload/lifecycle used by
 Router, query operators, and all bindings.
 
-- [ ] **T08 — Deprecated alias without an early removal.** Implement
-      `createVirtualRoute` as a deprecated compatibility wrapper over the shared
-      `createRoute()` lifecycle. Preserve its current generic overloads,
-      `transformer`, and external `$isPending` through the current major. Add
-      type/runtime tests and migration examples using `createRoute()` plus
-      ordinary Effector composition.
 - [ ] **T09 — Normalize open payloads.** For a route without required params,
       types and runtime treat `open()`, `open({})`, and
       `open({ params: {} })` as equivalent. A route with required params accepts
