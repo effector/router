@@ -252,6 +252,7 @@ export function createRouter(config: RouterConfig): Router {
     const result = matchRoutes(path);
 
     return path &&
+      isWithinBase(path, base) &&
       result.matches.length === 0 &&
       !result.nestedHandled &&
       notFound
@@ -293,6 +294,7 @@ export function createRouter(config: RouterConfig): Router {
         });
 
         if (
+          isWithinBase(path, base) &&
           matches.length === 0 &&
           !nestedRouters.some((router) => router.internal.handlesPath(path))
         ) {

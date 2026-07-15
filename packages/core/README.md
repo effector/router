@@ -51,6 +51,11 @@ handles an unknown remainder within its base, while a missing nested fallback
 propagates to the nearest ancestor fallback. The two fallbacks are never open
 at the same time.
 
+Unknown locations without a configured fallback leave all routes closed.
+Query-only updates preserve the active fallback, and a dynamically registered
+route is selected on the next location update. The behavior is scope-safe when
+the router is used with Effector Fork.
+
 ## What you get
 
 - **Type-safe params** — `createRoute({ path: '/user/:id' })` infers `Route<{ id: string }>`.

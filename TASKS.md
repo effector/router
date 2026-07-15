@@ -137,7 +137,7 @@ RouteView. Both layers must observe the final active route tree.
       subtree and propagate a missing match to the nearest ancestor fallback when
       no local fallback exists. Cover an unknown remainder below a matched parent
       or base. Never open local and ancestor fallbacks together.
-- [ ] **T23 — Not-found matrix.** Cover root/nested/base routers, multiple
+- [x] **T23 — Not-found matrix.** Cover root/nested/base routers, multiple
       fallback levels, no fallback, unknown → known → unknown transitions,
       query-only changes, repeated route registration, and Fork API. Update the
       core reference, examples, and changeset.

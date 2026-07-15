@@ -114,6 +114,11 @@ prevents an ancestor fallback from opening. If the nested router has no
 fallback, the missing location propagates to the nearest ancestor that does.
 Local and ancestor fallbacks are never open together.
 
+The not-found contract is stable across root and nested routers: a router with
+no fallback leaves an unknown location inactive, query-only changes keep the
+selected fallback open, and registering a route takes effect on the next
+location update. These behaviors are also isolated by Effector Fork scopes.
+
 ### `base` (optional)
 
 Base path prefix for all routes in this router:
