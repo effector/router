@@ -83,18 +83,18 @@ the fact that virtual routes never write to history.
 
 ## Core API
 
-| Export                           | Purpose                                      |
-| -------------------------------- | -------------------------------------------- |
-| `createRoute`                    | Route with a path and typed params.          |
-| `createVirtualRoute`             | Route without a path (modals, tabs, steps).  |
-| `createRouter`                   | Combine routes and bind them to history.     |
-| `createRouterControls`           | Build router controls separately.            |
-| `beforeNavigate`                 | Hold or confirm navigation before history.   |
-| `redirect`                       | Semantic route redirect target for `sample`. |
-| `chainRoute`                     | Derive post-commit route readiness.          |
-| `group`                          | Group related routes.                        |
-| `trackQuery`                     | Track and react to query parameters.         |
-| `historyAdapter`, `queryAdapter` | Connect the router to a history source.      |
+| Export                           | Purpose                                          |
+| -------------------------------- | ------------------------------------------------ |
+| `createRoute`                    | Route with a path and typed params.              |
+| `createVirtualRoute`             | Route without a path (modals, tabs, steps).      |
+| `createRouter`                   | Combine routes and bind them to history.         |
+| `createRouterControls`           | Build router controls separately.                |
+| `beforeNavigate`                 | Hold or confirm navigation before history.       |
+| `redirect`                       | Semantic route redirect target for `sample`.     |
+| `chainRoute`                     | Derive post-commit route readiness.              |
+| `group`                          | Group related routes.                            |
+| `trackQuery`                     | Standalone query tracker composed with controls. |
+| `historyAdapter`, `queryAdapter` | Connect the router to a history source.          |
 
 `createRoute<Params>()` is the pathless/virtual form. `createVirtualRoute` is
 the deprecated compatibility factory; new code should use the shared
@@ -134,6 +134,11 @@ that include removals; `$query` always exposes the normalized `Query` value.
 Navigation preserves the current query when `query` is omitted, replaces the
 whole query when an object is provided, and clears it with `query: {}`. Route
 opens and redirects follow the same rules as controls.
+
+Create query trackers with `trackQuery({ controls, routes, parameters })`.
+`routes` is optional and uses OR semantics over each route's `$isOpened` store;
+without it, the tracker is always active. The tracker reacts automatically—no
+`check` clock or router/controls method is required.
 
 The lifecycle matrix also covers string/partial adapter round trips, repeated
 initialization, stale-listener cleanup, native POP, Fork isolation, and equal

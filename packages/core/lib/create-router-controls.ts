@@ -18,7 +18,6 @@ import type {
   Query,
   RouterControls,
 } from './types';
-import { trackQueryControlsFactory } from './track-query';
 import type { RouterAdapter, RouterTransition } from './adapters';
 import {
   type InternalNavigatePayload,
@@ -474,7 +473,6 @@ export function createRouterControls(): RouterControls {
     initialized,
     updated,
     locationUpdated,
-    trackQuery: trackQueryControlsFactory({ $query, navigate }),
     internal: {
       navigationStarted: coordinator.started,
       hold,

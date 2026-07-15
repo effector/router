@@ -144,17 +144,15 @@ function CurrentLocation() {
 ### Track Query Parameters
 
 ```ts
-import { createEvent } from 'effector';
 import { z } from 'zod';
+import { trackQuery } from '@effector/router';
 
-const appStarted = createEvent();
-
-const searchTracker = controls.trackQuery({
+const searchTracker = trackQuery({
   parameters: z.object({
     q: z.string(),
     page: z.string().default('1'),
   }),
-  check: appStarted,
+  controls,
 });
 
 searchTracker.entered.watch(({ q, page }) => {
@@ -165,12 +163,16 @@ searchTracker.entered.watch(({ q, page }) => {
 searchTracker.enter({ q: 'router', page: '2' });
 ```
 
-| Config field | Type          | Description                                                        |
-| ------------ | ------------- | ------------------------------------------------------------------ |
-| `parameters` | `ZodType`     | Schema used to validate and parse the tracked query parameters     |
-| `check`      | `Event<void>` | Optional event that triggers validation instead of automatic check |
+| Config field | Type             | Description                                                    |
+| ------------ | ---------------- | -------------------------------------------------------------- |
+| `controls`   | `RouterControls` | Controls that own query navigation                             |
+| `routes`     | `Route[]`        | Optional OR filter based on each route's `$isOpened` store     |
+| `parameters` | `ZodType`        | Schema used to validate and parse the tracked query parameters |
 
-Unlike `router.trackQuery`, the controls version does not accept `forRoutes`, because standalone controls do not own a route list. See [trackQuery](/core/track-query) for the returned events and route-scoped usage.
+The tracker reacts automatically to query and route activity. One-shot checks
+are composed with ordinary Effector events and `sample`; there is no `check`
+field. Migrate existing `router.trackQuery` and `controls.trackQuery` calls to
+the standalone operator.
 
 ### Server-Side Rendering
 

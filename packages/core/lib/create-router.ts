@@ -11,7 +11,6 @@ import type {
   Router,
   RouterControls,
 } from './types';
-import { trackQueryFactory } from './track-query';
 
 import { compile } from '@effector/router-paths';
 import { createRouterControls } from './create-router-controls';
@@ -397,8 +396,6 @@ export function createRouter(config: RouterConfig): Router {
       base,
       handlesPath,
     },
-
-    trackQuery: trackQueryFactory({ $activeRoutes, $query, navigate }),
 
     registerRoute: (route: InputRoute) => {
       const mappedRoute = mapRoute(route);

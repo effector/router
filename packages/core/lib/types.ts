@@ -62,10 +62,14 @@ export type Route<T extends object | void = void> =
   | PathlessRoute<T>;
 
 export type QueryTrackerConfig<ParametersConfig extends ZodType> = {
-  forRoutes?: Route<any>[];
-  check?: Event<void>;
+  routes?: Route<any>[];
   parameters: ParametersConfig;
 };
+
+export type TrackQueryConfig<ParametersConfig extends ZodType> =
+  QueryTrackerConfig<ParametersConfig> & {
+    controls: RouterControls;
+  };
 
 export interface QueryTracker<ParametersConfig extends ZodType> {
   entered: Event<z.infer<ParametersConfig>>;
@@ -160,10 +164,6 @@ export interface Router {
    * // /team?dialog=team&id=not_number
    * ```
    */
-  trackQuery: <ParametersConfig extends ZodType>(
-    config: QueryTrackerConfig<ParametersConfig>,
-  ) => QueryTracker<ParametersConfig>;
-
   ownRoutes: MappedRoute[];
   knownRoutes: MappedRoute[];
 
@@ -329,7 +329,4 @@ export interface RouterControls {
    * // /team?dialog=team&id=not_number
    * ```
    */
-  trackQuery: <T extends ZodType>(
-    config: Omit<QueryTrackerConfig<T>, 'forRoutes'>,
-  ) => QueryTracker<T>;
 }

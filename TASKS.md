@@ -155,7 +155,7 @@ location snapshot, not on a configured Router instance.
       preserves the current query, a provided object fully replaces it, and `{}`
       clears it. Apply the same effective-URL semantics to `route.open`, redirect,
       and href builders so native and intercepted navigation agree.
-- [ ] **T26 — Standalone `trackQuery`.** Export
+- [x] **T26 — Standalone `trackQuery`.** Export
       `trackQuery({ controls, routes?, parameters })`, rename `forRoutes` to
       `routes`, filter through `$isOpened` with OR semantics, and react without
       `check`. Remove `router.trackQuery`/`controls.trackQuery` methods and provide

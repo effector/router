@@ -1,7 +1,13 @@
-import { allSettled, createEvent, createStore, fork, sample } from 'effector';
+import { allSettled, createStore, fork, sample } from 'effector';
 import { createMemoryHistory } from 'history';
 import { describe, expect, test } from 'vitest';
-import { createRouter, createRoute, historyAdapter } from '../lib';
+import {
+  createRouter,
+  createRouterControls,
+  createRoute,
+  historyAdapter,
+  trackQuery,
+} from '../lib';
 import { watchCalls } from './utils';
 import z from 'zod/v4';
 
@@ -13,8 +19,10 @@ async function prepare() {
 
   const scope = fork();
   const history = createMemoryHistory({ initialEntries: ['/'] });
+  const controls = createRouterControls();
   const router = createRouter({
     routes: [routes.home, routes.app],
+    controls,
   });
 
   await allSettled(router.setHistory, {
@@ -22,13 +30,14 @@ async function prepare() {
     params: historyAdapter(history),
   });
 
-  return { routes, scope, history, router };
+  return { routes, scope, history, router, controls };
 }
 
 describe('trackQuery', () => {
   test('number parameter', async () => {
-    const { router, scope } = await prepare();
-    const tracker = router.trackQuery({
+    const { router, scope, controls } = await prepare();
+    const tracker = trackQuery({
+      controls,
       parameters: z.object({
         num: z.coerce.number(),
       }),
@@ -62,8 +71,9 @@ describe('trackQuery', () => {
   });
 
   test('string parameter', async () => {
-    const { router, scope } = await prepare();
-    const tracker = router.trackQuery({
+    const { router, scope, controls } = await prepare();
+    const tracker = trackQuery({
+      controls,
       parameters: z.object({
         str: z.string(),
       }),
@@ -96,8 +106,9 @@ describe('trackQuery', () => {
   });
 
   test('any parameter', async () => {
-    const { router, scope } = await prepare();
-    const tracker = router.trackQuery({
+    const { router, scope, controls } = await prepare();
+    const tracker = trackQuery({
+      controls,
       parameters: z.object({
         any: z.any().refine((value) => value !== undefined),
       }),
@@ -137,8 +148,9 @@ describe('trackQuery', () => {
   });
 
   test('array parameter', async () => {
-    const { router, scope } = await prepare();
-    const tracker = router.trackQuery({
+    const { router, scope, controls } = await prepare();
+    const tracker = trackQuery({
+      controls,
       parameters: z.object({
         any: z.any().refine((value) => value !== undefined),
       }),
@@ -164,8 +176,9 @@ describe('trackQuery', () => {
   });
 
   test('boolean parameter', async () => {
-    const { router, scope } = await prepare();
-    const tracker = router.trackQuery({
+    const { router, scope, controls } = await prepare();
+    const tracker = trackQuery({
+      controls,
       parameters: z.object({
         bool: z
           .string()
@@ -231,12 +244,13 @@ describe('trackQuery', () => {
   });
 
   test('for routes', async () => {
-    const { router, routes, scope } = await prepare();
-    const tracker = router.trackQuery({
+    const { router, routes, scope, controls } = await prepare();
+    const tracker = trackQuery({
+      controls,
       parameters: z.object({
         any: z.any().refine((value) => value !== undefined),
       }),
-      forRoutes: [routes.app, routes.home],
+      routes: [routes.app, routes.home],
     });
 
     const enteredCalls = watchCalls(tracker.entered, scope);
@@ -272,12 +286,13 @@ describe('trackQuery', () => {
   });
 
   test('exit', async () => {
-    const { router, routes, scope } = await prepare();
-    const tracker = router.trackQuery({
+    const { router, routes, scope, controls } = await prepare();
+    const tracker = trackQuery({
+      controls,
       parameters: z.object({
         any: z.any().refine((value) => value !== undefined),
       }),
-      forRoutes: [routes.app, routes.home],
+      routes: [routes.app, routes.home],
     });
 
     const exitedCalls = watchCalls(tracker.exited, scope);
@@ -303,12 +318,13 @@ describe('trackQuery', () => {
   });
 
   test('ignore parameters', async () => {
-    const { router, routes, scope } = await prepare();
-    const tracker = router.trackQuery({
+    const { router, routes, scope, controls } = await prepare();
+    const tracker = trackQuery({
+      controls,
       parameters: z.object({
         any: z.any().refine((value) => value !== undefined),
       }),
-      forRoutes: [routes.app, routes.home],
+      routes: [routes.app, routes.home],
     });
 
     const exitedCalls = watchCalls(tracker.exited, scope);
@@ -337,13 +353,14 @@ describe('trackQuery', () => {
   });
 
   test('enter', async () => {
-    const { router, routes, scope, history } = await prepare();
-    const tracker = router.trackQuery({
+    const { router, routes, scope, history, controls } = await prepare();
+    const tracker = trackQuery({
+      controls,
       parameters: z.object({
         id: z.coerce.number(),
         role: z.enum(['user', 'admin']),
       }),
-      forRoutes: [routes.app, routes.home],
+      routes: [routes.app, routes.home],
     });
 
     await allSettled(tracker.enter, { params: { id: 0, role: 'user' }, scope });
@@ -366,42 +383,32 @@ describe('trackQuery', () => {
     expect(history.location.search).toBe('?id=1&role=admin');
   });
 
-  test('check by clock', async () => {
-    const check = createEvent();
-
-    const { router, routes, scope } = await prepare();
-    const tracker = router.trackQuery({
-      check,
-      parameters: z.object({
-        id: z.string(),
-      }),
+  test('reacts automatically to query and route activity', async () => {
+    const { router, routes, scope, controls } = await prepare();
+    const tracker = trackQuery({
+      controls,
+      routes: [routes.home],
+      parameters: z.object({ id: z.string() }),
     });
-
     const enteredCalls = watchCalls(tracker.entered, scope);
 
-    await allSettled(routes.app.open, { scope, params: {} });
-    await allSettled(routes.home.open, { scope, params: {} });
-
-    await allSettled(routes.home.open, {
+    await allSettled(router.navigate, {
       scope,
-      params: { query: { id: '123' } },
+      params: { path: '/', query: { id: '123' } },
     });
 
-    expect(enteredCalls).not.toBeCalled();
-
-    await allSettled(check, { scope });
-
-    expect(enteredCalls).toBeCalledWith({ id: '123' });
+    expect(enteredCalls).toHaveBeenCalledWith({ id: '123' });
   });
 
   test('maps parsed query parameters into a store', async () => {
-    const { router, routes, scope } = await prepare();
-    const tracker = router.trackQuery({
+    const { router, routes, scope, controls } = await prepare();
+    const tracker = trackQuery({
+      controls,
       parameters: z.object({
         q: z.string(),
         page: z.coerce.number().default(1),
       }),
-      forRoutes: [routes.home],
+      routes: [routes.home],
     });
     const $searchQuery = createStore({ q: '', page: 1 });
 

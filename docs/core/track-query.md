@@ -1,23 +1,26 @@
 # trackQuery
 
-Track specific query parameters in the URL with schema validation. When the specified parameters appear in the URL and match the schema, the tracker enters; when they're removed or validation fails, it exits.
+Track specific query parameters in the URL with schema validation. When the
+specified parameters appear in the URL and match the schema, the tracker
+enters; when they're removed, invalid, or no selected route is open, it exits.
 
 ## API
 
 ```typescript
-// From router
-router.trackQuery<T extends ZodType>(config: QueryTrackerConfig<T>): QueryTracker<T>
-
-// From controls
-controls.trackQuery<T extends ZodType>(config: Omit<QueryTrackerConfig<T>, 'forRoutes'>): QueryTracker<T>
+trackQuery<T extends ZodType>(config: {
+  controls: RouterControls;
+  routes?: Route[];
+  parameters: T;
+}): QueryTracker<T>
 ```
 
 ### Config
 
-| Parameter    | Type      | Description                                                     |
-| ------------ | --------- | --------------------------------------------------------------- |
-| `parameters` | `ZodType` | Zod schema for query parameter validation                       |
-| `forRoutes`  | `Route[]` | Optional (router only). Only track when these routes are active |
+| Parameter    | Type             | Description                                                |
+| ------------ | ---------------- | ---------------------------------------------------------- |
+| `controls`   | `RouterControls` | Controls that own query navigation                         |
+| `routes`     | `Route[]`        | Optional OR filter based on each route's `$isOpened` store |
+| `parameters` | `ZodType`        | Zod schema for query parameter validation                  |
 
 ### Returns
 
@@ -35,21 +38,29 @@ controls.trackQuery<T extends ZodType>(config: Omit<QueryTrackerConfig<T>, 'forR
 ### Basic Query Tracking
 
 ```ts
-import { createRouter, createRoute } from '@effector/router';
+import {
+  createRoute,
+  createRouter,
+  createRouterControls,
+  trackQuery,
+} from '@effector/router';
 import { z } from 'zod';
 
 const searchRoute = createRoute({ path: '/search' });
 
+const controls = createRouterControls();
 const router = createRouter({
   routes: [searchRoute],
+  controls,
 });
 
 // Track search query parameter
-const searchTracker = router.trackQuery({
+const searchTracker = trackQuery({
+  controls,
   parameters: z.object({
     q: z.string(),
   }),
-  forRoutes: [searchRoute],
+  routes: [searchRoute],
 });
 
 // Listen when search query appears

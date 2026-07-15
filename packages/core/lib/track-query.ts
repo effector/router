@@ -1,7 +1,10 @@
 import {
+  combine,
+  createEffect,
   createEvent,
   createStore,
   EventCallable,
+  merge,
   sample,
   type Store,
 } from 'effector';
@@ -12,50 +15,27 @@ import type {
   QueryTracker,
   QueryTrackerConfig,
   Route,
+  RouterControls,
+  TrackQueryConfig,
 } from './types';
 
 import type { z, ZodType } from 'zod/v4';
 
-function isForRouteActive(forRoutes: Route<any>[], activeRoutes: Route<any>[]) {
-  for (const route of forRoutes) {
-    if (activeRoutes.includes(route)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 type FactoryPayload = {
-  $activeRoutes: Store<Route<any>[]>;
+  $active: Store<boolean>;
   $query: Store<Query>;
   navigate: EventCallable<NavigatePayload>;
 };
 
-type ControlsFactory = <T extends ZodType>(
-  config: Omit<QueryTrackerConfig<T>, 'forRoutes'>,
-) => QueryTracker<T>;
-
-export function trackQueryControlsFactory({
-  $query,
-  navigate,
-}: Omit<FactoryPayload, '$activeRoutes'>): ControlsFactory {
-  return trackQueryFactory({
-    $activeRoutes: createStore([]),
-    $query,
-    navigate,
-  });
-}
-
 export function trackQueryFactory({
-  $activeRoutes,
+  $active,
   $query,
   navigate,
 }: FactoryPayload) {
   return <T extends ZodType>(
     config: QueryTrackerConfig<T>,
   ): QueryTracker<T> => {
-    const { check, parameters, forRoutes } = config;
+    const { parameters } = config;
 
     const $entered = createStore(false);
 
@@ -72,35 +52,45 @@ export function trackQueryFactory({
       target: $entered,
     });
 
-    if (check) {
-      sample({
-        clock: check,
-        source: { activeRoutes: $activeRoutes, query: $query },
-        filter: ({ activeRoutes, query }) =>
-          (!forRoutes || isForRouteActive(forRoutes, activeRoutes)) &&
-          parameters.safeParse(query).success,
-        fn: ({ query }) => parameters.safeParse(query).data,
-        target: [entered, changeEntered.prepend(() => true)],
-      });
-    } else {
-      sample({
-        source: { activeRoutes: $activeRoutes, query: $query },
-        filter: ({ activeRoutes, query }) =>
-          (!forRoutes || isForRouteActive(forRoutes, activeRoutes)) &&
-          parameters.safeParse(query).success,
-        fn: ({ query }) => parameters.safeParse(query).data,
-        target: [entered, changeEntered.prepend(() => true)],
-      });
-    }
+    const changes = merge([$query.updates, $active.updates]);
+    const $revision = createStore(0).on(changes, (revision) => revision + 1);
+    const evaluateFx = createEffect(
+      async (payload: { active: boolean; query: Query; revision: number }) => {
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        await Promise.resolve();
+        return payload;
+      },
+    );
 
     sample({
-      source: { activeRoutes: $activeRoutes, query: $query, entered: $entered },
-      filter: ({ activeRoutes, query, entered }) =>
-        entered &&
-        !(
-          (!forRoutes || isForRouteActive(forRoutes, activeRoutes)) &&
-          parameters.safeParse(query).success
-        ),
+      clock: $revision.updates,
+      source: { active: $active, query: $query, revision: $revision },
+      target: evaluateFx,
+    });
+
+    const evaluation = sample({
+      clock: evaluateFx.doneData,
+      source: $revision,
+      filter: (revision, payload) => revision === payload.revision,
+      fn: (_, payload) => payload,
+    });
+
+    sample({
+      clock: evaluation,
+      filter: ({ active, query }) =>
+        active && parameters.safeParse(query).success,
+      fn: ({ query }) => parameters.safeParse(query).data,
+      target: [entered, changeEntered.prepend(() => true)],
+    });
+
+    sample({
+      clock: evaluation,
+      source: $entered,
+      filter: (entered, { active, query }) =>
+        entered && !(active && parameters.safeParse(query).success),
       target: [
         exited.prepend(() => undefined),
         changeEntered.prepend(() => false),
@@ -147,4 +137,21 @@ export function trackQueryFactory({
       exit,
     };
   };
+}
+
+export function trackQuery<T extends ZodType>(
+  config: TrackQueryConfig<T>,
+): QueryTracker<T> {
+  const $active = config.routes
+    ? combine(
+        config.routes.map((route) => route.$isOpened),
+        (opened) => opened.some(Boolean),
+      )
+    : createStore(true);
+
+  return trackQueryFactory({
+    $active,
+    $query: config.controls.$query,
+    navigate: config.controls.navigate,
+  })(config);
 }

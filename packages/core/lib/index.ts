@@ -25,6 +25,7 @@ export type {
   NavigatePayload,
   QueryTracker,
   QueryTrackerConfig,
+  TrackQueryConfig,
   VirtualRoute,
   MappedRoute,
   InternalRoute,
@@ -39,3 +40,4 @@ export {
 
 export { is } from './utils';
 export { isEqualQuery, parseQuery, stringifyQuery } from './query-codec';
+export { trackQuery } from './track-query';
