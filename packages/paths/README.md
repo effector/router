@@ -41,6 +41,8 @@ When an optional parameter is absent, `parse` omits its key from `params`:
 `parse('/user')` for `'/user/:id?'` returns `{path: '/user', params: {}}`.
 The builder enforces the same cardinality as the parser and throws when a
 present array is outside its bounds.
+Number and literal-union values are validated before serialization, so the
+builder cannot produce a URL that its parser rejects.
 
 ## Type extraction
 

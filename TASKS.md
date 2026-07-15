@@ -18,9 +18,6 @@ Stages 6 and 10 are mandatory conformance gates between these contracts.
 Stabilize `@effector/router-paths` first. Route param inference, URL building,
 matching, nested params, and RN screen names depend on it.
 
-- [ ] **T03 — Runtime validation of generic values.** Validate builder input for
-      `number`, literal unions, and arrays using the same constraints as the
-      parser. Do not build a URL that the same compiled pattern cannot parse.
 - [ ] **T04 — Pathname patterns only.** Add aligned runtime and type-level
       diagnostics for query, hash, origin/full URL, invalid ranges, unclosed
       generic/range syntax, and conflicting modifiers. Do not add base, origin,

@@ -69,6 +69,8 @@ const { parse, build } = compile('/edit/:mode<create|update|delete>');
 build({ mode: 'create' }); // '/edit/create'
 parse('/edit/update'); // { path: '/edit/update', params: { mode: 'update' } }
 parse('/edit/other'); // null (not in union)
+
+build({ mode: 'other' }); // throws: value is not in the union
 ```
 
 ### Multiple Parameters
@@ -88,23 +90,17 @@ parse('/blog/2024/12/typescript-tips');
 
 ### Optional Parameters (`?`)
 
-````ts
+```ts
 const { parse, build } = compile('/user/:id?');
 //                                        ^- { id?: string }
 
 build({}); // '/user'
 build({ id: '123' }); // '/user/123'
-
-When the segment is absent, the parser omits the optional key:
-
-```ts
-parse('/user'); // { path: '/user', params: {} }
-````
-
 parse('/user'); // { path: '/user', params: {} }
 parse('/user/456'); // { path: '/user/456', params: { id: '456' } }
+```
 
-````
+When the segment is absent, the parser omits the optional key from `params`.
 
 ### Optional with Type
 
@@ -114,14 +110,10 @@ const { parse, build } = compile('/post/:id<number>?');
 
 build({}); // '/post'
 build({ id: 123 }); // '/post/123'
-
-The same omission rule applies to generic optional parameters:
-
-```ts
 parse('/post'); // { path: '/post', params: {} }
-````
+```
 
-````
+The same omission rule applies to generic optional parameters.
 
 ### Repeating Parameters (`+`)
 
@@ -137,7 +129,7 @@ build({ tags: ['js', 'ts', 'react'] }); // '/category/js/ts/react'
 parse('/category/javascript'); // { path: '...', params: { tags: ['javascript'] } }
 parse('/category/js/typescript'); // { path: '...', params: { tags: ['js', 'typescript'] } }
 parse('/category'); // null (requires at least one)
-````
+```
 
 ### Zero or More Parameters (`*`)
 

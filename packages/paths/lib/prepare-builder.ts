@@ -1,5 +1,76 @@
 import { Builder, Token } from './types';
 
+function validateValuePresence(
+  name: string,
+  value: unknown,
+  required: boolean,
+) {
+  if (value === null || value === undefined) {
+    if (required) {
+      throw new Error(`Parameter "${name}" expects a value`);
+    }
+
+    return;
+  }
+
+  const values = Array.isArray(value) ? value : [value];
+
+  for (const item of values) {
+    if (item === null || item === undefined || String(item).trim() === '') {
+      if (required || Array.isArray(value)) {
+        throw new Error(`Parameter "${name}" expects a value`);
+      }
+    }
+  }
+}
+
+function validateGeneric(
+  name: string,
+  value: unknown,
+  required: boolean,
+  genericProps: { type: 'union'; items: string[] } | { type: 'number' },
+) {
+  if (value === null || value === undefined) {
+    if (required) {
+      throw new Error(`Parameter "${name}" expects a valid value`);
+    }
+
+    return;
+  }
+
+  const values = Array.isArray(value) ? value : [value];
+
+  for (const item of values) {
+    if (item === null || item === undefined) {
+      throw new Error(`Parameter "${name}" expects a valid value`);
+    }
+
+    const raw = String(item).trim();
+
+    if (!raw) {
+      if (required || Array.isArray(value)) {
+        throw new Error(`Parameter "${name}" expects a valid value`);
+      }
+
+      continue;
+    }
+
+    if (genericProps.type === 'number') {
+      if (isNaN(+raw)) {
+        throw new Error(`Parameter "${name}" expects a number`);
+      }
+
+      continue;
+    }
+
+    if (!genericProps.items.includes(raw)) {
+      throw new Error(
+        `Parameter "${name}" expects one of: ${genericProps.items.join(', ')}`,
+      );
+    }
+  }
+}
+
 function validateCardinality(
   name: string,
   value: unknown,
@@ -60,6 +131,17 @@ export function prepareBuilder<T>(tokens: Token[]): Builder<T> {
 
           if (arrayProps) {
             validateCardinality(token.name, value, required, arrayProps);
+          }
+
+          validateValuePresence(token.name, value, required);
+
+          if (token.payload.genericProps) {
+            validateGeneric(
+              token.name,
+              value,
+              required,
+              token.payload.genericProps,
+            );
           }
 
           if (value === null || value === undefined) {

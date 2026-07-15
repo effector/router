@@ -424,11 +424,19 @@ describe('build path', () => {
     const { build } = compile('/profile/:id<number>');
 
     expect(build({ id: 123 })).toBe('/profile/123');
+    expect(() => build({ id: Number.NaN })).toThrow(
+      'Parameter "id" expects a number',
+    );
+    expect(() => build({ id: 'not-a-number' } as any)).toThrow(
+      'Parameter "id" expects a number',
+    );
   });
 
   test('build path preserves falsy parameter values', () => {
     expect(compile('/profile/:id<number>').build({ id: 0 })).toBe('/profile/0');
-    expect(compile('/profile/:id').build({ id: '' })).toBe('/profile/');
+    expect(() => compile('/profile/:id').build({ id: '' })).toThrow(
+      'Parameter "id" expects a value',
+    );
   });
 
   test('build path with generic parameter (union)', () => {
@@ -436,6 +444,9 @@ describe('build path', () => {
 
     expect(build({ id: 'hello' })).toBe('/profile/hello');
     expect(build({ id: 'world' })).toBe('/profile/world');
+    expect(() => build({ id: 'other' } as any)).toThrow(
+      'Parameter "id" expects one of: hello, world',
+    );
   });
 
   test('build path with default string parameter and modificator +', () => {
@@ -501,6 +512,9 @@ describe('build path', () => {
 
     expect(build({ id: [123, 321] })).toBe('/profile/123/321');
     expect(build({ id: [123] })).toBe('/profile/123');
+    expect(() => build({ id: [123, Number.NaN] })).toThrow(
+      'Parameter "id" expects a number',
+    );
   });
 
   test('build path with generic parameter (number) and modificator *', () => {
@@ -526,6 +540,9 @@ describe('build path', () => {
     expect(build({ id: ['hello'] })).toBe('/profile/hello');
     expect(() => build({ id: [] })).toThrow(
       'Parameter "id" expects at least 1 value',
+    );
+    expect(() => build({ id: ['hello', 'other'] } as any)).toThrow(
+      'Parameter "id" expects one of: hello, world',
     );
   });
 
