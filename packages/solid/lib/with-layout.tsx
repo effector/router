@@ -36,12 +36,16 @@ export function withLayout(
 ): RouteView[] {
   const Layout = layout;
 
-  return views.map(({ route, view: View }) => ({
-    route,
-    view: () => (
-      <Layout>
-        <View />
-      </Layout>
-    ),
-  }));
+  return views.map((view) => {
+    const View = view.view;
+
+    return {
+      ...view,
+      view: () => (
+        <Layout>
+          <View />
+        </Layout>
+      ),
+    };
+  });
 }

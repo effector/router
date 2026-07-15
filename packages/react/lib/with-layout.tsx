@@ -34,8 +34,8 @@ export function withLayout(
 ) {
   const Layout = layout;
 
-  return views.map(({ route, view }) => ({
-    route,
-    view: () => <Layout>{createElement(view)}</Layout>,
+  return views.map((view) => ({
+    ...view,
+    view: () => <Layout>{createElement(view.view)}</Layout>,
   }));
 }

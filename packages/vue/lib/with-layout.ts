@@ -19,13 +19,12 @@ import type { RouteView } from './types';
  * ```
  */
 export function withLayout(layout: Component, views: RouteView[]): RouteView[] {
-  return views.map(({ route, view, children }) => ({
-    route,
-    children,
+  return views.map((view) => ({
+    ...view,
     view: defineComponent({
       name: 'WithLayout',
       setup() {
-        return () => h(layout, null, { default: () => h(view) });
+        return () => h(layout, null, { default: () => h(view.view) });
       },
     }),
   }));

@@ -57,7 +57,11 @@ describe('react bindings', () => {
       route: createRoute({ path: '/child', parent: route }),
       view: () => null,
     });
-    const view = createRouteView({ route, view: () => null, children: [child] });
+    const view = createRouteView({
+      route,
+      view: () => null,
+      children: [child],
+    });
     const [wrapped] = withLayout(({ children }) => <>{children}</>, [view]);
 
     expect(wrapped.children).toEqual([child]);
