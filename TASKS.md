@@ -126,7 +126,7 @@ semantics, transition policy, and framework href builders depend on it.
 Build matching after the location lifecycle but before query trackers and
 RouteView. Both layers must observe the final active route tree.
 
-- [ ] **T20 — Explicit match result.** Centralize matched-route calculation for
+- [x] **T20 — Explicit match result.** Centralize matched-route calculation for
       root and nested routers so activation, `$activeRoutes`, stale-route close,
       and not-found consume one result, including dynamic `registerRoute` calls.
 - [ ] **T21 — Root `notFound`.** Add an optional virtual `notFound` to

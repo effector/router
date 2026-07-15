@@ -135,6 +135,24 @@ describe('router', () => {
     expect(scope.getState(route1.$isOpened)).toBeTruthy();
   });
 
+  test('uses one match result for dynamically registered routes', async () => {
+    const scope = fork();
+    const router = createRouter({ routes: [] });
+    const history = createMemoryHistory();
+    const route = createRoute({ path: '/dynamic' });
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+    router.registerRoute(route);
+    history.push('/dynamic');
+    await allSettled(scope);
+
+    expect(scope.getState(router.$activeRoutes)).toEqual([route]);
+    expect(scope.getState(route.$isOpened)).toBe(true);
+  });
+
   test('routes closed when path changed', async () => {
     const route1 = createRoute({ path: '/one' });
     const route2 = createRoute({ path: '/two' });

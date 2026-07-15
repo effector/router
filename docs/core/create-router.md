@@ -32,6 +32,10 @@ throwing or starting a navigation attempt.
 reinitialization. `router.updated` fires only for later path/query changes;
 equal snapshots and hash-only changes are suppressed.
 
+The router calculates one match result for each normalized location. The same
+result drives route activation, `$activeRoutes`, stale-route closing, and
+dynamic `registerRoute` matches.
+
 For React apps with Effector scope:
 
 ```ts

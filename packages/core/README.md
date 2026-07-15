@@ -111,6 +111,9 @@ The lifecycle matrix also covers string/partial adapter round trips, repeated
 initialization, stale-listener cleanup, native POP, Fork isolation, and equal
 snapshot suppression.
 
+Route activation, `$activeRoutes`, stale-route closing, and dynamic route
+registration share one internal match result.
+
 ## Documentation
 
 Full guides and API reference: **[router.effector.dev/core](https://router.effector.dev/core)**

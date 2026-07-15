@@ -189,21 +189,38 @@ export function createRouter(config: RouterConfig): Router {
     return acc;
   }, []);
 
-  const $activeRoutes = $path.map((path) => {
-    const result: Route<any>[] = [];
+  type RouteMatch = {
+    route: InternalRoute<any>;
+    params: Record<string, string>;
+  };
 
+  type MatchResult = {
+    matches: RouteMatch[];
+    activeRoutes: Route<any>[];
+  };
+
+  function matchRoutes(path: string | null): MatchResult {
     if (!path) {
-      return result;
+      return { matches: [], activeRoutes: [] };
     }
 
+    const matches: RouteMatch[] = [];
+
     for (const { route, parse } of ownRoutes) {
-      if (parse(path)) {
-        result.push(route);
+      const matchResult = parse(path);
+
+      if (matchResult) {
+        matches.push({ route, params: matchResult.params });
       }
     }
 
-    return result;
-  });
+    return {
+      matches,
+      activeRoutes: matches.map(({ route }) => route),
+    };
+  }
+
+  const $activeRoutes = $path.map((path) => matchRoutes(path).activeRoutes);
 
   const openRoutesByPathFx = attach({
     source: { query: $query, path: $path },
@@ -212,25 +229,18 @@ export function createRouter(config: RouterConfig): Router {
         return;
       }
 
-      type RouteWithParams = {
-        route: InternalRoute<any>;
-        params: Record<string, string>;
-      };
+      const { matches } = matchRoutes(path);
+      const matchedRoutes = new Set(matches.map(({ route }) => route));
 
-      const matchedRoutes: Array<RouteWithParams> = [];
-
-      for (const { route, parse } of ownRoutes) {
-        const matchResult = parse(path);
+      for (const { route } of ownRoutes) {
         const routeClose = scopeBind(route.internal.close, { safe: true });
 
-        if (!matchResult) {
+        if (!matchedRoutes.has(route)) {
           routeClose();
-        } else {
-          matchedRoutes.push({ route, params: matchResult.params });
         }
       }
 
-      for (const { route, params } of matchedRoutes) {
+      for (const { route, params } of matches) {
         const routeNavigate = scopeBind(route.internal.navigated, {
           safe: true,
         });
