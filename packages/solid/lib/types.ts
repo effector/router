@@ -35,6 +35,7 @@ type AnchorProps = Omit<JSX.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>;
 type BaseLinkProps<Params extends object | void = void> = {
   to: Route<Params>;
   children?: JSX.Element;
+  activeClass?: string;
 } & AnchorProps &
   OpenPayloadBase;
 

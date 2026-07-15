@@ -31,7 +31,8 @@ export function useLink<T extends object | void = void>(
 
   const path = createMemo(() => {
     const pathname = target.build(params() ?? undefined);
-    const search = query() ? queryString.stringify(query()) : '';
+    const currentQuery = query();
+    const search = currentQuery ? queryString.stringify(currentQuery) : '';
 
     return search ? `${pathname}?${search}` : pathname;
   });

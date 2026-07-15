@@ -2,6 +2,7 @@ import type { Route, RouteOpenedPayload } from '@effector/router';
 import { splitProps, type JSX } from 'solid-js';
 import type { LinkProps } from './types';
 import { useLink } from './use-link';
+import { useIsOpened } from './use-is-opened';
 
 /**
  * @description Navigates user to provided route on click
@@ -36,6 +37,7 @@ export function Link<Params extends object | void = void>(
     'onClick',
     'replace',
     'query',
+    'activeClass',
     'children',
   ]);
 
@@ -44,6 +46,11 @@ export function Link<Params extends object | void = void>(
     () => local.params as Params,
     () => local.query,
   );
+  const isOpened = useIsOpened(local.to as Route<Params>);
+  const className = () =>
+    [anchorProps.class, isOpened() ? local.activeClass : undefined]
+      .filter(Boolean)
+      .join(' ');
 
   const handleClick: JSX.EventHandler<HTMLAnchorElement, MouseEvent> = (
     event,
@@ -75,7 +82,7 @@ export function Link<Params extends object | void = void>(
   };
 
   return (
-    <a {...anchorProps} href={path()} onClick={handleClick}>
+    <a {...anchorProps} class={className()} href={path()} onClick={handleClick}>
       {local.children}
     </a>
   );
