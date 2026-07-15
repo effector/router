@@ -47,4 +47,11 @@ describe('convert paths', () => {
   test('path with nullable ranges', () => {
     expect(convertPath('/files/:id{1,2}?', 'express')).toMatch('/files{/*id}');
   });
+
+  test('converts modifiers for arbitrary parameter names', () => {
+    expect(convertPath('/files/:path+', 'express')).toBe('/files/*path');
+    expect(convertPath('/api/:version?/*path?', 'express')).toBe(
+      '/api{/:version}/{/*path}',
+    );
+  });
 });
