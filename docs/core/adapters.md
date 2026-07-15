@@ -23,6 +23,10 @@ Before `setHistory`, router state is explicit: `$path` is `null` and `$query`
 is `{}`. Initialization loads the adapter snapshot atomically. Replacing the
 adapter removes the previous listen/block subscriptions first.
 
+The adapter/router lifecycle keeps these guarantees across repeated
+initialization, native POP, equal snapshots, hash-only changes, and isolated
+Effector Fork scopes.
+
 ## Built-in Adapters
 
 ### historyAdapter

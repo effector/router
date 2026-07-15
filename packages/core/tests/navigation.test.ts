@@ -74,6 +74,36 @@ describe('navigation operators', () => {
     expect(updated).toHaveBeenCalledTimes(1);
   });
 
+  test('keeps lifecycle state isolated per Fork and detaches stale native listeners', async () => {
+    const router = createRouter({ routes: [] });
+    const history = createMemoryHistory({ initialEntries: ['/one', '/two'] });
+    const replacement = createMemoryHistory({
+      initialEntries: ['/replacement'],
+    });
+    const scopeA = fork();
+    const scopeB = fork();
+
+    await allSettled(router.setHistory, {
+      scope: scopeA,
+      params: historyAdapter(history),
+    });
+    expect(scopeA.getState(router.$path)).toBe('/two');
+    expect(scopeB.getState(router.$path)).toBeNull();
+
+    history.back();
+    await allSettled(scopeA);
+    expect(scopeA.getState(router.$path)).toBe('/one');
+    expect(scopeB.getState(router.$path)).toBeNull();
+
+    await allSettled(router.setHistory, {
+      scope: scopeA,
+      params: historyAdapter(replacement),
+    });
+    history.push('/stale');
+    await allSettled(scopeA);
+    expect(scopeA.getState(router.$path)).toBe('/replacement');
+  });
+
   test('reports pre-init navigation failures without creating attempts', async () => {
     const scope = fork();
     const route = createRoute({ path: '/protected' });

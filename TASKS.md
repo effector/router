@@ -116,7 +116,7 @@ semantics, transition policy, and framework href builders depend on it.
       `setHistory`; `updated` fires only after a later value change to path or
       query. An equal snapshot or hash-only change produces neither an event nor
       a store update.
-- [ ] **T19 — Lifecycle matrix and reference.** Cover string/partial round trips,
+- [x] **T19 — Lifecycle matrix and reference.** Cover string/partial round trips,
       repeated initialization, stale-adapter isolation, same-value suppression,
       hash-only changes, native POP, global scope/Fork API, and cleanup. Update
       public exports, adapter/core docs, README, and changeset.

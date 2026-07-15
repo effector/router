@@ -107,6 +107,10 @@ Router also exposes `initialized` after every successful `setHistory` and
 `updated` after later normalized path/query changes. Equal snapshots and
 hash-only changes produce neither an event nor a store update.
 
+The lifecycle matrix also covers string/partial adapter round trips, repeated
+initialization, stale-listener cleanup, native POP, Fork isolation, and equal
+snapshot suppression.
+
 ## Documentation
 
 Full guides and API reference: **[router.effector.dev/core](https://router.effector.dev/core)**
