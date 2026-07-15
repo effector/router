@@ -1,30 +1,62 @@
 # Decisions
 
-Здесь собраны принятые контракты, которые требуют изменений в runtime, types,
-public API или regression tests. Последовательность работ находится в
-[TASKS.md](TASKS.md), конкретные дефекты — в [BUGS.md](BUGS.md).
+This file contains accepted contracts that still require runtime, type, public
+API, or regression-test changes. Implementation tasks are intentionally not
+duplicated here: they are derived from each decision, augmented with findings
+from the current code audit, and ranked in [TASKS.md](TASKS.md). Execution rules
+are defined in [IMPLEMENTATION_RULES.md](IMPLEMENTATION_RULES.md). Concrete
+defects belong in [BUGS.md](BUGS.md).
 
-## D1. Семантика query при навигации — принято
+## Implementation map
 
-`navigate({query})` использует replace-семантику: переданный объект становится
-полным query URL. Если поле `query` не передано, текущий query сохраняется при
-смене `path`. Пустой объект `query: {}` явно очищает query.
+| Decision                      | Stage and tasks                                                                  |
+| ----------------------------- | -------------------------------------------------------------------------------- |
+| D1. Query navigation          | [Stage 5, T24–T25 and T29](TASKS.md#5-query-navigation-and-tracking--d1d2)       |
+| D2. Query type and trackQuery | [Stage 5, T24 and T26–T29](TASKS.md#5-query-navigation-and-tracking--d1d2)       |
+| D3.1. Parent params           | [Stage 2, T10 and T12](TASKS.md#2-unified-route-model--d3)                       |
+| D3.2. Pathless/virtual routes | [Stage 2, T06–T08 and T12](TASKS.md#2-unified-route-model--d3)                   |
+| D3.3. Params replacement      | [Stage 2, T09 and T12](TASKS.md#2-unified-route-model--d3)                       |
+| D3.4. Equality/updated        | [Stage 2, T11–T12](TASKS.md#2-unified-route-model--d3)                           |
+| D4.1. Adapter location        | [Stage 3, T13–T15 and T19](TASKS.md#3-adapter-and-router-lifecycle--d41d43)      |
+| D4.2. Before setHistory       | [Stage 3, T16–T17 and T19](TASKS.md#3-adapter-and-router-lifecycle--d41d43)      |
+| D4.3. Router events           | [Stage 3, T18–T19](TASKS.md#3-adapter-and-router-lifecycle--d41d43)              |
+| D4.4. notFound                | [Stage 4, T20–T23](TASKS.md#4-router-matching-and-not-found-propagation--d44)    |
+| D5.1. Optional params         | [Stage 1, T01 and T05](TASKS.md#1-path-language-foundation--d5)                  |
+| D5.2. Cardinality             | [Stage 1, T02 and T05](TASKS.md#1-path-language-foundation--d5)                  |
+| D5.3. Generics/pathname-only  | [Stage 1, T03–T05](TASKS.md#1-path-language-foundation--d5)                      |
+| D6.1. Lazy children           | [Stage 7, T37–T38](TASKS.md#7-recursive-routeview-tree-and-layouts--d6)          |
+| D6.2. Outlet depth            | [Stage 7, T35 and T38](TASKS.md#7-recursive-routeview-tree-and-layouts--d6)      |
+| D6.3. Metadata/layouts        | [Stage 7, T33, T36 and T38](TASKS.md#7-recursive-routeview-tree-and-layouts--d6) |
+| D6.4. Selection/nested Router | [Stage 7, T34–T35 and T38](TASKS.md#7-recursive-routeview-tree-and-layouts--d6)  |
+| D7. React Link                | [Stage 8, T39–T41 and T44](TASKS.md#8-web-link-and-uselink-parity--d7d8)         |
+| D8. Vue Link                  | [Stage 8, T39–T40 and T43–T44](TASKS.md#8-web-link-and-uselink-parity--d7d8)     |
+| D9.1. RN source of truth      | [Stage 9, T45 and T48–T51](TASKS.md#9-react-native-integration--d9)              |
+| D9.2. RN navigator API        | [Stage 9, T46–T47 and T50–T51](TASKS.md#9-react-native-integration--d9)          |
 
-Отдельный `mergeQuery` оператор пока не вводится. Частичное изменение можно
-собрать обычной Effector-композицией (`sample`, `combine`, чтение текущего
-`$query`) и передать уже полный объект в `navigate`.
+Cross-cutting conformance work is tracked in stages 6 and 10 and closes only
+after the contracts it depends on are stable.
 
-Правила для `null`, `undefined` и массивов относятся к D2, чтобы не смешивать
-семантику навигации с форматом сериализации.
+## D1. Query navigation semantics — accepted
 
-## D2. Query type, serializer и ownership `trackQuery` — принято
+`navigate({ query })` uses replacement semantics: the provided object becomes
+the complete URL query. When `query` is omitted, navigation to another `path`
+preserves the current query. An explicit empty object, `query: {}`, clears it.
 
-Core хранит узкий URL-совместимый `Query`:
-`Record<string, string | null | Array<string | null>>`. Generic serializer в
-router API не вводится. Преобразование в числа, даты и другие доменные типы
-остаётся на стороне схемы `trackQuery` (например, через Zod `transform`).
+No separate `mergeQuery` operator is introduced. Partial updates are composed
+with ordinary Effector primitives (`sample`, `combine`, and the current
+`$query`) before passing a complete object to `navigate`.
 
-`trackQuery` — standalone operator:
+Rules for `null`, `undefined`, and arrays belong to D2 so navigation semantics
+remain separate from serialization format.
+
+## D2. Query type, serializer, and `trackQuery` ownership — accepted
+
+Core stores a narrow URL-compatible `Query`:
+`Record<string, string | null | Array<string | null>>`. The router API does not
+introduce a generic serializer. Conversion to numbers, dates, and other domain
+types belongs to the `trackQuery` schema, for example through a Zod transform.
+
+`trackQuery` is a standalone operator:
 
 ```ts
 trackQuery({
@@ -34,190 +66,192 @@ trackQuery({
 })
 ```
 
-`routes` фильтрует tracker по `$isOpened` переданных routes; достаточно, чтобы
-был открыт хотя бы один route. Если `routes` не передан, tracker активен всегда.
-Метод `router.trackQuery` и поле `check` в новый контракт не входят. Tracker
-реактивно проверяет query и активность routes; one-shot сценарии собираются
-снаружи обычной Effector-композицией.
+`routes` filters the tracker by the supplied routes' `$isOpened` stores. At
+least one route must be open. When `routes` is omitted, the tracker is always
+active. The new contract does not include a `router.trackQuery` method or a
+`check` field. The tracker reacts to query and route activity changes. One-shot
+scenarios are composed externally with ordinary Effector primitives.
 
-`undefined` не является значением query и означает отсутствие ключа, `null`
-представляет URL-флаг без значения, массивы сериализуются повторяющимися
-ключами. `entered`, `exit`, `ignoreParams` и сохранение unrelated keys при
-частичном выходе остаются частью tracker API.
+`undefined` is not a query value and means that a key is absent. `null`
+represents a URL flag without a value. Arrays use repeated keys. `entered`,
+`exit`, `ignoreParams`, and preservation of unrelated keys during a partial
+exit remain part of the tracker API.
 
-## D3. Route params и identity
+## D3. Route params and identity
 
 ### D3.1 Parent params
 
-**Принято: intersection.** Child route получает объединённые params parent и
-собственного path. Его `$params`, `Link` и `useLink` используют полный набор;
-parent route сохраняет только параметры своего path. Конфликтующие имена
-параметров должны быть запрещены на уровне path/type validation.
+**Accepted: intersection.** A child route receives the union of its parent's
+params and its own path params. Its `$params`, `Link`, and `useLink` use the
+complete set. The parent route stores only params declared by its own path.
+Conflicting param names must be rejected by path/type validation.
 
-### D3.2 Pathless и virtual routes
+### D3.2 Pathless and virtual routes
 
-**Принято: единая фабрика.** `createRoute({ path })` возвращает `PathRoute`, а
-`createRoute<Params>()` без path возвращает `VirtualRoute` с единым
+**Accepted: one factory.** `createRoute({ path })` returns `PathRoute`, while
+`createRoute<Params>()` without a path returns `VirtualRoute` with the same
 `RouteOpenedPayload<Params>` payload (`{ params }`). `createVirtualRoute`
-остаётся deprecated alias на текущем major и удаляется только в следующем
-major. Virtual route не пишет в history и не регистрируется как URL route.
+remains a deprecated alias during the current major and is removed only in the
+next major. A virtual route does not write history and is not registered as a
+URL route.
 
 ### D3.3 Partial params updates
 
-**Принято: replace.** Каждый `open` содержит полный обязательный набор path
-params. Отсутствующие params не читаются из текущего route state и не
-подмешиваются автоматически. Partial update собирается снаружи обычной
-Effector-композицией, если это требуется конкретному приложению. Для routes
-без обязательных params формы `open()`, `open({})` и `open({ params: {} })`
-эквивалентны и нормализуются к пустому payload.
+**Accepted: replacement.** Every `open` contains the complete required set of
+path params. Missing params are not read from current route state or merged
+automatically. An application that needs a partial update composes it externally
+with ordinary Effector primitives. For routes without required params,
+`open()`, `open({})`, and `open({ params: {} })` are equivalent and normalize to
+an empty payload.
 
-### D3.4 Equality и update events
+### D3.4 Equality and update events
 
-**Принято:** `$params` и `$query` используют value-based equality: порядок
-ключей не важен, порядок элементов массива важен, `null` и отсутствие ключа
-различаются. Одинаковые значения не создают store update.
+**Accepted:** `$params` and `$query` use value-based equality. Object key order
+does not matter; array element order does. `null` and an absent key are
+different. Equal values do not produce a store update.
 
-`route.updated` обязателен для `PathRoute` и `VirtualRoute` и имеет payload
-`RouteOpenedPayload<T>`. Первое открытие вызывает только `opened`; если уже
-открытый route получает отличающиеся по значению params, вызывается `updated`.
-Унаследованные parent params входят в это сравнение. Одинаковые params и close
-не вызывают `updated`. Query-only navigation не считается route update и
-наблюдается через `$query`/query tracker. Политика повторной навигации на тот
-же URL относится к D4 adapter lifecycle.
+`route.updated` is required on `PathRoute` and `VirtualRoute` and carries
+`RouteOpenedPayload<T>`. The first activation emits only `opened`. When an
+already open route receives value-different params, it emits `updated`.
+Inherited parent params participate in the comparison. Equal params and close
+do not emit `updated`. Query-only navigation is not a route update and is
+observed through `$query` or a query tracker. Repeated navigation to the same URL
+belongs to the D4 adapter lifecycle.
 
-## D4. Router и adapter lifecycle
+## D4. Router and adapter lifecycle
 
 ### D4.1 `RouterAdapter.location`
 
-**Принято:** adapter всегда хранит полный синхронный location snapshot
-`{ pathname, search, hash }`. `push` и `replace` принимают string или partial
-location; omitted поля сохраняются из текущей location. `historyAdapter`
-работает с обычным URL, а `queryAdapter` сохраняет host pathname/hash и меняет
-только принадлежащую ему query-часть. `back`/`forward` инициируют native
-history action, а фактическая новая location приходит через `listen`.
+**Accepted:** an adapter always stores a complete synchronous location snapshot
+`{ pathname, search, hash }`. `push` and `replace` accept a string or a partial
+location. Omitted fields retain their current values. `historyAdapter` works
+with a normal URL. `queryAdapter` retains the host pathname/hash and changes
+only the query section it owns. `back` and `forward` initiate native history
+actions; the actual new location arrives through `listen`.
 
-### D4.2 До `setHistory`
+### D4.2 Before `setHistory`
 
-**Принято:** `$path` имеет тип `Store<string | null>` и равен `null` до
-`setHistory`; `$query` до инициализации равен `{}`. `setHistory` загружает
-начальный snapshot adapter. `navigate`, `back` и `forward` до инициализации
-завершаются контролируемой ошибкой и не ставятся в очередь. Path routes до
-history не активируются, virtual routes могут работать независимо. Повторный
-`setHistory` отписывает предыдущий adapter и повторно загружает snapshot.
+**Accepted:** `$path` has type `Store<string | null>` and is `null` before
+`setHistory`; `$query` is `{}` before initialization. `setHistory` loads the
+adapter's initial snapshot. `navigate`, `back`, and `forward` before
+initialization finish with a controlled error and are not queued. Path routes
+do not activate before history is available. Virtual routes work independently.
+Calling `setHistory` again unsubscribes the previous adapter and reloads the new
+snapshot.
 
-### D4.3 Дополнительные router events
+### D4.3 Additional router events
 
-**Принято:** Router публикует `initialized` и `updated` с payload
-`LocationState` (`{ path, query }`). `initialized` срабатывает после каждого
-успешного `setHistory`, включая повторную инициализацию после отписки старого
-adapter. `updated` срабатывает на последующие изменения нормализованных
-`path/query`; одинаковый snapshot и изменение только hash его не вызывают.
+**Accepted:** Router publishes `initialized` and `updated`, both carrying
+`LocationState` (`{ path, query }`). `initialized` fires after every successful
+`setHistory`, including reinitialization after the old adapter is detached.
+`updated` fires for later normalized path/query changes. An equal snapshot or a
+hash-only change does not emit it.
 
 ### D4.4 `notFound`
 
-**Принято: `notFound` route с propagation.** `createRouter` принимает optional
-`notFound` virtual route. Root `notFound` может централизованно обработать
-отсутствие match во всём зарегистрированном nested tree. Nested router может
-иметь собственный `notFound`; он имеет приоритет в своей зоне. Если локального
-fallback нет, отсутствие match поднимается к ближайшему ancestor с
-`notFound`. При отсутствии fallback URL не открывает специальный route.
+**Accepted: a propagating `notFound` route.** `createRouter` accepts an optional
+virtual `notFound` route. A root `notFound` can centrally handle a missing match
+across the registered nested tree. A nested router may define its own
+`notFound`, which takes priority in its subtree. Without a local fallback, the
+missing match propagates to the nearest ancestor with `notFound`. Without any
+fallback, the URL does not activate a special route.
 
-## D5. Язык paths
+## D5. Path language
 
 ### D5.1 Optional params
 
-**Принято:** optional parameters имеют type shape `{ id?: string }`, а
-отсутствующий параметр не добавляется в runtime parse result. Отдельный codec
-для optionality не вводится.
+**Accepted:** optional parameters have type shape `{ id?: string }`. An absent
+parameter is omitted from the runtime parse result. No separate optionality
+codec is introduced.
 
 ### D5.2 Cardinality
 
-**Принято:** parser и builder используют одни и те же cardinality constraints.
-Builder выбрасывает при нарушении границ, parser возвращает `null`. `+`
-означает `min: 1`, `*` — `min: 0`, `{min,max}` задаёт явные границы. Modifier
-`?` разрешает отсутствующий сегмент, но не отменяет ограничения для
-присутствующего значения. Отдельный validation operator не вводится.
+**Accepted:** parser and builder apply the same cardinality constraints. The
+builder throws when a bound is violated; the parser returns `null`. `+` means
+`min: 1`, `*` means `min: 0`, and `{min,max}` declares explicit bounds. The `?`
+modifier allows an absent segment but does not remove constraints from a
+present value. No separate validation operator is introduced.
 
-### D5.3 Generic syntax и full URL
+### D5.3 Generic syntax and full URLs
 
-**Принято:** type-level и runtime одинаково поддерживают `string` по
-умолчанию, `number`, literal unions, массивы и cardinality modifiers.
-`@effector/router-paths` компилирует только pathname pattern; query, hash,
-origin и base path принадлежат router/adapter configuration. Произвольные
-generic codecs в paths package не вводятся.
+**Accepted:** type-level and runtime behavior support the same syntax: `string`
+by default, `number`, literal unions, arrays, and cardinality modifiers.
+`@effector/router-paths` compiles pathname patterns only. Query, hash, origin,
+and base path belong to router/adapter configuration. The paths package does
+not introduce arbitrary generic codecs.
 
-## D6. Общий RouteView tree
+## D6. Shared RouteView tree
 
-### D6.1 Lazy и nested children
+### D6.1 Lazy and nested children
 
-**Принято:** lazy и eager RouteView используют один recursive `children`
-contract. Lazy importer отвечает только за `view`; `children` сохраняется и
-передаётся в `Outlet` на любом уровне. Отдельного one-level API для lazy views
-не вводится.
+**Accepted:** lazy and eager RouteView use one recursive `children` contract. A
+lazy importer is responsible only for `view`; `children` are retained and
+provided to `Outlet` at every level. No separate one-level lazy API is
+introduced.
 
 ### D6.2 `Outlet` depth
 
-**Принято:** `Outlet` использует recursive context provider на каждом уровне.
-Root `createRoutesView` и каждый `Outlet` передают context с children
-выбранного RouteView. Ограничение глубины и отдельный one-level contract не
-вводятся.
+**Accepted:** `Outlet` uses a recursive context provider at every level. Root
+`createRoutesView` and each `Outlet` provide a context containing the selected
+RouteView's children. No depth limit or separate one-level contract is
+introduced.
 
-### D6.3 Metadata и layouts
+### D6.3 Metadata and layouts
 
-**Принято:** `withLayout` сохраняет `route`, `children` и все существующие
-RouteView metadata; wrapper меняет только `view`. Layout identity не входит в
-framework-neutral RouteView contract и реализуется binding-specific helper-ом
-React/Solid/Vue.
+**Accepted:** `withLayout` preserves `route`, `children`, and all existing
+RouteView metadata; the wrapper changes only `view`. Layout identity does not
+belong to the framework-neutral RouteView contract and is implemented by a
+binding-specific helper in React, Solid, and Vue.
 
-### D6.4 Selection priority и nested Router
+### D6.4 Selection priority and nested Router
 
-**Принято:** сначала отбираются активные views и удаляются parent views, если
-активен их child. Среди оставшихся siblings победителем считается последний
-объявленный view (declaration order). Open-order state для UI selection не
-хранится. `route: Router` считается активным при наличии active routes и
-делегирует дальнейший выбор nested tree его собственному binding renderer.
+**Accepted:** select active views first, then remove a parent view when its child
+is active. Among remaining siblings, the last declared view wins. UI selection
+does not store open-order state. `route: Router` is active when it contains
+active routes and delegates further selection of its nested tree to that
+router's binding renderer.
 
 ## D7. React `<Link href>`
 
-**Принято:** `href` всегда содержит path, params и query. Interception
-применяется только к обычному same-origin `_self` click; `target` не `_self`,
-modified clicks и пользовательский `preventDefault` сохраняют native browser
-behavior. Native и intercepted navigation используют одну URL-семантику.
+**Accepted:** `href` always contains path, params, and query. Interception
+applies only to an ordinary same-origin `_self` click. A non-`_self` target,
+modified click, or user `preventDefault` keeps native browser behavior. Native
+and intercepted navigation use the same URL semantics.
 
 ## D8. Vue `Link`
 
-**Принято:** Vue `Link` использует exported generic `LinkProps<Params>` с
-conditional required params; отдельная `createLink` factory не вводится.
-Runtime prop остаётся object, а ограничения Vue template inference описываются
-в docs. `query`, `replace`, target, modifiers, `preventDefault`, anchor attrs
-и non-`_self` behavior совпадают с контрактом React Link.
+**Accepted:** Vue `Link` uses an exported generic `LinkProps<Params>` with
+conditional required params. No separate `createLink` factory is introduced.
+The runtime prop remains an object. Vue template-inference limitations are
+documented. `query`, `replace`, target, modifiers, `preventDefault`, anchor
+attributes, and non-`_self` behavior match the React Link contract.
 
 ## D9. React Native integration
 
 ### D9.1 Source of truth
 
-**Принято:** Effector Router — единственный canonical source of truth; React
-Navigation рендерит native UI и сообщает пользовательские intents. Native
-back, gestures, tab press и deep link переводятся adapter-ом в
-controls/route events, после чего Router синхронизирует React Navigation.
-`NavigationContainer` остаётся app-owned, binding получает явно переданные
-ref/listeners и подавляет echo-loop от собственных Router → RN updates.
+**Accepted:** Effector Router is the only canonical source of truth. React
+Navigation renders native UI and reports user intent. Native back, gestures,
+tab presses, and deep links are translated by the adapter into controls/route
+events, then Router synchronizes React Navigation. `NavigationContainer`
+remains app-owned. The binding receives explicitly supplied refs/listeners and
+suppresses echo loops caused by its own Router-to-RN updates.
 
-От этого зависят adapter/init recipe, deep links, persistence, back/gestures,
-cleanup и scopes.
+Adapter initialization, deep links, persistence, back/gestures, cleanup, and
+scopes depend on this decision.
 
 ### D9.2 Navigator API
 
-**Принято:** `createStackNavigator` и `createBottomTabsNavigator` возвращают
-React component напрямую, без `{ Navigator }` wrapper.
+**Accepted:** `createStackNavigator` and `createBottomTabsNavigator` return a
+React component directly, without a `{ Navigator }` wrapper.
 
-RN screen name — полный зарегистрированный path template, включая parent
-segments; Stack и Tabs не преобразуют его и не используют index fallback.
-`initialRouteName` использует то же имя и допускается только для route без
-required params. Parameterized routes открываются через Router/deep link с
-реальными params и запрещены в Bottom Tabs.
+An RN screen name is the complete registered path template, including parent
+segments. Stack and Tabs do not transform it and do not use an index fallback.
+`initialRouteName` uses the same name and is allowed only for a route without
+required params. Parameterized routes open through Router/deep links with real
+params and are forbidden in Bottom Tabs.
 
-`screenOptions` принадлежит navigator config, а `options` — конкретному RN
-RouteView. Оба поля используют native React Navigation object/callback types;
-navigator передаёт их как есть и не выполняет ручной merge. Stack и Tabs
-используют свои option types.
+`screenOptions` belongs to navigator config, while `options` belongs to one RN
+RouteView. Both use native React Navigation object/callback types. The navigator
+passes them through without manually merging them. Stack and Tabs use their own
+option types.

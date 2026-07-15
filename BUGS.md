@@ -1,5 +1,5 @@
 # Bugs
 
-Набор наблюдаемых дефектов и type/runtime gaps. Вопросы, где нужно выбрать
-публичный контракт, вынесены в [DECISIONS.md](DECISIONS.md). Последовательность
-исправлений и документационных работ находится в [TASKS.md](TASKS.md).
+Observable defects and runtime/type gaps belong here. Questions that require a
+public contract decision belong in [DECISIONS.md](DECISIONS.md). Ordered fixes
+and documentation work belong in [TASKS.md](TASKS.md).
