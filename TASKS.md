@@ -73,7 +73,7 @@ Router, query operators, and all bindings.
       complete `RouteOpenedPayload<T>`. Same-value, query-only, and close
       operations do not emit it.
 
-- [ ] **T09 — Normalize open payloads.** For a route without required params,
+- [x] **T09 — Normalize open payloads.** For a route without required params,
       types and runtime treat `open()`, `open({})`, and
       `open({ params: {} })` as equivalent. A route with required params accepts
       the complete set and never merges missing values from current state.
