@@ -15,16 +15,18 @@ export function prepareBuilder<T>(tokens: Token[]): Builder<T> {
           break;
         }
         case 'parameter': {
-          if (!params[token.name]) {
+          const value = params?.[token.name];
+
+          if (value === null || value === undefined) {
             continue;
           }
 
-          if (Array.isArray(params[token.name])) {
-            for (const param of params[token.name]) {
+          if (Array.isArray(value)) {
+            for (const param of value) {
               result.push(param.toString());
             }
           } else {
-            result.push(params[token.name].toString());
+            result.push(value.toString());
           }
 
           break;
