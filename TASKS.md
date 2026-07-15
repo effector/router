@@ -7,8 +7,8 @@ observable regression from [BUGS.md](BUGS.md) into the nearest applicable stage
 before adding new behavior in that area.
 
 The order below is dependency-driven. Execute stages and tasks from top to
-bottom. Remove a completed task only together with its runtime/type tests,
-documentation, and changeset.
+bottom. Mark a completed task `[x]` only together with its runtime/type tests,
+documentation, and changeset; keep the task text as an audit trail.
 
 Decision rank: **D5 → D3 → D4.1–D4.3 → D4.4 → D1–D2 → D6 → D7–D8 → D9**.
 Stages 6 and 10 are mandatory conformance gates between these contracts.
@@ -18,16 +18,66 @@ Stages 6 and 10 are mandatory conformance gates between these contracts.
 Stabilize `@effector/router-paths` first. Route param inference, URL building,
 matching, nested params, and RN screen names depend on it.
 
+- [x] **T01 — Optional params.** Produce a genuinely optional type shape
+      (`{ id?: string }`, not a required key containing `undefined`). Omit an
+      absent key from the runtime parse result. Cover ordinary, generic,
+      embedded (`/@:user`, `/name-:user`), and array params.
+- [x] **T02 — Shared cardinality.** Apply identical `min`/`max` rules in parser
+      and builder for `+`, `*`, `{min,max}`, and their combinations with `?`.
+      The builder throws a descriptive error; the parser returns `null`.
+- [x] **T03 — Runtime validation of generic values.** Validate builder input for
+      `number`, literal unions, and arrays using the same constraints as the
+      parser. Do not build a URL that the same compiled pattern cannot parse.
+- [x] **T04 — Pathname patterns only.** Add aligned runtime and type-level
+      diagnostics for query, hash, origin/full URL, invalid ranges, unclosed
+      generic/range syntax, and conflicting modifiers. Do not add base, origin,
+      or query configuration to the paths package.
+- [x] **T05 — Paths conformance matrix.** Move compile-time assertions out of
+      production types and into test fixtures. Cover parse/build round trips,
+      bounds, optional omission, embedded params, malformed/adversarial input,
+      and full-URL rejection. Then update the package README, docs, and
+      changeset.
+
 ## 2. Unified Route model — D3
 
 This stage depends on D5 and creates the common route payload/lifecycle used by
 Router, query operators, and all bindings.
 
+- [x] **T06 — Normalize public route types.** Reconcile `PathRoute`,
+      `VirtualRoute`/`PathlessRoute`, `RouteOpenedPayload`, `open`, `close`,
+      `opened`, `updated`, `closed`, `$params`, `$isOpened`, and `$isPending`
+      into one consistent contract. Retain compatible deprecated exports for
+      the current major.
+- [x] **T07 — Implement both `createRoute` forms.** `createRoute({ path })`
+      creates a URL route. `createRoute<Params>()` without a path creates a
+      self-contained virtual route that does not require Router registration
+      and never writes history.
+- [x] **T08 — Deprecated alias without an early removal.** Implement
+      `createVirtualRoute` as a deprecated compatibility wrapper over the shared
+      `createRoute()` lifecycle. Preserve its current generic overloads,
+      `transformer`, and external `$isPending` through the current major. Add
+      type/runtime tests and migration examples using `createRoute()` plus
+      ordinary Effector composition.
+- [x] **T09 — Normalize open payloads.** For a route without required params,
+      types and runtime treat `open()`, `open({})`, and
+      `open({ params: {} })` as equivalent. A route with required params accepts
+      the complete set and never merges missing values from current state.
+- [x] **T10 — Parent params intersection.** Child `$params`, `open`, Link, and
+      builders use the combined parent/child params; the parent stores only its
+      own path params. Reject duplicate param names in type validation and emit
+      a runtime diagnostic for dynamic string patterns.
+- [x] **T11 — Value equality and `route.updated`.** Compare params independent
+      of object key order, while preserving array order and the distinction
+      between `null` and absence. First activation emits only `opened`. A
+      value-different update to an open route emits one `updated` with the
+      complete `RouteOpenedPayload<T>`. Same-value, query-only, and close
+      operations do not emit it.
+
 - [ ] **T09 — Normalize open payloads.** For a route without required params,
       types and runtime treat `open()`, `open({})`, and
       `open({ params: {} })` as equivalent. A route with required params accepts
       the complete set and never merges missing values from current state.
-- [ ] **T12 — Route regression/type matrix.** Cover path and virtual routes,
+- [x] **T12 — Route regression/type matrix.** Cover path and virtual routes,
       payload overloads, the deprecated alias, parent chains deeper than one
       level, conflicting params, replacement updates, SSR/client events, Fork
       API/global scope, and absence of history effects for virtual routes. Update

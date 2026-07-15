@@ -7,7 +7,12 @@ import {
   sample,
 } from 'effector';
 import { describe, expect, test, vi } from 'vitest';
-import { createRoute, createRouter, historyAdapter } from '../lib';
+import {
+  createRoute,
+  createRouter,
+  createVirtualRoute,
+  historyAdapter,
+} from '../lib';
 import { createMemoryHistory } from 'history';
 import { watchCalls } from './utils';
 
@@ -404,6 +409,39 @@ describe('router', () => {
       userId: 'alice',
       postId: 'one',
     });
+  });
+
+  test('route compatibility matrix covers deep parents, SSR, Fork, and virtual history isolation', async () => {
+    const scope = fork();
+    const root = createRoute({ path: '/teams/:teamId' });
+    const section = createRoute({ path: '/sections/:sectionId', parent: root });
+    const page = createRoute({ path: '/pages/:pageId', parent: section });
+    const router = createRouter({ routes: [root, section, page] });
+    const history = createMemoryHistory();
+    const serverOpened = vi.fn();
+
+    root.openedOnServer.watch(serverOpened);
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+    history.push('/teams/acme/sections/core/pages/overview');
+    await allSettled(scope);
+
+    expect(scope.getState(page.$params)).toStrictEqual({
+      teamId: 'acme',
+      sectionId: 'core',
+      pageId: 'overview',
+    });
+    expect(serverOpened).toHaveBeenCalled();
+
+    const virtual = createVirtualRoute();
+    const isolatedHistory = createMemoryHistory();
+    await allSettled(virtual.open, { scope });
+
+    expect(scope.getState(virtual.$isOpened)).toBe(true);
+    expect(isolatedHistory.location.pathname).toBe('/');
   });
 
   test('deduplicates equal route params updates', async () => {

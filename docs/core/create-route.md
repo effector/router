@@ -86,6 +86,10 @@ The first activation emits `opened`, not `updated`. Later value changes emit one
 not emit it. Param comparison ignores object key order but preserves array order
 and the difference between `null` and an absent key.
 
+The route contract is shared by path and pathless routes, including nested
+parent chains and Fork/SSR usage. The deprecated `createVirtualRoute` alias is
+covered by the same compatibility matrix and remains history-independent.
+
 Routes without paths for dialogs, modals, or other non-URL navigation:
 
 ```ts

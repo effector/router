@@ -104,7 +104,7 @@ pnpm changeset status --since=origin/main
 
 ## Completion criteria
 
-Remove a task from TASKS only when all of these are complete:
+Mark a task `[x]` in TASKS only when all of these are complete:
 
 - runtime contract;
 - public type contract;
@@ -113,6 +113,5 @@ Remove a task from TASKS only when all of these are complete:
 - changesets for all affected packages;
 - relevant checks are green.
 
-If only part of a task is complete, keep it and narrow its wording to the actual
-remainder. Remove an accepted decision from DECISIONS only after all tasks
-linked to that decision have been removed from TASKS.
+If only part of a task is complete, keep it unchecked and narrow its wording to
+the actual remainder. Keep accepted decisions in DECISIONS as an audit trail.

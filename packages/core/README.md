@@ -58,6 +58,10 @@ preserves array order and distinguishes `null` from an absent key, skips the
 first activation, and does not fire for equal params, query-only changes, or
 close operations.
 
+The compatibility matrix covers pathless routes, the deprecated virtual-route
+alias, nested parent chains, server/client lifecycle events, Fork scopes, and
+the fact that virtual routes never write to history.
+
 ## Core API
 
 | Export                           | Purpose                                      |
