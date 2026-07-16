@@ -284,7 +284,7 @@ params, the active Router tree, and navigation semantics.
       screen-listener notifications defined by D9.1; do not use
       `__unsafe_action__` or export a native-intent unit. Verify unsubscribe and
       Fork API scope binding for callbacks.
-- [ ] **T50 — Real RN integration suite.** Render the component shape with an
+- [x] **T50 — Real RN integration suite.** Render the component shape with an
       app-owned `NavigationContainer`. Cover direct return, complete names,
       params, initial-route restrictions, tabs, option callbacks, push/replace,
       back/gesture/tab intent, echo suppression, races, scopes, and cleanup.

@@ -167,6 +167,10 @@ the native payload types, prevent native selection where required, and bind
 callbacks to the rendered Effector scope; no public native-intent unit is
 introduced.
 
+The package integration fixture renders both navigator shapes with an
+app-owned ref and covers screen/options rendering, readiness races, params,
+native echo suppression, tab intent, and listener cleanup.
+
 ## React Navigation Features
 
 While navigation is managed by Effector Router, you still get all React Navigation features:

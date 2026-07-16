@@ -86,7 +86,9 @@ export function createStackNavigator(
         scope: scope ?? undefined,
         navigation: {
           navigate: (name, params) =>
-            navigationRef.navigate(name, params as object | undefined),
+            params === undefined
+              ? navigationRef.navigate(name)
+              : navigationRef.navigate(name, params as object),
           replace: (name, params) =>
             navigationRef.dispatch(
               StackActions.replace(name, params as object | undefined),

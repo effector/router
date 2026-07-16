@@ -79,6 +79,11 @@ The navigator factories return the native component directly. The app owns the
 navigator. The binding subscribes to the ref's `ready` and `state` notifications
 and removes those subscriptions when the component unmounts.
 
+The integration contract is exercised with an app-owned ref in
+`packages/react-native/tests/integration.test.tsx`: direct component return,
+complete screen names, native option callbacks, pre-ready latest-target
+synchronization, params, native echo suppression, tab presses, and cleanup.
+
 ## Documentation
 
 Full guides and API reference: **[router.effector.dev/react-native](https://router.effector.dev/react-native)**
