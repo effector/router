@@ -51,7 +51,7 @@ const navigationRef = createNavigationContainerRef();
 export default function App() {
   return (
     <RouterProvider router={router}>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <Stack navigationRef={navigationRef} />
       </NavigationContainer>
     </RouterProvider>

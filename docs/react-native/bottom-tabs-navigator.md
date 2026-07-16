@@ -11,7 +11,10 @@ import { createBottomTabsNavigator } from '@effector/router-react-native';
 ## Usage
 
 ```tsx
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  createNavigationContainerRef,
+  NavigationContainer,
+} from '@react-navigation/native';
 import { createBottomTabsNavigator } from '@effector/router-react-native';
 import { createRouter, createRoute } from '@effector/router';
 import { createRouteView, RouterProvider } from '@effector/router-react';
@@ -51,12 +54,13 @@ const TabsNavigator = createBottomTabsNavigator({
     ),
   },
 });
+const navigationRef = createNavigationContainerRef();
 
 export default function App() {
   return (
     <RouterProvider router={router}>
-      <NavigationContainer>
-        <TabsNavigator />
+      <NavigationContainer ref={navigationRef}>
+        <TabsNavigator navigationRef={navigationRef} />
       </NavigationContainer>
     </RouterProvider>
   );
@@ -64,6 +68,21 @@ export default function App() {
 ```
 
 ## Configuration
+
+The factory returns the tab navigator component directly. The app owns the
+`navigationRef` and passes it to both `NavigationContainer` and the navigator:
+
+```tsx
+const navigationRef = createNavigationContainerRef();
+
+<NavigationContainer ref={navigationRef}>
+  <TabsNavigator navigationRef={navigationRef} />
+</NavigationContainer>;
+```
+
+The binding listens for native readiness/state changes and removes those
+listeners on unmount. It does not create a container, Router, or history
+adapter.
 
 ### `router` (required)
 

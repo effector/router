@@ -84,7 +84,7 @@ const navigationRef = createNavigationContainerRef();
 export default function App() {
   return (
     <RouterProvider router={router}>
-      <NavigationContainer>
+      <NavigationContainer ref={navigationRef}>
         <StackNavigator navigationRef={navigationRef} />
       </NavigationContainer>
     </RouterProvider>
