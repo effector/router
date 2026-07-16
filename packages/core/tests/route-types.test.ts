@@ -5,6 +5,7 @@ import type {
   PathlessRoute,
   QueryTrackerState,
   RouteOpenedPayload,
+  RouteOpenPayload,
   RouteUpdatedPayload,
   VirtualRoute,
 } from '../lib';
@@ -34,6 +35,22 @@ test('routes without params accept equivalent empty open payloads', () => {
   route.open();
   route.open({});
   route.open({ params: {} });
+});
+
+test('open exposes the public RouteOpenPayload contract', () => {
+  const params = createRoute({ path: '/post/:id' });
+  expectTypeOf(params.open).toEqualTypeOf<
+    EventCallable<RouteOpenPayload<{ id: string }>>
+  >();
+
+  params.open({ params: { id: '1' } });
+  // @ts-expect-error a params route requires the complete param set
+  params.open();
+
+  const empty = createRoute();
+  expectTypeOf(empty.open).toEqualTypeOf<
+    EventCallable<RouteOpenPayload<void>>
+  >();
 });
 
 test('rejects duplicate parent and child parameter names', () => {
