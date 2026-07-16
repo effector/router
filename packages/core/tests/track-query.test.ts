@@ -443,4 +443,47 @@ describe('trackQuery', () => {
 
     expect(scope.getState($searchQuery)).toEqual({ q: 'router', page: 2 });
   });
+
+  test('keeps automatic tracking isolated between forked scopes', async () => {
+    const routes = { home: createRoute({ path: '/' }) };
+    const controls = createRouterControls();
+    const router = createRouter({ routes: [routes.home], controls });
+    const tracker = trackQuery({
+      controls,
+      parameters: z.object({ q: z.string() }),
+    });
+    const scopeA = fork();
+    const scopeB = fork();
+    const enteredA = watchCalls(tracker.entered, scopeA);
+    const enteredB = watchCalls(tracker.entered, scopeB);
+
+    await allSettled(router.setHistory, {
+      scope: scopeA,
+      params: historyAdapter(createMemoryHistory({ initialEntries: ['/'] })),
+    });
+    await allSettled(router.setHistory, {
+      scope: scopeB,
+      params: historyAdapter(createMemoryHistory({ initialEntries: ['/'] })),
+    });
+
+    await allSettled(router.navigate, {
+      scope: scopeA,
+      params: { path: '/', query: { q: 'a' } },
+    });
+
+    expect(scopeA.getState(controls.$query)).toStrictEqual({ q: 'a' });
+    expect(scopeB.getState(controls.$query)).toStrictEqual({});
+    expect(enteredA).toHaveBeenCalledWith({ q: 'a' });
+    expect(enteredB).not.toHaveBeenCalled();
+
+    await allSettled(router.navigate, {
+      scope: scopeB,
+      params: { path: '/', query: { q: 'b' } },
+    });
+
+    expect(scopeA.getState(controls.$query)).toStrictEqual({ q: 'a' });
+    expect(scopeB.getState(controls.$query)).toStrictEqual({ q: 'b' });
+    expect(enteredB).toHaveBeenCalledWith({ q: 'b' });
+    expect(controls.$query.getState()).toStrictEqual({});
+  });
 });

@@ -66,7 +66,7 @@ export type Route<T extends object | void = void> =
   | PathlessRoute<T>;
 
 export type QueryTrackerConfig<ParametersConfig extends ZodType> = {
-  routes?: Route<any>[];
+  readonly routes?: readonly Route<any>[];
   parameters: ParametersConfig;
 };
 
