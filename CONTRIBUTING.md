@@ -138,6 +138,11 @@ Vue, and React Native separately from the negative fixture, which uses
 `@ts-expect-error` to lock the documented restrictions for route parameters,
 path patterns, `Link`, and the app-owned React Native navigation ref.
 
+The runnable quick-start fixtures live in [`docs/quick-starts`](docs/quick-starts).
+The core, React, Solid, Vue, and React Native package smoke suites import those
+fixtures directly, so documentation changes should keep the shown setup and
+the tested setup identical.
+
 ## Working on a change
 
 1. **Create a branch** off `main` in your fork.

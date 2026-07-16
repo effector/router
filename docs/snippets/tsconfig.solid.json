@@ -4,5 +4,5 @@
     "jsx": "preserve",
     "jsxImportSource": "solid-js"
   },
-  "include": ["./solid.tsx"]
+  "include": ["./solid.tsx", "../quick-starts/solid.tsx"]
 }

@@ -304,7 +304,7 @@ changesets rather than deferring them here.
 - [x] **T53 — Validate source and sidebar links.** Automate checks for source
       `@link` references, internal Markdown links, VitePress sidebar entries, and
       missing or orphaned public-API pages.
-- [ ] **T54 — Smoke-test quick starts.** Create one reusable fixture for each
+- [x] **T54 — Smoke-test quick starts.** Create one reusable fixture for each
       published quick start: core, React, Solid, Vue, and RN. Docs include or
       reproduce the same verified code without an alternative pseudo-API. Every
       fixture builds and typechecks; fixtures with a renderer also open the

@@ -19,6 +19,12 @@ vi.mock('@react-navigation/native', () => ({
   },
 }));
 
+vi.mock('react-native', () => ({
+  Text: ({ children }: { children?: React.ReactNode }) => (
+    <span>{children}</span>
+  ),
+}));
+
 vi.mock('@react-navigation/stack', () => ({
   createStackNavigator: () => ({
     Navigator: ({ children }: { children: React.ReactNode }) => (
@@ -196,5 +202,39 @@ describe('React Native navigator integration shape', () => {
     rendered.unmount();
     expect(native.listenerCount('ready')).toBe(0);
     expect(native.listenerCount('state')).toBe(0);
+  });
+
+  test('runs the published React Native quick start through the same harness', async () => {
+    const { createReactNativeQuickStart } =
+      await import('../../../docs/quick-starts/react-native');
+    const quickStart = createReactNativeQuickStart();
+    const scope = fork();
+    await allSettled(quickStart.router.setHistory, {
+      scope,
+      params: historyAdapter(
+        createMemoryHistory({ initialEntries: ['/home'] }),
+      ),
+    });
+    const native = createNavigationRef(false);
+    const rendered = render(
+      <Provider value={scope}>
+        <quickStart.Stack navigationRef={native.ref as never} />
+      </Provider>,
+    );
+
+    expect(rendered.getByTestId('stack-screen-/home')).toBeTruthy();
+    expect(rendered.getByTestId('stack-screen-/profile/:id')).toBeTruthy();
+
+    await allSettled(quickStart.profile.open, {
+      scope,
+      params: { params: { id: '42' } },
+    });
+    native.ready();
+    native.emit('ready');
+    expect(native.ref.navigate).toHaveBeenCalledWith('/profile/:id', {
+      id: '42',
+    });
+
+    rendered.unmount();
   });
 });
