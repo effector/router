@@ -9,7 +9,12 @@ import type { Router } from '@effector/router';
 import type { RouteView } from '@effector/router-react';
 import { createWatch, scopeBind } from 'effector';
 import { useProvidedScope } from 'effector-react';
-import { getScreenKey, getScreenName } from './route-name';
+import {
+  getScreenKey,
+  getScreenName,
+  validateBottomTabsRoutes,
+  validateInitialRouteName,
+} from './route-name';
 import { flattenRouteViews } from './route-views';
 import { syncActiveRoute } from './navigation-sync';
 import { createRouteListeners, openRoute } from './navigation-events';
@@ -62,6 +67,9 @@ export function createBottomTabsNavigator(
   config: BottomTabsNavigatorConfig,
 ): NativeNavigator {
   const { router: Router, routes, screenOptions, initialRouteName } = config;
+  const flatRoutes = flattenRouteViews(routes);
+  validateBottomTabsRoutes(flatRoutes);
+  validateInitialRouteName(flatRoutes, initialRouteName);
 
   const BottomTabsNavigator = function BottomTabsNavigator({
     navigationRef,

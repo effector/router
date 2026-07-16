@@ -268,7 +268,7 @@ params, the active Router tree, and navigation semantics.
       Pass navigator `screenOptions` and per-screen `options` through as native
       object/callback values without manually merging them. Stack and Tabs retain
       their distinct native option types.
-- [ ] **T47 — Stable screen names.** Derive a name from the complete registered
+- [x] **T47 — Stable screen names.** Derive a name from the complete registered
       path template, including parent and base segments, without an index
       fallback. Validate `initialRouteName` only for routes without required
       params. Reject parameterized routes in Bottom Tabs.

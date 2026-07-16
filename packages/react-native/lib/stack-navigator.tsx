@@ -9,7 +9,11 @@ import type { Router } from '@effector/router';
 import type { RouteView } from '@effector/router-react';
 import { createWatch, scopeBind } from 'effector';
 import { useProvidedScope } from 'effector-react';
-import { getScreenKey, getScreenName } from './route-name';
+import {
+  getScreenKey,
+  getScreenName,
+  validateInitialRouteName,
+} from './route-name';
 import { flattenRouteViews } from './route-views';
 import { syncActiveRoute } from './navigation-sync';
 import { createRouteListeners } from './navigation-events';
@@ -62,6 +66,7 @@ export function createStackNavigator(
   config: StackNavigatorConfig,
 ): NativeNavigator {
   const { router: Router, routes, screenOptions, initialRouteName } = config;
+  validateInitialRouteName(flattenRouteViews(routes), initialRouteName);
 
   const StackNavigator = function StackNavigator({
     navigationRef,

@@ -177,6 +177,10 @@ const StackNavigator = createStackNavigator({
 
 Name of the route to render on initial render.
 
+Use the complete registered path template. It may reference only a route whose
+required path parameters can be omitted; parameterized routes must be opened by
+Router with real params.
+
 ```tsx
 const StackNavigator = createStackNavigator({
   router,

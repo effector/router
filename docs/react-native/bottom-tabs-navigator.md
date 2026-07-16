@@ -185,6 +185,10 @@ See [React Navigation Bottom Tabs documentation](https://reactnavigation.org/doc
 
 Name of the route to render on initial render.
 
+Bottom Tabs accept only routes without path parameters (including optional
+parameters). Use a Stack navigator or Router-driven screen for parameterized
+routes.
+
 ```tsx
 const TabsNavigator = createBottomTabsNavigator({
   router,

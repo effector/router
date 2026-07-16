@@ -150,6 +150,11 @@ history adapter. It subscribes to native `ready` and `state` notifications,
 reads a complete root snapshot from the ref, handles an already-ready ref, and
 cleans up listeners on unmount.
 
+Screen names are complete registered path templates, including parent segments
+(for example, `/users/:userId/settings`); no positional/index fallback is
+generated. A route with required path parameters cannot be selected through
+`initialRouteName` and must be opened by Router with real params.
+
 ## React Navigation Features
 
 While navigation is managed by Effector Router, you still get all React Navigation features:
