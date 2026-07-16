@@ -1,6 +1,6 @@
 import { allSettled, fork } from 'effector';
 import { Provider } from 'effector-solid';
-import { onCleanup, onMount } from 'solid-js';
+import { createSignal, onCleanup, onMount } from 'solid-js';
 import { describe, expect, test, vi } from 'vitest';
 import { fireEvent, render } from '@solidjs/testing-library';
 import {
@@ -18,8 +18,10 @@ import {
   Link,
   Outlet,
   RouterProvider,
+  useLink,
   withLayout,
 } from '../lib';
+import type { QueryInput } from '@effector/router';
 
 describe('solid bindings', () => {
   test('assigns one private layout group per withLayout call', () => {
@@ -266,6 +268,54 @@ describe('solid bindings', () => {
     expect(history.location.pathname + history.location.search).toBe(
       '/target/42?flag&keep=yes',
     );
+  });
+
+  test('useLink exposes reactive params/query and opens directly', async () => {
+    const target = createRoute({ path: '/target/:id' });
+    const scope = fork();
+    const router = createRouter({ routes: [target] });
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(createMemoryHistory()),
+    });
+    const [params, setParams] = createSignal({ id: 'one' });
+    const [query, setQuery] = createSignal<QueryInput>({ tab: 'first' });
+
+    const DirectLink = () => {
+      const link = useLink(target, params, query);
+      return (
+        <>
+          <a id="direct" href={link.path()} />
+          <button
+            id="open-direct"
+            onClick={() => link.onOpen({ params: params(), query: query() })}
+          />
+        </>
+      );
+    };
+    const { container } = render(() => (
+      <Provider value={scope}>
+        <RouterProvider router={router}>
+          <DirectLink />
+        </RouterProvider>
+      </Provider>
+    ));
+
+    expect(container.querySelector('#direct')?.getAttribute('href')).toBe(
+      '/target/one?tab=first',
+    );
+    setParams({ id: 'two' });
+    setQuery({ tab: 'second' });
+    await vi.waitFor(() =>
+      expect(container.querySelector('#direct')?.getAttribute('href')).toBe(
+        '/target/two?tab=second',
+      ),
+    );
+
+    container.querySelector<HTMLButtonElement>('#open-direct')!.click();
+    await allSettled(scope);
+    expect(scope.getState(target.$isOpened)).toBe(true);
+    expect(scope.getState(target.$params)).toStrictEqual({ id: 'two' });
   });
 
   test('preserves native behavior for non-navigation clicks', async () => {

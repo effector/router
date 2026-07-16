@@ -240,7 +240,7 @@ This stage depends on final route payloads (D3) and query policy (D1–D2).
 - [x] **T41 — React Link.** Add runtime and type coverage for conditional params,
       current/explicit/empty query, modified/secondary clicks, `_blank`,
       cancellation, refs, and anchor attributes. Update D7 docs and README.
-- [ ] **T42 — Solid Link/useLink.** Cover direct `useLink`, reactive params and
+- [x] **T42 — Solid Link/useLink.** Cover direct `useLink`, reactive params and
       query, activeClass policy, the native click matrix, and conditional params.
       Keep shared documentation aligned with React and Vue.
 - [ ] **T43 — Vue Link.** Verify exported generic `LinkProps<Params>`,

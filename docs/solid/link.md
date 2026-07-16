@@ -38,3 +38,17 @@ replaces it, and `{}` clears it. The same payload passed to `route.open` produce
 the same URL.
 
 `Link` uses router context and throws when `to` is not registered in the provided router.
+
+## `useLink`
+
+`useLink(to, params, query)` is the imperative equivalent. `params` and `query`
+are Solid accessors, so the returned `path` accessor updates when either value
+changes. Call the returned `onOpen` event with the same payload used by
+`route.open`.
+
+```tsx
+const [params, setParams] = createSignal({ id: '42' });
+const link = useLink(userRoute, params);
+
+return <a href={link.path()}>User</a>;
+```

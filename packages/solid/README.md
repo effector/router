@@ -91,6 +91,8 @@ const UserScreen = createRouteView({
   rendered without a depth limit.
 
 Unlike the React binding, `useIsOpened` and `useOpenedViews` return Solid accessors (`() => value`). `useLink` returns `{ path, onOpen }`: `path` is an accessor, `onOpen` is a callable Effector event, and the params argument is also an accessor.
+`LinkProps` conditionally requires route params, and all standard anchor
+attributes remain available.
 
 ## Documentation
 
