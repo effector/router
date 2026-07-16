@@ -5,15 +5,16 @@ import {
   BottomTabNavigationOptions,
   BottomTabNavigatorProps,
 } from '@react-navigation/bottom-tabs';
-import { useNavigation } from '@react-navigation/native';
 import type { Router } from '@effector/router';
 import type { RouteView } from '@effector/router-react';
-import { createWatch } from 'effector';
+import { createWatch, scopeBind } from 'effector';
 import { useProvidedScope } from 'effector-react';
 import { getScreenKey, getScreenName, getScreenTitle } from './route-name';
 import { flattenRouteViews } from './route-views';
 import { syncActiveRoute } from './navigation-sync';
 import { createRouteListeners, openRoute } from './navigation-events';
+import { NativeNavigator, NativeNavigatorProps } from './native-navigator';
+import { subscribeNavigation } from './navigation-bridge';
 
 export type BottomTabsNavigatorConfig = {
   router: Router;
@@ -53,28 +54,39 @@ const Tab = createBottomTabNavigator();
  * }
  * ```
  */
-export function createBottomTabsNavigator(config: BottomTabsNavigatorConfig): {
-  Navigator: React.ComponentType;
-} {
+export function createBottomTabsNavigator(
+  config: BottomTabsNavigatorConfig,
+): NativeNavigator {
   const { router: Router, routes, screenOptions, initialRouteName } = config;
 
-  const BottomTabsNavigator = function BottomTabsNavigator() {
+  const BottomTabsNavigator = function BottomTabsNavigator({
+    navigationRef,
+  }: NativeNavigatorProps) {
     const scope = useProvidedScope();
     const routeViews = React.useMemo(() => flattenRouteViews(routes), [routes]);
-    const navigation = useNavigation<{ navigate: (name: string) => void }>();
 
     // Sync Router state with the navigation object from NavigationContainer.
     useEffect(() => {
+      const onSnapshot = (snapshot: unknown) => {
+        void snapshot;
+      };
+      const unsubscribeNative = subscribeNavigation(
+        navigationRef,
+        scope ? scopeBind(onSnapshot, { scope }) : onSnapshot,
+      );
       const subscription = createWatch({
         unit: Router.$activeRoutes,
         scope: scope ?? undefined,
         fn: (activeRoutes) => {
-          syncActiveRoute(navigation, activeRoutes, routeViews);
+          syncActiveRoute(navigationRef, activeRoutes, routeViews);
         },
       });
 
-      return () => subscription.unsubscribe();
-    }, [navigation, routeViews, scope]);
+      return () => {
+        unsubscribeNative();
+        subscription.unsubscribe();
+      };
+    }, [navigationRef, routeViews, scope]);
 
     // Handle tab press to open route in  Router
     return (
@@ -109,5 +121,5 @@ export function createBottomTabsNavigator(config: BottomTabsNavigatorConfig): {
     );
   };
 
-  return { Navigator: BottomTabsNavigator };
+  return BottomTabsNavigator as unknown as NativeNavigator;
 }

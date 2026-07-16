@@ -255,7 +255,7 @@ This stage depends on final route payloads (D3) and query policy (D1–D2).
 RN is the final binding stage because it depends on final route identity, nested
 params, the active Router tree, and navigation semantics.
 
-- [ ] **T45 — App-owned RN ref bridge.** Make `createStackNavigator` and
+- [x] **T45 — App-owned RN ref bridge.** Make `createStackNavigator` and
       `createBottomTabsNavigator` return `NativeNavigator` components directly.
       Require the app-owned `navigationRef` component prop; do not create a
       container, Router, history adapter, callback pair, or public intent unit.

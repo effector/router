@@ -18,7 +18,10 @@ npm install @effector/router-react-native @effector/router @effector/router-reac
 
 ```tsx
 import { Text } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  createNavigationContainerRef,
+  NavigationContainer,
+} from '@react-navigation/native';
 import { createStackNavigator } from '@effector/router-react-native';
 import { createRoute, createRouter } from '@effector/router';
 import { RouterProvider, createRouteView } from '@effector/router-react';
@@ -29,20 +32,27 @@ const details = createRoute({ path: '/details/:id' });
 const router = createRouter({ routes: [home, details] });
 
 // 2. Screens
-const HomeScreen = createRouteView({ route: home, view: () => <Text>Home</Text> });
-const DetailsScreen = createRouteView({ route: details, view: () => <Text>Details</Text> });
+const HomeScreen = createRouteView({
+  route: home,
+  view: () => <Text>Home</Text>,
+});
+const DetailsScreen = createRouteView({
+  route: details,
+  view: () => <Text>Details</Text>,
+});
 
 // 3. Native navigator driven by the router
 const Stack = createStackNavigator({
   router,
   routes: [HomeScreen, DetailsScreen],
 });
+const navigationRef = createNavigationContainerRef();
 
 export default function App() {
   return (
     <RouterProvider router={router}>
       <NavigationContainer>
-        <Stack />
+        <Stack navigationRef={navigationRef} />
       </NavigationContainer>
     </RouterProvider>
   );
@@ -61,6 +71,11 @@ details.open({ params: { id: '123' } });
 Both accept React Navigation's `screenOptions` and per-screen options, so styling and behavior stay fully
 configurable. Navigation always flows through route events (`route.open(...)`), which keeps logic centralized and
 easy to test.
+
+The navigator factories return the native component directly. The app owns the
+`NavigationContainer` and its ref, and passes that same `navigationRef` to the
+navigator. The binding subscribes to the ref's `ready` and `state` notifications
+and removes those subscriptions when the component unmounts.
 
 ## Documentation
 

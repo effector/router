@@ -11,7 +11,10 @@ import { createStackNavigator } from '@effector/router-react-native';
 ## Usage
 
 ```tsx
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  createNavigationContainerRef,
+  NavigationContainer,
+} from '@react-navigation/native';
 import { createStackNavigator } from '@effector/router-react-native';
 import { createRouter, createRoute } from '@effector/router';
 import { createRouteView, RouterProvider } from '@effector/router-react';
@@ -53,12 +56,13 @@ const StackNavigator = createStackNavigator({
     headerTitleStyle: { fontWeight: 'bold' },
   },
 });
+const navigationRef = createNavigationContainerRef();
 
 export default function App() {
   return (
     <RouterProvider router={router}>
       <NavigationContainer>
-        <StackNavigator />
+        <StackNavigator navigationRef={navigationRef} />
       </NavigationContainer>
     </RouterProvider>
   );
@@ -66,6 +70,22 @@ export default function App() {
 ```
 
 ## Configuration
+
+The factory returns the navigator component directly. `navigationRef` is
+required and must be created and owned by the application, then passed to both
+`NavigationContainer` and the returned component:
+
+```tsx
+const navigationRef = createNavigationContainerRef();
+
+<NavigationContainer ref={navigationRef}>
+  <StackNavigator navigationRef={navigationRef} />
+</NavigationContainer>;
+```
+
+The binding listens for native readiness/state changes and removes those
+listeners on unmount. It does not create a `NavigationContainer`, Router, or
+history adapter.
 
 ### `router` (required)
 

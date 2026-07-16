@@ -5,15 +5,16 @@ import {
   StackNavigatorProps,
   StackNavigationOptions,
 } from '@react-navigation/stack';
-import { useNavigation } from '@react-navigation/native';
 import type { Router } from '@effector/router';
 import type { RouteView } from '@effector/router-react';
-import { createWatch } from 'effector';
+import { createWatch, scopeBind } from 'effector';
 import { useProvidedScope } from 'effector-react';
 import { getScreenKey, getScreenName } from './route-name';
 import { flattenRouteViews } from './route-views';
 import { syncActiveRoute } from './navigation-sync';
 import { createRouteListeners } from './navigation-events';
+import { NativeNavigator, NativeNavigatorProps } from './native-navigator';
+import { subscribeNavigation } from './navigation-bridge';
 
 export type StackNavigatorConfig = {
   router: Router;
@@ -53,28 +54,39 @@ const Stack = createReactNavigationStackNavigator();
  * }
  * ```
  */
-export function createStackNavigator(config: StackNavigatorConfig): {
-  Navigator: React.ComponentType;
-} {
+export function createStackNavigator(
+  config: StackNavigatorConfig,
+): NativeNavigator {
   const { router: Router, routes, screenOptions, initialRouteName } = config;
 
-  const StackNavigator = function StackNavigator() {
+  const StackNavigator = function StackNavigator({
+    navigationRef,
+  }: NativeNavigatorProps) {
     const scope = useProvidedScope();
     const routeViews = React.useMemo(() => flattenRouteViews(routes), [routes]);
-    const navigation = useNavigation<{ navigate: (name: string) => void }>();
 
     // Sync Router state with the navigation object from NavigationContainer.
     useEffect(() => {
+      const onSnapshot = (snapshot: unknown) => {
+        void snapshot;
+      };
+      const unsubscribeNative = subscribeNavigation(
+        navigationRef,
+        scope ? scopeBind(onSnapshot, { scope }) : onSnapshot,
+      );
       const subscription = createWatch({
         unit: Router.$activeRoutes,
         scope: scope ?? undefined,
         fn: (activeRoutes) => {
-          syncActiveRoute(navigation, activeRoutes, routeViews);
+          syncActiveRoute(navigationRef, activeRoutes, routeViews);
         },
       });
 
-      return () => subscription.unsubscribe();
-    }, [navigation, routeViews, scope]);
+      return () => {
+        unsubscribeNative();
+        subscription.unsubscribe();
+      };
+    }, [navigationRef, routeViews, scope]);
 
     return (
       <Stack.Navigator
@@ -98,5 +110,5 @@ export function createStackNavigator(config: StackNavigatorConfig): {
     );
   };
 
-  return { Navigator: StackNavigator };
+  return StackNavigator as unknown as NativeNavigator;
 }

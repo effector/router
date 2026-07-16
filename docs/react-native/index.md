@@ -42,7 +42,10 @@ npm install react-native-screens react-native-safe-area-context
 ## Quick Example
 
 ```tsx
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  createNavigationContainerRef,
+  NavigationContainer,
+} from '@react-navigation/native';
 import { createStackNavigator } from '@effector/router-react-native';
 import { createRouter, createRoute } from '@effector/router';
 import { createRouteView, RouterProvider } from '@effector/router-react';
@@ -75,13 +78,14 @@ const StackNavigator = createStackNavigator({
     headerStyle: { backgroundColor: '#f4511e' },
   },
 });
+const navigationRef = createNavigationContainerRef();
 
 // 5. Use in app
 export default function App() {
   return (
     <RouterProvider router={router}>
       <NavigationContainer>
-        <StackNavigator />
+        <StackNavigator navigationRef={navigationRef} />
       </NavigationContainer>
     </RouterProvider>
   );
@@ -137,8 +141,14 @@ This approach provides:
 
 - Centralized navigation logic
 - Easy testing (trigger events in tests)
-- State persistence
-- Time-travel debugging
+- Router-owned state and deterministic route events
+
+The app owns `NavigationContainer` and its `navigationRef`. Pass the same ref to
+the navigator component returned by `createStackNavigator` or
+`createBottomTabsNavigator`; the binding does not create a container, Router, or
+history adapter. It subscribes to native `ready` and `state` notifications,
+reads a complete root snapshot from the ref, handles an already-ready ref, and
+cleans up listeners on unmount.
 
 ## React Navigation Features
 
