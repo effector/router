@@ -27,6 +27,7 @@ export type {
   RouteUpdatedPayload,
   NavigatePayload,
   QueryTracker,
+  QueryTrackerState,
   QueryTrackerConfig,
   TrackQueryConfig,
   VirtualRoute,

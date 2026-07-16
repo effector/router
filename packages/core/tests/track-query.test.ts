@@ -324,6 +324,7 @@ describe('trackQuery', () => {
     });
     const enteredCalls = watchCalls(tracker.entered, scope);
     const exitedCalls = watchCalls(tracker.exited, scope);
+    const stateChanges = watchCalls(tracker.$state.updates, scope);
 
     await allSettled(router.setHistory, {
       scope,
@@ -333,6 +334,7 @@ describe('trackQuery', () => {
       scope,
       params: { path: '/', query: { id: 'home' } },
     });
+    stateChanges.mockClear();
 
     const navigation = allSettled(router.navigate, {
       scope,
@@ -345,6 +347,10 @@ describe('trackQuery', () => {
     expect(enteredCalls).toHaveBeenCalledTimes(1);
     expect(enteredCalls).toHaveBeenLastCalledWith({ id: 'home' });
     expect(exitedCalls).not.toHaveBeenCalled();
+    expect(scope.getState(tracker.$state)).toStrictEqual({
+      status: 'pending',
+    });
+    expect(stateChanges).not.toHaveBeenCalledWith({ status: 'inactive' });
 
     releasePreparation();
     await navigation;
@@ -352,6 +358,11 @@ describe('trackQuery', () => {
     expect(enteredCalls).toHaveBeenCalledTimes(2);
     expect(enteredCalls).toHaveBeenLastCalledWith({ id: 'app' });
     expect(exitedCalls).not.toHaveBeenCalled();
+    expect(scope.getState(tracker.$state)).toStrictEqual({
+      status: 'entered',
+      params: { id: 'app' },
+    });
+    expect(stateChanges).not.toHaveBeenCalledWith({ status: 'inactive' });
   });
 
   test('exits after the selected route activation fails', async () => {
@@ -390,6 +401,9 @@ describe('trackQuery', () => {
     expect(exitedCalls).toHaveBeenCalledTimes(1);
     expect(scope.getState(routes.app.$isOpened)).toBe(false);
     expect(scope.getState(routes.app.$isPending)).toBe(false);
+    expect(scope.getState(tracker.$state)).toStrictEqual({
+      status: 'inactive',
+    });
   });
 
   test('stabilizes activity across mapped pathless routes', async () => {
@@ -568,6 +582,63 @@ describe('trackQuery', () => {
     });
 
     expect(enteredCalls).toHaveBeenCalledWith({ id: '123' });
+  });
+
+  test('derives current scoped state when created after history initialization', async () => {
+    const routes = { home: createRoute({ path: '/' }) };
+    const controls = createRouterControls();
+    const router = createRouter({ routes: [routes.home], controls });
+    const scope = fork();
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(
+        createMemoryHistory({ initialEntries: ['/?id=123'] }),
+      ),
+    });
+
+    const tracker = trackQuery({
+      controls,
+      routes: [routes.home],
+      parameters: z.object({ id: z.string() }),
+    });
+
+    expect(scope.getState(tracker.$state)).toStrictEqual({
+      status: 'entered',
+      params: { id: '123' },
+    });
+
+    await allSettled(router.navigate, {
+      scope,
+      params: { query: { id: null } },
+    });
+
+    expect(scope.getState(tracker.$state)).toStrictEqual({
+      status: 'inactive',
+    });
+  });
+
+  test('parses parameters once per evaluation', async () => {
+    const controls = createRouterControls();
+    const router = createRouter({ routes: [], controls });
+    const parameters = z.object({ q: z.string() });
+    const safeParse = vi.spyOn(parameters, 'safeParse');
+    const tracker = trackQuery({ controls, parameters });
+    const scope = fork();
+
+    safeParse.mockClear();
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(
+        createMemoryHistory({ initialEntries: ['/?q=router'] }),
+      ),
+    });
+
+    expect(safeParse).toHaveBeenCalledTimes(1);
+    expect(scope.getState(tracker.$state)).toStrictEqual({
+      status: 'entered',
+      params: { q: 'router' },
+    });
   });
 
   test('maps parsed query parameters into a store', async () => {

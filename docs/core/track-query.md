@@ -31,12 +31,21 @@ opens. If target activation fails, an already entered tracker exits.
 
 `QueryTracker<T>` with the following properties:
 
-| Property  | Type                                         | Description                            |
-| --------- | -------------------------------------------- | -------------------------------------- |
-| `enter`   | `Event<z.infer<T>>`                          | Programmatically add parameters to URL |
-| `entered` | `Event<z.infer<T>>`                          | Fires when parameters match schema     |
-| `exit`    | `Event<{ ignoreParams?: string[] } \| void>` | Programmatically remove parameters     |
-| `exited`  | `Event<void>`                                | Fires when parameters no longer match  |
+| Property  | Type                                         | Description                                 |
+| --------- | -------------------------------------------- | ------------------------------------------- |
+| `$state`  | `Store<QueryTrackerState<T>>`                | Current inactive, pending, or entered state |
+| `enter`   | `Event<z.infer<T>>`                          | Programmatically add parameters to URL      |
+| `entered` | `Event<z.infer<T>>`                          | Fires when parameters match schema          |
+| `exit`    | `Event<{ ignoreParams?: string[] } \| void>` | Programmatically remove parameters          |
+| `exited`  | `Event<void>`                                | Fires when parameters no longer match       |
+
+`$state` is evaluated from the current stores, so it is already accurate when
+the tracker is created after history initialization or read from a Fork. Its
+states are `{ status: 'inactive' }`, `{ status: 'pending' }`, and
+`{ status: 'entered', params }`. Use the store when current state matters;
+`entered` and `exited` describe transitions observed after tracker creation and
+do not replay a state that already existed. For late creation, sample `$state`
+with the consumer's own lifecycle event.
 
 `enter` accepts only keys declared by the schema and URL-compatible values:
 `string`, `null`, or ordered arrays of those values. Convert numbers, dates,
@@ -96,10 +105,10 @@ sample({
 });
 ```
 
-### Gate a tracker externally
+### Read the tracker when the application starts
 
-`trackQuery` reacts continuously and has no `check` clock. Compose one-shot or
-application-readiness policy from ordinary Effector units:
+Compose application-readiness policy from the current `$state` and an ordinary
+Effector clock:
 
 ```ts
 import {
@@ -111,7 +120,7 @@ import {
 import { sample } from 'effector';
 import { z } from 'zod';
 import { acceptInvitationFx } from '@shared/api';
-import { $appStarted } from '@shared/global';
+import { appStarted } from '@shared/global';
 
 const familyRoute = createRoute({ path: '/search' });
 const controls = createRouterControls();
@@ -129,8 +138,13 @@ const invitationTracker = trackQuery({
 });
 
 sample({
-  clock: invitationTracker.entered,
-  filter: $appStarted,
+  clock: appStarted,
+  source: invitationTracker.$state,
+  filter: (
+    state,
+  ): state is { status: 'entered'; params: { inviteId: string } } =>
+    state.status === 'entered',
+  fn: (state) => state.params,
   target: acceptInvitationFx,
 });
 ```

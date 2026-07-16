@@ -168,10 +168,10 @@ searchTracker.enter({ q: 'router', page: '2' });
 | `routes`     | `Route[]`        | Optional OR filter based on each route's `$isOpened` store     |
 | `parameters` | `ZodType`        | Schema used to validate and parse the tracked query parameters |
 
-The tracker reacts automatically to query and route activity. One-shot checks
-are composed with ordinary Effector events and `sample`; there is no `check`
-field. Migrate existing `router.trackQuery` and `controls.trackQuery` calls to
-the standalone operator.
+The tracker reacts automatically to query and route activity. Its `$state`
+store exposes the current inactive, pending, or entered state, including when a
+tracker is created after history initialization. Compose one-shot behavior from
+that store and an application event with `sample`.
 
 ### Server-Side Rendering
 

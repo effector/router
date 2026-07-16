@@ -79,7 +79,14 @@ export type TrackQueryConfig<ParametersConfig extends ZodType> =
     controls: RouterControls;
   };
 
+export type QueryTrackerState<ParametersConfig extends ZodType> =
+  | { status: 'inactive' }
+  | { status: 'pending' }
+  | { status: 'entered'; params: z.output<ParametersConfig> };
+
 export interface QueryTracker<ParametersConfig extends ZodType> {
+  $state: Store<QueryTrackerState<ParametersConfig>>;
+
   entered: Event<z.output<ParametersConfig>>;
   exited: Event<void>;
 

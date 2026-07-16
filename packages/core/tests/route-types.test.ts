@@ -1,8 +1,9 @@
 import { expectTypeOf, test } from 'vitest';
 import { createRoute, createRouterControls, trackQuery } from '../lib';
-import type { Event, EventCallable } from 'effector';
+import type { Event, EventCallable, Store } from 'effector';
 import type {
   PathlessRoute,
+  QueryTrackerState,
   RouteOpenedPayload,
   RouteUpdatedPayload,
   VirtualRoute,
@@ -44,9 +45,10 @@ test('rejects duplicate parent and child parameter names', () => {
 
 test('trackQuery accepts URL values and publishes schema output', () => {
   const controls = createRouterControls();
+  const parameters = z.object({ page: z.coerce.number() });
   const tracker = trackQuery({
     controls,
-    parameters: z.object({ page: z.coerce.number() }),
+    parameters,
   });
 
   tracker.enter({ page: '2' });
@@ -56,4 +58,7 @@ test('trackQuery accepts URL values and publishes schema output', () => {
   tracker.enter({ other: 'value' });
 
   expectTypeOf(tracker.entered).toMatchTypeOf<Event<{ page: number }>>();
+  expectTypeOf(tracker.$state).toMatchTypeOf<
+    Store<QueryTrackerState<typeof parameters>>
+  >();
 });

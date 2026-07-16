@@ -34,8 +34,9 @@ export const settingsRouter = createRouter({
 export const modalTaskRoute = createRoute({ path: '/task/:taskId' });
 export const modalRouter = createRouter({ routes: [modalTaskRoute] });
 
+export const controls = createRouterControls();
 export const router = createRouter({
-  controls: createRouterControls(),
+  controls,
   routes: [
     homeRoute,
     projectsRoute,

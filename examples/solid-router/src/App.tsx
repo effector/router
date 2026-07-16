@@ -15,9 +15,11 @@ import {
   withLayout,
 } from '@effector/router-solid';
 import { z } from 'zod';
+import { trackQuery } from '@effector/router';
 import {
   $authorized,
   authChanged,
+  controls,
   drawerRoute,
   helpRoute,
   homeRoute,
@@ -46,8 +48,9 @@ const taskNames: Record<string, string> = {
   'route-contracts': 'Route contracts',
 };
 
-const searchTracker = router.trackQuery({
-  forRoutes: [searchRoute],
+const searchTracker = trackQuery({
+  controls,
+  routes: [searchRoute],
   parameters: z.object({ q: z.string().min(1) }),
 });
 
@@ -105,7 +108,7 @@ function HomePage() {
         <button
           data-testid="open-drawer"
           type="button"
-          onClick={() => openDrawer({ panel: 'activity' })}
+          onClick={() => openDrawer({ params: { panel: 'activity' } })}
         >
           Open activity panel
         </button>
@@ -508,6 +511,7 @@ function Inspector() {
 function Drawer() {
   const opened = useUnit(drawerRoute.$isOpened);
   const drawer = useUnit(drawerRoute);
+  const closeDrawer = useUnit(drawerRoute.close);
   return (
     <Show when={opened()}>
       <div data-testid="activity-drawer" class="drawer">
@@ -515,7 +519,7 @@ function Drawer() {
         <button
           data-testid="close-drawer"
           type="button"
-          onClick={() => drawer.onClose()}
+          onClick={() => closeDrawer()}
         >
           Close
         </button>

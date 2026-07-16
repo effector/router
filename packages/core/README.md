@@ -144,8 +144,9 @@ opens and redirects follow the same rules as controls.
 
 Create query trackers with `trackQuery({ controls, routes, parameters })`.
 `routes` is optional and uses OR semantics over each route's `$isOpened` store;
-without it, the tracker is always active. The tracker reacts automatically—no
-`check` clock or router/controls method is required.
+without it, the tracker is always active. The tracker reacts automatically, and
+its `$state` store exposes the current inactive, pending, or entered state even
+when the tracker is created after history initialization.
 
 A registered route-to-route navigation is observed as one activity change. The
 tracker does not emit a transient `exited` while the selected target route is

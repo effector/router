@@ -13,12 +13,16 @@ import type {
   Query,
   QueryTracker,
   QueryTrackerConfig,
+  QueryTrackerState,
   QueryParametersInput,
   TrackQueryConfig,
 } from './types';
 import type { InternalRouterControls } from './navigation';
 
 import type { z, ZodType } from 'zod/v4';
+
+const inactiveState = { status: 'inactive' } as const;
+const pendingState = { status: 'pending' } as const;
 
 type FactoryPayload = {
   $ready: Store<boolean>;
@@ -42,32 +46,37 @@ export function trackQueryFactory({
         {}) as Record<string, unknown>,
     );
 
-    const $entered = createStore(false);
-
-    const entered = createEvent<z.output<T>>();
-    const exited = createEvent();
-
     const enter = createEvent<QueryParametersInput<T>>();
     const exit = createEvent<{ ignoreParams: string[] } | void>();
 
+    const $entered = createStore(false);
+    const entered = createEvent<z.output<T>>();
+    const exited = createEvent();
     const changeEntered = createEvent<boolean>();
 
-    sample({
-      clock: changeEntered,
-      target: $entered,
+    sample({ clock: changeEntered, target: $entered });
+
+    const $result = combine($eligible, $query, (eligible, query) =>
+      eligible ? parameters.safeParse(query) : null,
+    );
+    const $evaluation = combine({
+      ready: $ready,
+      eligible: $eligible,
+      result: $result,
     });
 
+    const $state = $evaluation.map(
+      ({ ready, eligible, result }): QueryTrackerState<T> => {
+        if (!eligible) return inactiveState;
+        if (!ready) return pendingState;
+        if (!result?.success) return inactiveState;
+
+        return { status: 'entered', params: result.data };
+      },
+    );
     const evaluation = sample({
-      clock: combine({
-        ready: $ready,
-        eligible: $eligible,
-        query: $query,
-      }).updates,
-      fn: ({ ready, eligible, query }) => ({
-        ready,
-        eligible,
-        result: eligible ? parameters.safeParse(query) : null,
-      }),
+      clock: $evaluation.updates,
+      fn: (state) => state,
     });
 
     sample({
@@ -80,8 +89,8 @@ export function trackQueryFactory({
     sample({
       clock: evaluation,
       source: $entered,
-      filter: (entered, { eligible, result }) =>
-        entered && (!eligible || result?.success !== true),
+      filter: (entered, { ready, eligible, result }) =>
+        entered && (!eligible || (ready && result?.success !== true)),
       target: [
         exited.prepend(() => undefined),
         changeEntered.prepend(() => false),
@@ -117,6 +126,8 @@ export function trackQueryFactory({
     });
 
     return {
+      $state,
+
       enter,
       entered,
 
@@ -184,6 +195,11 @@ export function trackQuery<T extends ZodType>(
       source: { activity: $activity, observed: $pendingObserved },
       filter: ({ activity, observed }) => observed && !activity.waiting,
     });
+    const activationFailed = sample({
+      clock: pendingFinished,
+      source: $activity,
+      filter: ({ ready }) => !ready,
+    });
 
     $pendingObserved.on(pendingStarted, () => true).reset(pendingFinished);
 
@@ -207,7 +223,7 @@ export function trackQuery<T extends ZodType>(
     // A matching path is eligible while its activation is pending, but stops
     // being eligible after that attempt fails or the active route is closed.
     const $targetInactive = createStore(false, { serialize: 'ignore' })
-      .on([pendingFinished, relevantRouteClosed], () => true)
+      .on([activationFailed, relevantRouteClosed], () => true)
       .reset([controls.$path.updates, pendingStarted, readyStarted]);
 
     $eligible = combine(

@@ -72,6 +72,12 @@ active. The new contract does not include a `router.trackQuery` method or a
 `check` field. The tracker reacts to query and route activity changes. One-shot
 scenarios are composed externally with ordinary Effector primitives.
 
+The tracker exposes its current evaluation as `$state` with `inactive`,
+`pending`, and `entered` states; the entered state carries parsed `params`.
+This store is the source of truth when a tracker is created after history
+initialization or read in a Fork. `entered` and `exited` are transition events
+and do not replay state that existed before tracker creation.
+
 `undefined` is not a query value and means that a key is absent. `null`
 represents a URL flag without a value. Arrays use repeated keys. `entered`,
 `exit`, `ignoreParams`, and preservation of unrelated keys during a partial

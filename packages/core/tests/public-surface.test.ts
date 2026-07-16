@@ -20,6 +20,10 @@ describe('core public surface', () => {
     expect('trackQuery' in router).toBe(false);
     expect(
       trackQuery({ controls, parameters: z.object({ q: z.string() }) }),
-    ).toMatchObject({ enter: expect.anything(), exit: expect.anything() });
+    ).toMatchObject({
+      $state: expect.anything(),
+      enter: expect.anything(),
+      exit: expect.anything(),
+    });
   });
 });
