@@ -3,8 +3,8 @@
 [![npm](https://img.shields.io/npm/v/@effector/router-react-native.svg)](https://www.npmjs.com/package/@effector/router-react-native)
 
 React Native bindings for [`@effector/router`](https://www.npmjs.com/package/@effector/router). Manage navigation
-state with Effector while [React Navigation](https://reactnavigation.org/) renders the native UI — you keep all its
-animations, gestures, and options, but navigate through route events.
+state with Effector while [React Navigation](https://reactnavigation.org/) renders the native UI — you keep its
+native rendering, animations, and options, but navigate through route events.
 
 ## Install
 
@@ -26,7 +26,7 @@ import { createStackNavigator } from '@effector/router-react-native';
 import { createRoute, createRouter } from '@effector/router';
 import { RouterProvider, createRouteView } from '@effector/router-react';
 
-// 1. Routes + router
+// 1. Routes + router (owned by the app)
 const home = createRoute({ path: '/home' });
 const details = createRoute({ path: '/details/:id' });
 const router = createRouter({ routes: [home, details] });
@@ -46,6 +46,7 @@ const Stack = createStackNavigator({
   router,
   routes: [HomeScreen, DetailsScreen],
 });
+// 3. The app also owns the native ref and container.
 const navigationRef = createNavigationContainerRef();
 
 export default function App() {
@@ -83,6 +84,11 @@ The integration contract is exercised with an app-owned ref in
 `packages/react-native/tests/integration.test.tsx`: direct component return,
 complete screen names, native option callbacks, pre-ready latest-target
 synchronization, params, native echo suppression, tab presses, and cleanup.
+
+The binding is an adapter only: it does not create a Router, history adapter, or
+`NavigationContainer`. Configure those in the application layer, pass the
+application-owned `navigationRef` to both the container and navigator, and keep
+route events as the navigation API.
 
 ## Documentation
 

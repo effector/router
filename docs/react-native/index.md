@@ -26,7 +26,7 @@ React Native bindings for effector router with React Navigation integration.
 ```
 
 1. **Effector router** manages which routes are open, their parameters, and navigation state
-2. **React Navigation** handles UI rendering, animations, gestures, and platform-specific behavior
+2. **React Navigation** handles UI rendering, animations, and platform-specific behavior
 3. The adapters **sync state** between both systems
 
 ## Installation
@@ -173,15 +173,44 @@ native echo suppression, tab intent, and listener cleanup.
 
 ## React Navigation Features
 
-While navigation is managed by Effector Router, you still get all React Navigation features:
+While navigation is managed by Effector Router, you still get the React Navigation
+features covered by the navigator configuration:
 
 - Native animations and transitions
-- Gesture handling (swipe back, etc.)
 - Header customization
 - Tab bar customization
-- Deep linking support
 - Screen options and configuration
 - Platform-specific behavior
+
+Deep linking, persistence, time-travel debugging, and gesture-specific flows are
+outside this adapter's documented contract until each scenario has an integration
+test. They can still be configured directly in the native application layer.
+
+## Adapter boundary
+
+Create and configure the Router, history (when needed), and native ref in the
+application layer. The binding only connects an existing Router to an existing
+React Navigation container:
+
+```tsx
+const router = createRouter({ routes: [home, details] });
+// For URL/history-backed apps, configure the adapter in the app as well:
+// router.setHistory(historyAdapter(createBrowserHistory()));
+const navigationRef = createNavigationContainerRef();
+
+const Stack = createStackNavigator({
+  router,
+  routes: [HomeScreen, DetailsScreen],
+});
+
+<NavigationContainer ref={navigationRef}>
+  <Stack navigationRef={navigationRef} />
+</NavigationContainer>;
+```
+
+No binding-created Router, history adapter, or container is hidden inside the
+navigator. This keeps setup explicit and allows the same route units to be used
+from FSD `shared/routing` while app-level integration remains configuration.
 
 ## Type Safety
 

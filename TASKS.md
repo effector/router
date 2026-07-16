@@ -288,7 +288,7 @@ params, the active Router tree, and navigation semantics.
       app-owned `NavigationContainer`. Cover direct return, complete names,
       params, initial-route restrictions, tabs, option callbacks, push/replace,
       back/gesture/tab intent, echo suppression, races, scopes, and cleanup.
-- [ ] **T51 — RN documentation boundary.** Add an adapter/initialization recipe.
+- [x] **T51 — RN documentation boundary.** Add an adapter/initialization recipe.
       Remove claims about persistence, time travel, deep links, or gestures until
       the corresponding scenario has an integration test. Update the package
       README, docs, and changeset.
