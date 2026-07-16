@@ -216,7 +216,7 @@ Solid, and Vue do not acquire incompatible trees.
       during transitions within a group; unmount it on exit. Distinguish separate
       groups that use the same component and support nested/lazy views. Preserve
       `route`, `children`, and all other metadata during transformation.
-- [ ] **T37 — Lazy/eager parity.** Verify one recursive `children` contract, an
+- [x] **T37 — Lazy/eager parity.** Verify one recursive `children` contract, an
       importer that starts only on render, an observable React/Solid Suspense or
       Vue loading fallback, and absence of recursive `route.open()` or core
       preload hooks.

@@ -195,6 +195,32 @@ describe('vue bindings', () => {
     expect(importer).not.toHaveBeenCalled();
   });
 
+  test('lazy route view preserves recursive children and starts on render', async () => {
+    const parentRoute = createRoute({ path: '/parent' });
+    const childRoute = createRoute({ path: '/child', parent: parentRoute });
+    const childView = createRouteView({
+      route: childRoute,
+      view: defineComponent({ render: () => h('p', 'child') }),
+    });
+    const importer = vi.fn(() =>
+      Promise.resolve({
+        default: defineComponent({ render: () => h('p', 'parent') }),
+      }),
+    );
+    const lazyView = createLazyRouteView({
+      route: parentRoute,
+      view: importer,
+      children: [childView],
+    });
+
+    expect(lazyView.children).toEqual([childView]);
+    expect(importer).not.toHaveBeenCalled();
+
+    mount(lazyView.view);
+    await flushPromises();
+    expect(importer).toHaveBeenCalledTimes(1);
+  });
+
   test('component changed when path changed', async () => {
     const route1 = createRoute({ path: '/app' });
     const route2 = createRoute({ path: '/faq' });
