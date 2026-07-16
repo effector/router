@@ -15,9 +15,13 @@ import {
   createNavigationContainerRef,
   NavigationContainer,
 } from '@react-navigation/native';
-import { createStackNavigator } from '@effector/router-react-native';
-import { createRouter, createRoute } from '@effector/router';
-import { createRouteView, RouterProvider } from '@effector/router-react';
+import {
+  createRoute,
+  createRouter,
+  createRouteView,
+  RouterProvider,
+  createStackNavigator,
+} from '@effector/router-react-native';
 
 const homeRoute = createRoute({ path: '/home' });
 const detailsRoute = createRoute({ path: '/details/:id' });

@@ -1,6 +1,9 @@
-import { createRoute, createRouter } from '../../packages/core/lib/index';
-import { createStackNavigator } from '../../packages/react-native/lib/index';
-import { createRouteView } from '../../packages/react/lib/index';
+import {
+  createRoute,
+  createRouter,
+  createRouteView,
+  createStackNavigator,
+} from '../../packages/react-native/lib/index';
 import { Text } from 'react-native';
 
 export function createReactNativeQuickStart(): any {

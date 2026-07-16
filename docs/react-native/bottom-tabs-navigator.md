@@ -15,9 +15,13 @@ import {
   createNavigationContainerRef,
   NavigationContainer,
 } from '@react-navigation/native';
-import { createBottomTabsNavigator } from '@effector/router-react-native';
-import { createRouter, createRoute } from '@effector/router';
-import { createRouteView, RouterProvider } from '@effector/router-react';
+import {
+  createBottomTabsNavigator,
+  createRoute,
+  createRouter,
+  createRouteView,
+  RouterProvider,
+} from '@effector/router-react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const homeRoute = createRoute({ path: '/home' });

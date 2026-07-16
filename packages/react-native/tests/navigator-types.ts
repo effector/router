@@ -10,13 +10,9 @@ type TabsResult = ReturnType<typeof createBottomTabsNavigator>;
 
 const navigationRef =
   undefined as unknown as NavigationContainerRefWithCurrent<ParamListBase>;
-const nativeProps: NativeNavigatorProps = { navigationRef };
+({ navigationRef }) satisfies NativeNavigatorProps;
 // @ts-expect-error NativeNavigator always requires the app-owned ref prop
-const missingRef: NativeNavigatorProps = {};
+({}) satisfies NativeNavigatorProps;
 
-const stack: NativeNavigator = undefined as unknown as StackResult;
-const tabs: NativeNavigator = undefined as unknown as TabsResult;
-void nativeProps;
-void missingRef;
-void stack;
-void tabs;
+undefined as unknown as StackResult satisfies NativeNavigator;
+undefined as unknown as TabsResult satisfies NativeNavigator;

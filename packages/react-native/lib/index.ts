@@ -1,3 +1,24 @@
+export * from '@effector/router';
+
+export {
+  RouterProvider,
+  createRouteView,
+  createRoutesView,
+  createLazyRouteView,
+  useRouter,
+  useRouterContext,
+  withLayout,
+  Outlet,
+  useOpenedViews,
+  useIsOpened,
+} from '@effector/router-react';
+
+export type {
+  CreateLazyRouteViewProps,
+  CreateRouteViewProps,
+  RouteView,
+} from '@effector/router-react';
+
 export { createStackNavigator } from './stack-navigator';
 export { createBottomTabsNavigator } from './bottom-tabs-navigator';
 export type { NativeNavigator, NativeNavigatorProps } from './native-navigator';
