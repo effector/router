@@ -84,6 +84,10 @@ The binding listens for native readiness/state changes and removes those
 listeners on unmount. It does not create a container, Router, or history
 adapter.
 
+Router state remains canonical. Before readiness only the latest target is
+retained; once ready, the binding sends the target and params to the tab
+navigator and suppresses matching native echoes.
+
 ### Route view `options`
 
 Per-screen options use the native Bottom Tabs option object or callback type

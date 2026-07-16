@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useEffect } from 'react';
+import { StackActions } from '@react-navigation/native';
 import {
   createStackNavigator as createReactNavigationStackNavigator,
   StackNavigatorProps,
@@ -7,7 +8,7 @@ import {
 } from '@react-navigation/stack';
 import type { Router } from '@effector/router';
 import type { RouteView } from '@effector/router-react';
-import { createWatch, scopeBind } from 'effector';
+import { scopeBind } from 'effector';
 import { useProvidedScope } from 'effector-react';
 import {
   getScreenKey,
@@ -15,7 +16,7 @@ import {
   validateInitialRouteName,
 } from './route-name';
 import { flattenRouteViews } from './route-views';
-import { syncActiveRoute } from './navigation-sync';
+import { createRouterSync } from './navigation-sync';
 import { createRouteListeners } from './navigation-events';
 import { NativeNavigator, NativeNavigatorProps } from './native-navigator';
 import { subscribeNavigation } from './navigation-bridge';
@@ -76,24 +77,27 @@ export function createStackNavigator(
 
     // Sync Router state with the navigation object from NavigationContainer.
     useEffect(() => {
-      const onSnapshot = (snapshot: unknown) => {
-        void snapshot;
-      };
-      const unsubscribeNative = subscribeNavigation(
-        navigationRef,
-        scope ? scopeBind(onSnapshot, { scope }) : onSnapshot,
-      );
-      const subscription = createWatch({
-        unit: Router.$activeRoutes,
+      const sync = createRouterSync({
+        router: Router,
+        routes: routeViews,
         scope: scope ?? undefined,
-        fn: (activeRoutes) => {
-          syncActiveRoute(navigationRef, activeRoutes, routeViews);
+        navigation: {
+          navigate: (name, params) =>
+            navigationRef.navigate(name, params as object | undefined),
+          replace: (name, params) =>
+            navigationRef.dispatch(
+              StackActions.replace(name, params as object | undefined),
+            ),
         },
       });
+      const unsubscribeNative = subscribeNavigation(
+        navigationRef,
+        scope ? scopeBind(sync.onSnapshot, { scope }) : sync.onSnapshot,
+      );
 
       return () => {
         unsubscribeNative();
-        subscription.unsubscribe();
+        sync.cleanup();
       };
     }, [navigationRef, routeViews, scope]);
 

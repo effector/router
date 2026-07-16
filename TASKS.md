@@ -272,7 +272,7 @@ params, the active Router tree, and navigation semantics.
       path template, including parent and base segments, without an index
       fallback. Validate `initialRouteName` only for routes without required
       params. Reject parameterized routes in Bottom Tabs.
-- [ ] **T48 — Router as source of truth.** Implement Router-to-RN synchronization
+- [x] **T48 — Router as source of truth.** Implement Router-to-RN synchronization
       with params and push/replace intent. Before native readiness, retain only
       the latest Router snapshot and synchronize it when ready. Suppress echo
       loops from binding-owned updates and remove stale-state races during fast

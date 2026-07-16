@@ -87,6 +87,11 @@ The binding listens for native readiness/state changes and removes those
 listeners on unmount. It does not create a `NavigationContainer`, Router, or
 history adapter.
 
+Router state is the source of truth. The binding keeps only the latest target
+before readiness, then sends a navigate or stack replace command with the route
+params once the ref is ready. Matching native snapshots suppress the resulting
+echo.
+
 ### `router` (required)
 
 effector/router Router instance created with [`createRouter`].

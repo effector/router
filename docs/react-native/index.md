@@ -155,6 +155,12 @@ Screen names are complete registered path templates, including parent segments
 generated. A route with required path parameters cannot be selected through
 `initialRouteName` and must be opened by Router with real params.
 
+Router-to-native synchronization is readiness-gated. Before the app-owned ref
+is ready, the binding retains only the latest Router target and sends no native
+command. Once ready, it navigates with route params and preserves Router's
+replace intent; native state notifications are treated as complete snapshots
+and matching binding-originated updates are not echoed back.
+
 ## React Navigation Features
 
 While navigation is managed by Effector Router, you still get all React Navigation features:
