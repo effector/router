@@ -1,82 +1,48 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { combine } from 'effector';
+import { useUnit } from 'effector-react';
+import { is, type InternalRoute } from '@effector/router';
 import type { RouteView } from './types';
-import type { InternalRoute } from '@effector/router';
-import { useProvidedScope } from 'effector-react';
-import { is } from '@effector/router';
-import { createWatch, Subscription, type Scope, type Store } from 'effector';
 
-function getStoreValue<T>(store: Store<T>, scope?: Scope | null) {
-  return scope ? scope.getState(store) : store.getState();
-}
-
-function getVisibilities(routes: RouteView[], scope?: Scope | null) {
-  return routes.map((view) => {
-    if (is.router(view.route)) {
-      return getStoreValue(view.route.$activeRoutes, scope).length > 0;
-    }
-
-    return getStoreValue(view.route.$isOpened, scope);
-  });
-}
-
-export function useOpenedViews(routes: RouteView[]) {
-  const scope = useProvidedScope();
-  const [visibilities, setVisibilities] = useState<boolean[]>(
-    getVisibilities(routes, scope),
+/**
+ * @description Reactively resolves which of the passed views should be rendered
+ * for the current router state. Parent views are filtered out in favor of their
+ * children, so only the deepest matching branch remains.
+ *
+ * Subscription goes through effector-react `useUnit` (backed by
+ * `useSyncExternalStore`), mirroring the Solid and Vue bindings — the render
+ * layer owns subscription, scope, and teardown, so there is no render-vs-effect
+ * gap, tearing, or hydration mismatch.
+ */
+export function useOpenedViews(routes: RouteView[]): RouteView[] {
+  const $visibilities = useMemo(
+    () =>
+      combine(
+        routes.map((view) =>
+          is.router(view.route)
+            ? view.route.$activeRoutes
+            : view.route.$isOpened,
+        ),
+        (values) =>
+          values.map((value, index) =>
+            is.router(routes[index].route)
+              ? (value as unknown[]).length > 0
+              : Boolean(value),
+          ),
+      ),
+    [routes],
   );
 
-  useEffect(() => {
-    const subscriptions: Subscription[] = [];
-
-    for (const [index, view] of routes.entries()) {
-      if (is.router(view.route)) {
-        const router = view.route;
-
-        const subscription = createWatch({
-          unit: router.$activeRoutes,
-          scope: scope ?? undefined,
-          fn: (routes) => {
-            setVisibilities((prev) => {
-              const newVisibilities = [...prev];
-              newVisibilities[index] = routes.length > 0;
-
-              return newVisibilities;
-            });
-          },
-        });
-
-        subscriptions.push(subscription);
-      } else {
-        subscriptions.push(
-          createWatch({
-            unit: view.route.$isOpened,
-            scope: scope ?? undefined,
-            fn: (isOpened) => {
-              setVisibilities((prev) => {
-                const newVisibilities = [...prev];
-                newVisibilities[index] = isOpened;
-                return newVisibilities;
-              });
-            },
-          }),
-        );
-      }
-    }
-
-    return () => {
-      for (const subscription of subscriptions) {
-        subscription.unsubscribe();
-      }
-    };
-  }, [routes, scope]);
+  const visibilities = useUnit($visibilities);
 
   return useMemo(() => {
-    const filtered = routes.filter((_, i) => visibilities[i]);
+    const filtered = routes.filter((_, index) => visibilities[index]);
 
     return filtered.reduce(
-      (filtered, view) =>
-        filtered.filter(
-          (r) => r.route !== (view.route as InternalRoute<any>).parent,
+      (result, view) =>
+        result.filter(
+          (candidate) =>
+            candidate.route !== (view.route as InternalRoute<any>).parent,
         ),
       filtered,
     );

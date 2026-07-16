@@ -302,10 +302,28 @@ export function createRouter(config: RouterConfig): Router {
       const shouldNavigate =
         isPathChange || isSameUrlReNavigation || isInitialMatch;
 
+      // A parent route stays open while any of its children is active, so a
+      // nested URL (e.g. `/profile/friends`) keeps `/profile` open even though
+      // the parent pattern does not match the full path. Treating ancestors of
+      // matched routes as active prevents the parent from flickering
+      // closed→open when switching between sibling children.
+      const activeRoutes = new Set<InternalRoute<any>>(matchedRoutes);
+
+      for (const { route } of matches) {
+        let ancestor = (route as InternalRoute<any>).parent as
+          | InternalRoute<any>
+          | undefined;
+
+        while (ancestor) {
+          activeRoutes.add(ancestor);
+          ancestor = ancestor.parent as InternalRoute<any> | undefined;
+        }
+      }
+
       for (const { route } of ownRoutes) {
         const routeClose = scopeBind(route.internal.close, { safe: true });
 
-        if (!matchedRoutes.has(route)) {
+        if (!activeRoutes.has(route)) {
           routeClose();
         }
       }
