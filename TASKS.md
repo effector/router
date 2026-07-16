@@ -243,7 +243,7 @@ This stage depends on final route payloads (D3) and query policy (D1–D2).
 - [x] **T42 — Solid Link/useLink.** Cover direct `useLink`, reactive params and
       query, activeClass policy, the native click matrix, and conditional params.
       Keep shared documentation aligned with React and Vue.
-- [ ] **T43 — Vue Link.** Verify exported generic `LinkProps<Params>`,
+- [x] **T43 — Vue Link.** Verify exported generic `LinkProps<Params>`,
       conditionally required params in TypeScript usage, and document template
       inference limits. Cover query, replace, target, modifiers, cancellation,
       attributes, and event forwarding. Do not introduce a `createLink` factory.

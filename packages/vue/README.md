@@ -102,6 +102,9 @@ import { routes } from '@shared/routing';
   current query, explicit query replaces it, and `{}` clears it.
   Only ordinary primary-button, same-origin `_self` clicks are intercepted;
   modified, secondary, download, and non-`_self` clicks remain native.
+  The exported generic `LinkProps<Params>` conditionally requires params in
+  TypeScript; Vue templates may need an explicit annotation for that check.
+  Standard anchor attributes and `onClick` are forwarded.
 - `withLayout` — share a layout across routes. Views returned by one call share
   a private group identity, so the layout stays mounted while siblings switch.
 - `Outlet`, `useRouter`, `useIsOpened`, `useOpenedViews` — composition helpers.

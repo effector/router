@@ -462,6 +462,57 @@ describe('vue bindings', () => {
     );
   });
 
+  test('forwards attrs/events and supports empty query with replace', async () => {
+    const source = createRoute({ path: '/source' });
+    const target = createRoute({ path: '/target/:id' });
+    const scope = fork();
+    const router = createRouter({ routes: [source, target] });
+    const history = createMemoryHistory({
+      initialEntries: ['/source?stale=yes'],
+    });
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    const onClick = vi.fn();
+    const Links = defineComponent({
+      setup: () => () =>
+        h(Link, {
+          to: target,
+          params: { id: '42' },
+          query: {},
+          replace: true,
+          id: 'target-link',
+          'aria-label': 'Target',
+          'data-kind': 'route',
+          rel: 'nofollow',
+          onClick,
+        }),
+    });
+    const wrapper = mount(RouterProvider, {
+      props: { router },
+      slots: { default: () => h(Links) },
+      global: { plugins: [EffectorScopePlugin({ scope })] },
+    });
+
+    const link = wrapper.find('#target-link');
+    expect(link.attributes('href')).toBe('/target/42');
+    expect(link.attributes('aria-label')).toBe('Target');
+    expect(link.attributes('data-kind')).toBe('route');
+    expect(link.attributes('rel')).toBe('nofollow');
+
+    await link.trigger('click');
+    await allSettled(scope);
+    await flushPromises();
+
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(history.location.pathname + history.location.search).toBe(
+      '/target/42',
+    );
+    expect(history.index).toBe(0);
+  });
+
   test('preserves native behavior for non-navigation clicks', async () => {
     const routes = {
       primary: createRoute({ path: '/primary' }),

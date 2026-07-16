@@ -12,6 +12,12 @@ Only an ordinary primary-button, same-origin `_self` click is intercepted.
 Modified or secondary clicks, downloads, cross-origin URLs, non-`_self` targets,
 and a user `preventDefault()` keep native anchor behavior.
 
+`LinkProps<Params>` is exported for typed script usage and conditionally requires
+`params` when `Params` contains required route keys. Vue template inference may
+not preserve that conditional generic through a component template; annotate
+the props in TypeScript when compile-time enforcement is needed. Standard
+anchor attributes and `onClick` are forwarded to the rendered anchor.
+
 #### `to`
 
 - `type`: `Route<T>`
