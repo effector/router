@@ -147,6 +147,11 @@ Create query trackers with `trackQuery({ controls, routes, parameters })`.
 without it, the tracker is always active. The tracker reacts automatically—no
 `check` clock or router/controls method is required.
 
+A registered route-to-route navigation is observed as one activity change. The
+tracker does not emit a transient `exited` while the selected target route is
+pending, and validates the target query after that route opens. A failed target
+activation exits an already entered tracker.
+
 `trackQuery.enter` accepts only schema-owned URL values (`string`, `null`, or
 arrays); `entered` emits the schema output after parsing and transforms.
 `exit` removes only schema-owned keys and preserves unrelated query keys,

@@ -22,6 +22,11 @@ trackQuery<T extends ZodType>(config: {
 | `routes`     | `Route[]`        | Optional OR filter based on each route's `$isOpened` store |
 | `parameters` | `ZodType`        | Zod schema for query parameter validation                  |
 
+When navigation switches between registered routes in `routes`, the tracker
+keeps the activity change atomic: it does not emit a transient `exited` while
+the target route is pending. The target query is validated after that route
+opens. If target activation fails, an already entered tracker exits.
+
 ### Returns
 
 `QueryTracker<T>` with the following properties:
@@ -91,26 +96,33 @@ sample({
 });
 ```
 
-### One-time query tracker
+### Gate a tracker externally
 
-May be useful in get query once design
+`trackQuery` reacts continuously and has no `check` clock. Compose one-shot or
+application-readiness policy from ordinary Effector units:
 
 ```ts
-import { createRouter, createRoute } from '@effector/router';
+import {
+  createRouter,
+  createRouterControls,
+  createRoute,
+  trackQuery,
+} from '@effector/router';
+import { sample } from 'effector';
 import { z } from 'zod';
 import { acceptInvitationFx } from '@shared/api';
-
-// event for global app initialization
-import { appStarted } from '@shared/global';
+import { $appStarted } from '@shared/global';
 
 const familyRoute = createRoute({ path: '/search' });
-
+const controls = createRouterControls();
 const router = createRouter({
   routes: [familyRoute],
+  controls,
 });
 
-const invitationTracker = router.trackQuery({
-  check: appStarted,
+const invitationTracker = trackQuery({
+  controls,
+  routes: [familyRoute],
   parameters: z.object({
     inviteId: z.string(),
   }),
@@ -118,15 +130,9 @@ const invitationTracker = router.trackQuery({
 
 sample({
   clock: invitationTracker.entered,
+  filter: $appStarted,
   target: acceptInvitationFx,
 });
-
-// in root of app
-// event for global app initialization
-import { appStarted } from '@shared/global';
-
-await allSettled(router.setHistory, { scope, params: ... });
-await allSettled(appStarted);
 ```
 
 ### Add/Remove Query Parameters
@@ -134,12 +140,13 @@ await allSettled(appStarted);
 ```ts
 import { z } from 'zod';
 
-const filterTracker = router.trackQuery({
+const filterTracker = trackQuery({
+  controls,
   parameters: z.object({
     status: z.enum(['active', 'inactive']),
     category: z.string(),
   }),
-  forRoutes: [productsRoute],
+  routes: [productsRoute],
 });
 
 // Add filters to URL
@@ -163,12 +170,13 @@ filterTracker.exit({ ignoreParams: ['page'] });
 ```ts
 import { z } from 'zod';
 
-const paginationTracker = router.trackQuery({
+const paginationTracker = trackQuery({
+  controls,
   parameters: z.object({
     page: z.string().regex(/^\d+$/),
     limit: z.string().regex(/^\d+$/),
   }),
-  forRoutes: [listRoute],
+  routes: [listRoute],
 });
 
 // Go to page 2
@@ -183,14 +191,15 @@ paginationTracker.exit();
 ```ts
 import { z } from 'zod';
 
-const advancedSearchTracker = router.trackQuery({
+const advancedSearchTracker = trackQuery({
+  controls,
   parameters: z.object({
     q: z.string(),
     tags: z.array(z.string()).optional(),
     minPrice: z.string().optional(),
     maxPrice: z.string().optional(),
   }),
-  forRoutes: [searchRoute],
+  routes: [searchRoute],
 });
 
 // Required query only
@@ -211,27 +220,30 @@ advancedSearchTracker.enter({
 import { z } from 'zod';
 
 // Track search independently
-const searchTracker = router.trackQuery({
+const searchTracker = trackQuery({
+  controls,
   parameters: z.object({ q: z.string() }),
-  forRoutes: [searchRoute],
+  routes: [searchRoute],
 });
 
 // Track filters independently
-const filterTracker = router.trackQuery({
+const filterTracker = trackQuery({
+  controls,
   parameters: z.object({
     category: z.string(),
     status: z.string(),
   }),
-  forRoutes: [searchRoute],
+  routes: [searchRoute],
 });
 
 // Track sort independently
-const sortTracker = router.trackQuery({
+const sortTracker = trackQuery({
+  controls,
   parameters: z.object({
     sort: z.enum(['asc', 'desc']),
     sortBy: z.string(),
   }),
-  forRoutes: [searchRoute],
+  routes: [searchRoute],
 });
 
 // Each tracker manages its own parameters
@@ -244,13 +256,14 @@ sortTracker.enter({ sort: 'asc', sortBy: 'price' });
 ### With Router Controls
 
 ```ts
-import { createRouterControls } from '@effector/router';
+import { createRouterControls, trackQuery } from '@effector/router';
 import { z } from 'zod';
 
 const controls = createRouterControls();
 
-// trackQuery from controls doesn't support forRoutes
-const themeTracker = controls.trackQuery({
+// Omitting routes keeps the tracker active for every location.
+const themeTracker = trackQuery({
+  controls,
   parameters: z.object({
     theme: z.enum(['light', 'dark']),
   }),
@@ -266,12 +279,13 @@ themeTracker.enter({ theme: 'dark' });
 import { useUnit } from 'effector-react';
 import { z } from 'zod';
 
-const filterTracker = router.trackQuery({
+const filterTracker = trackQuery({
+  controls,
   parameters: z.object({
     search: z.string(),
     category: z.string().optional(),
   }),
-  forRoutes: [productsRoute],
+  routes: [productsRoute],
 });
 
 function ProductFilters() {
@@ -318,12 +332,13 @@ The `entered` event carries the parsed `z.infer<T>` value, so it can update a st
 import { createStore, sample } from 'effector';
 import { z } from 'zod';
 
-const searchTracker = router.trackQuery({
+const searchTracker = trackQuery({
+  controls,
   parameters: z.object({
     q: z.string(),
     page: z.coerce.number().default(1),
   }),
-  forRoutes: [searchRoute],
+  routes: [searchRoute],
 });
 
 const $searchQuery = createStore({ q: '', page: 1 });
@@ -345,12 +360,13 @@ sample({
 import { sample } from 'effector';
 import { z } from 'zod';
 
-const searchTracker = router.trackQuery({
+const searchTracker = trackQuery({
+  controls,
   parameters: z.object({
     q: z.string(),
     page: z.string().optional(),
   }),
-  forRoutes: [searchRoute],
+  routes: [searchRoute],
 });
 
 const loadSearchResultsFx = createEffect(
@@ -377,7 +393,8 @@ sample({
 ```ts
 import { z } from 'zod';
 
-const strictPaginationTracker = router.trackQuery({
+const strictPaginationTracker = trackQuery({
+  controls,
   parameters: z.object({
     page: z
       .string()
@@ -385,7 +402,7 @@ const strictPaginationTracker = router.trackQuery({
       .refine((val) => parseInt(val) > 0),
     limit: z.enum(['10', '20', '50', '100']),
   }),
-  forRoutes: [listRoute],
+  routes: [listRoute],
 });
 
 // ✅ Valid - tracker enters
@@ -402,7 +419,7 @@ const strictPaginationTracker = router.trackQuery({
 1. **Validation**: Continuously validates current query parameters against the schema
 2. **Entered**: When parameters match the schema, `entered` fires with validated data
 3. **Exited**: When parameters no longer match (removed or invalid), `exited` fires
-4. **Route Filtering**: If `forRoutes` is specified, only tracks when those routes are active
+4. **Route Filtering**: If `routes` is specified, only tracks when those routes are active
 
 ## Best Practices
 
@@ -412,7 +429,8 @@ Define precise validation rules:
 
 ```ts
 // ✅ Good: Specific validation
-const tracker = router.trackQuery({
+const tracker = trackQuery({
+  controls,
   parameters: z.object({
     page: z
       .string()
@@ -420,16 +438,17 @@ const tracker = router.trackQuery({
       .refine((val) => parseInt(val) > 0),
     sortBy: z.enum(['name', 'date', 'price']),
   }),
-  forRoutes: [listRoute],
+  routes: [listRoute],
 });
 
 // ❌ Bad: Too permissive
-const tracker = router.trackQuery({
+const tracker = trackQuery({
+  controls,
   parameters: z.object({
     page: z.any(),
     sortBy: z.string(),
   }),
-  forRoutes: [listRoute],
+  routes: [listRoute],
 });
 ```
 
@@ -439,13 +458,15 @@ Only track query parameters for relevant routes:
 
 ```ts
 // ✅ Good: Scoped to search route
-const searchTracker = router.trackQuery({
+const searchTracker = trackQuery({
+  controls,
   parameters: z.object({ q: z.string() }),
-  forRoutes: [searchRoute],
+  routes: [searchRoute],
 });
 
 // ❌ Bad: Tracks on all routes (unless intended)
-const searchTracker = controls.trackQuery({
+const searchTracker = trackQuery({
+  controls,
   parameters: z.object({ q: z.string() }),
 });
 ```
@@ -456,28 +477,31 @@ Create separate trackers for different parameter groups:
 
 ```ts
 // ✅ Good: Separate trackers for independent concerns
-const searchTracker = router.trackQuery({
+const searchTracker = trackQuery({
+  controls,
   parameters: z.object({ q: z.string() }),
-  forRoutes: [searchRoute],
+  routes: [searchRoute],
 });
 
-const paginationTracker = router.trackQuery({
+const paginationTracker = trackQuery({
+  controls,
   parameters: z.object({ page: z.string() }),
-  forRoutes: [searchRoute],
+  routes: [searchRoute],
 });
 
 // ❌ Bad: Mixed concerns
-const mixedTracker = router.trackQuery({
+const mixedTracker = trackQuery({
+  controls,
   parameters: z.object({
     q: z.string(),
     page: z.string(),
     theme: z.string(),
   }),
-  forRoutes: [searchRoute],
+  routes: [searchRoute],
 });
 ```
 
 ## See Also
 
-- [createRouter](/core/create-router) - Create router with trackQuery
-- [createRouterControls](/core/create-router-controls) - Create controls with trackQuery
+- [createRouter](/core/create-router) - Register routes and bind controls to history
+- [createRouterControls](/core/create-router-controls) - Create controls for standalone operators

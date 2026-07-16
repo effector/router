@@ -3,7 +3,7 @@ import type { Event, EventCallable } from 'effector';
 import type { Parser } from '@effector/router-paths';
 
 import type { RouterTransition } from './adapters';
-import type { NavigatePayload, PathRoute, RouterControls } from './types';
+import type { NavigatePayload, Route, RouterControls } from './types';
 import type { TransitionAttempt } from './transition-attempt';
 
 export const navigationKind = Symbol('effector-router-navigation-kind');
@@ -37,7 +37,8 @@ export interface InternalRouterControls extends RouterControls {
     hold: EventCallable<NavigationHold>;
     proceed: EventCallable<number>;
     cancel: EventCallable<number>;
-    registerRoute: (route: PathRoute<any>, parse: Parser<any>) => void;
-    routeMatches: (route: PathRoute<any>, path: string) => boolean;
+    registerRoute: (route: Route<any>, parse: Parser<any>) => void;
+    /** Returns `undefined` when the route is not owned by a Router. */
+    routeMatches: (route: Route<any>, path: string) => boolean | undefined;
   };
 }

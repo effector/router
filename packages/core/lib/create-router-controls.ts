@@ -14,8 +14,8 @@ import type {
   LocationState,
   NavigatePayload,
   NavigationFailure,
-  PathRoute,
   Query,
+  Route,
   RouterControls,
 } from './types';
 import type { RouterAdapter, RouterTransition } from './adapters';
@@ -455,7 +455,7 @@ export function createRouterControls(): RouterControls {
   });
 
   const routeParsers = new WeakMap<
-    PathRoute<any>,
+    Route<any>,
     Array<(path: string) => unknown>
   >();
 
@@ -483,7 +483,7 @@ export function createRouterControls(): RouterControls {
         routeParsers.set(route, [...parsers, parse]);
       },
       routeMatches: (route, path) =>
-        Boolean(routeParsers.get(route)?.some((parse) => parse(path))),
+        routeParsers.get(route)?.some((parse) => parse(path)),
     },
   };
 

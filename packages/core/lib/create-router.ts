@@ -142,6 +142,8 @@ export function createRouter(config: RouterConfig): Router {
         parse,
       };
 
+      controls.internal.registerRoute(inputRoute.route, parse);
+
       return route;
     }
 
