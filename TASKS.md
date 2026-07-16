@@ -247,7 +247,7 @@ This stage depends on final route payloads (D3) and query policy (D1–D2).
       conditionally required params in TypeScript usage, and document template
       inference limits. Cover query, replace, target, modifiers, cancellation,
       attributes, and event forwarding. Do not introduce a `createLink` factory.
-- [ ] **T44 — Binding release slice.** Run the shared cross-binding Link matrix,
+- [x] **T44 — Binding release slice.** Run the shared cross-binding Link matrix,
       update package READMEs/docs, and add changesets for React, Solid, and Vue.
 
 ## 9. React Native integration — D9
