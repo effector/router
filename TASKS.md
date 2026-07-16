@@ -204,7 +204,7 @@ Solid, and Vue do not acquire incompatible trees.
       replaces only the page child. Do not export this metadata from core or add
       a new public operator. Two calls with the same Layout receive different
       tokens.
-- [ ] **T34 — One selection algorithm.** In every binding, select active views,
+- [x] **T34 — One selection algorithm.** In every binding, select active views,
       remove a parent whose child is active, choose the last declared active
       sibling, and delegate `route: Router` to its nested renderer. Do not store
       open-order UI state.

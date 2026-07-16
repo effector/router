@@ -3,6 +3,7 @@ import { describe, expect, test, vi } from 'vitest';
 import {
   createRoute,
   createRouter,
+  createVirtualRoute,
   historyAdapter,
   type Router,
 } from '@effector/router';
@@ -58,6 +59,32 @@ describe('vue bindings', () => {
     expect(Reflect.get(first[0], symbol)).not.toBe(
       Reflect.get(second[0], symbol),
     );
+  });
+
+  test('selects the last declared active sibling', async () => {
+    const first = createVirtualRoute();
+    const second = createVirtualRoute();
+    const scope = fork();
+    const router = createRouter({ routes: [] });
+    const RoutesView = createRoutesView({
+      routes: [
+        createRouteView({
+          route: first,
+          view: { render: () => h('p', 'first') },
+        }),
+        createRouteView({
+          route: second,
+          view: { render: () => h('p', 'second') },
+        }),
+      ],
+    });
+    const wrapper = mountRoutes(router, scope, RoutesView);
+
+    await allSettled(first.open, { scope });
+    await allSettled(second.open, { scope });
+    await flushPromises();
+
+    expect(wrapper.text()).toBe('second');
   });
 
   test('lazy import starts on render and exposes loading component', async () => {

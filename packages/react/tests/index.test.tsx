@@ -81,6 +81,28 @@ describe('react bindings', () => {
     );
   });
 
+  test('selects the last declared active sibling', async () => {
+    const first = createVirtualRoute();
+    const second = createVirtualRoute();
+    const scope = fork();
+    const RoutesView = createRoutesView({
+      routes: [
+        createRouteView({ route: first, view: () => <p>first</p> }),
+        createRouteView({ route: second, view: () => <p>second</p> }),
+      ],
+    });
+    const { container } = render(
+      <Provider value={scope}>
+        <RoutesView />
+      </Provider>,
+    );
+
+    await act(() => allSettled(first.open, { scope }));
+    await act(() => allSettled(second.open, { scope }));
+
+    expect(container.textContent).toBe('second');
+  });
+
   test('lazy import starts on render and exposes Suspense fallback', async () => {
     let resolve!: (module: { default: () => ReactNode }) => void;
     const route = createRoute({ path: '/lazy' });

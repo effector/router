@@ -93,6 +93,8 @@ import { routes } from '@shared/routing';
 - `RouterProvider` — provide the router to the tree (via `provide`/`inject`).
 - `createRouteView` / `createLazyRouteView` — bind a route to a component (with optional lazy loading).
 - `createRoutesView` — render the currently opened route, with an `otherwise` fallback.
+- Selection is declarative: active parents are suppressed by active children and
+  the last declared remaining view wins.
 - `Link`, `useLink` — declarative and imperative navigation.
 - `withLayout` — share a layout across routes. Views returned by one call share
   a private group identity, so the layout stays mounted while siblings switch.

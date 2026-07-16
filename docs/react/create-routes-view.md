@@ -91,7 +91,7 @@ Returns a React component that:
 The routes view:
 
 1. Uses [`useOpenedViews`] to track which routes are currently open
-2. Renders the last (most recent) opened route
+2. Renders the last declared active route after parent suppression
 3. Provides outlet context for nested routes
 4. Re-renders automatically when route state changes
 

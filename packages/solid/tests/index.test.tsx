@@ -2,7 +2,12 @@ import { allSettled, fork } from 'effector';
 import { Provider } from 'effector-solid';
 import { describe, expect, test, vi } from 'vitest';
 import { render } from '@solidjs/testing-library';
-import { createRoute, createRouter, historyAdapter } from '@effector/router';
+import {
+  createRoute,
+  createRouter,
+  createVirtualRoute,
+  historyAdapter,
+} from '@effector/router';
 import { createMemoryHistory } from 'history';
 
 import {
@@ -27,6 +32,28 @@ describe('solid bindings', () => {
     expect(Reflect.get(first[0], symbol)).not.toBe(
       Reflect.get(second[0], symbol),
     );
+  });
+
+  test('selects the last declared active sibling', async () => {
+    const first = createVirtualRoute();
+    const second = createVirtualRoute();
+    const scope = fork();
+    const RoutesView = createRoutesView({
+      routes: [
+        createRouteView({ route: first, view: () => <p>first</p> }),
+        createRouteView({ route: second, view: () => <p>second</p> }),
+      ],
+    });
+    const { container } = render(() => (
+      <Provider value={scope}>
+        <RoutesView />
+      </Provider>
+    ));
+
+    await allSettled(first.open, { scope, params: {} });
+    await allSettled(second.open, { scope, params: {} });
+
+    expect(container.textContent).toBe('second');
   });
 
   test('lazy import starts on render and exposes Suspense fallback', async () => {
