@@ -229,7 +229,7 @@ Solid, and Vue do not acquire incompatible trees.
 
 This stage depends on final route payloads (D3) and query policy (D1–D2).
 
-- [ ] **T39 — One effective href contract.** React, Solid, and Vue build href
+- [x] **T39 — One effective href contract.** React, Solid, and Vue build href
       from the complete path params and effective query: an explicit query
       replaces current query, while omission follows D1. A native anchor and
       `route.open` reach the same URL.

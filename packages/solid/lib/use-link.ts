@@ -1,8 +1,12 @@
-import type { QueryInput, Route, InternalRoute } from '@effector/router';
+import {
+  stringifyQuery,
+  type QueryInput,
+  type Route,
+  type InternalRoute,
+} from '@effector/router';
 import { createMemo, type Accessor } from 'solid-js';
 import { useRouterContext } from './use-router';
 import { useUnit } from 'effector-solid';
-import queryString from 'query-string';
 
 /**
  * @description Imperative navigation helper. Resolves a route to a reactive
@@ -36,7 +40,7 @@ export function useLink<T extends object | void = void>(
     const queryValue = query();
     const effectiveQuery =
       queryValue === undefined ? currentQuery() : queryValue;
-    const search = effectiveQuery ? queryString.stringify(effectiveQuery) : '';
+    const search = effectiveQuery ? stringifyQuery(effectiveQuery) : '';
 
     return search ? `${pathname}?${search}` : pathname;
   });

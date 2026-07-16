@@ -61,6 +61,11 @@ Add query parameters to the URL:
 </Link>
 ```
 
+The `href` always includes the complete path params and effective query. When
+`query` is omitted, the current router query is preserved; an explicit object
+replaces it, and `{}` clears it. Calling `route.open` with the same payload
+produces the same URL.
+
 ## Replace Navigation
 
 Use `replace` to replace current history entry:

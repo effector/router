@@ -73,6 +73,8 @@ const UserScreen = createRouteView({
 - Selection is declarative: active parents are suppressed by active children and
   the last declared remaining view wins.
 - `Link`, `useLink` — declarative and imperative navigation.
+  Both build the same effective href as `route.open`: omitted query preserves
+  current query, explicit query replaces it, and `{}` clears it.
 - `withLayout` — share a layout across routes. Views returned by one call share
   a private group identity, so the layout stays mounted while siblings switch.
 - `Outlet`, `useRouter`, `useIsOpened`, `useOpenedViews` — composition helpers.

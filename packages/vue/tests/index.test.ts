@@ -411,6 +411,57 @@ describe('vue bindings', () => {
     expect(scope.getState(router.$query)).toStrictEqual({ tab: 'details' });
   });
 
+  test('href and route.open share effective query semantics', async () => {
+    const source = createRoute({ path: '/source' });
+    const target = createRoute({ path: '/target/:id' });
+    const scope = fork();
+    const router = createRouter({ routes: [source, target] });
+    const history = createMemoryHistory({
+      initialEntries: ['/source?keep=yes&flag'],
+    });
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    const RoutesView = createRoutesView({
+      routes: [
+        createRouteView({
+          route: source,
+          view: defineComponent({
+            render: () =>
+              h('div', [
+                h(Link, { to: target, params: { id: '42' }, id: 'preserve' }),
+                h(Link, {
+                  to: target,
+                  params: { id: '42' },
+                  query: { tab: 'details', flag: null },
+                  id: 'replace',
+                }),
+              ]),
+          }),
+        }),
+      ],
+    });
+    const wrapper = mountRoutes(router, scope, RoutesView);
+
+    expect(wrapper.find('#preserve').attributes('href')).toBe(
+      '/target/42?flag&keep=yes',
+    );
+    expect(wrapper.find('#replace').attributes('href')).toBe(
+      '/target/42?flag&tab=details',
+    );
+
+    await allSettled(target.open, {
+      scope,
+      params: { params: { id: '42' } },
+    });
+    expect(history.location.pathname + history.location.search).toBe(
+      '/target/42?flag&keep=yes',
+    );
+  });
+
   test('with layout', async () => {
     const profileRoute = createRoute({ path: '/profile' });
     const authRoute = createRoute({ path: '/auth' });

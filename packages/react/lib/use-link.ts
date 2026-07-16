@@ -1,8 +1,7 @@
-import type { QueryInput, Route } from '@effector/router';
+import { stringifyQuery, type QueryInput, type Route } from '@effector/router';
 import type { InternalRoute } from '@effector/router';
 import { useRouterContext } from './use-router';
 import { useUnit } from 'effector-react';
-import queryString from 'query-string';
 
 export function useLink<T extends object | void = void>(
   to: Route<T>,
@@ -35,7 +34,7 @@ export function useLink<T extends object | void = void>(
 }
 
 function createHref(path: string, query?: QueryInput): string {
-  const search = query ? queryString.stringify(query) : '';
+  const search = query ? stringifyQuery(query) : '';
 
   return search ? `${path}?${search}` : path;
 }

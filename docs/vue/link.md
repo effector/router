@@ -3,6 +3,11 @@
 Navigates the user to the provided route on click. Has props similar to an `<a>`
 element but instead of `href` uses `to` and `params`.
 
+The rendered `href` includes complete path params and the effective query. An
+omitted `query` preserves the current router query; an explicit object replaces
+it and `{}` clears it. The same payload passed to `route.open` produces the
+same URL.
+
 #### `to`
 
 - `type`: `Route<T>`

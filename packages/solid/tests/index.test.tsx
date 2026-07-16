@@ -212,6 +212,62 @@ describe('solid bindings', () => {
     );
   });
 
+  test('href and route.open share effective query semantics', async () => {
+    const source = createRoute({ path: '/source' });
+    const target = createRoute({ path: '/target/:id' });
+    const scope = fork();
+    const router = createRouter({ routes: [source, target] });
+    const history = createMemoryHistory({
+      initialEntries: ['/source?keep=yes&flag'],
+    });
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    const RoutesView = createRoutesView({
+      routes: [
+        createRouteView({
+          route: source,
+          view: () => (
+            <>
+              <Link to={target} params={{ id: '42' }} id="preserve" />
+              <Link
+                to={target}
+                params={{ id: '42' }}
+                query={{ tab: 'details', flag: null }}
+                id="replace"
+              />
+            </>
+          ),
+        }),
+      ],
+    });
+    const { container } = render(() => (
+      <Provider value={scope}>
+        <RouterProvider router={router}>
+          <RoutesView />
+        </RouterProvider>
+      </Provider>
+    ));
+
+    expect(container.querySelector('#preserve')?.getAttribute('href')).toBe(
+      '/target/42?flag&keep=yes',
+    );
+    expect(container.querySelector('#replace')?.getAttribute('href')).toBe(
+      '/target/42?flag&tab=details',
+    );
+
+    await allSettled(target.open, {
+      scope,
+      params: { params: { id: '42' } },
+    });
+    expect(history.location.pathname + history.location.search).toBe(
+      '/target/42?flag&keep=yes',
+    );
+  });
+
   test('link applies activeClass while its route is opened', async () => {
     const route = createRoute({ path: '/profile' });
     const scope = fork();

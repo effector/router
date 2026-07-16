@@ -1,6 +1,10 @@
-import type { InternalRoute, QueryInput, Route } from '@effector/router';
+import {
+  stringifyQuery,
+  type InternalRoute,
+  type QueryInput,
+  type Route,
+} from '@effector/router';
 import { useUnit } from 'effector-vue/composition';
-import queryString from 'query-string';
 import { toRaw } from 'vue';
 import { useRouterContext } from './use-router';
 
@@ -37,7 +41,7 @@ export function useLink<T extends object | void = void>(to: Route<T>) {
       const path = target.build(params ?? undefined);
       const effectiveQuery = query === undefined ? currentQuery.value : query;
       const search = effectiveQuery
-        ? queryString.stringify(effectiveQuery)
+        ? stringifyQuery(effectiveQuery as QueryInput)
         : '';
 
       return search ? `${path}?${search}` : path;
