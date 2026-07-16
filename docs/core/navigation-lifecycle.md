@@ -26,6 +26,13 @@ Cancellation before commit leaves history unchanged. An Effect error after
 commit is observed through that Effect's standard `fail`/`failData`; it cancels
 the chained readiness route and ends pending.
 
+Every committed navigation opens a one-microtask hold-collection window so that
+`beforeNavigate` holds registered synchronously in the same transaction are
+gathered before the location commits. This deferral is uniform: a command
+navigation with no attached policy still commits on the next microtask rather
+than synchronously. `allSettled(command, { scope })` resolves after the commit,
+so scoped tests and SSR observe the settled location regardless.
+
 ## FSD setup
 
 Create routes and controls in the lower layer:
