@@ -301,7 +301,7 @@ changesets rather than deferring them here.
 - [x] **T52 — Typecheck documentation snippets.** Add a pipeline for extracted
       or imported public-API snippets. Separately verify expected compile errors
       for params, paths, Link, and RN restrictions.
-- [ ] **T53 — Validate source and sidebar links.** Automate checks for source
+- [x] **T53 — Validate source and sidebar links.** Automate checks for source
       `@link` references, internal Markdown links, VitePress sidebar entries, and
       missing or orphaned public-API pages.
 - [ ] **T54 — Smoke-test quick starts.** Create one reusable fixture for each

@@ -8,6 +8,7 @@
     "test": "pnpm run -recursive -filter \"./packages/*\" test -- --silent",
     "typecheck": "tsc --noEmit",
     "docs:typecheck": "tsc -p docs/snippets/tsconfig.json && tsc -p docs/snippets/tsconfig.solid.json && tsc -p docs/snippets/tsconfig.expected.json",
+    "docs:check-links": "node scripts/check-doc-links.mjs",
     "changeset": "changeset",
     "version": "changeset version",
     "release": "changeset publish",
