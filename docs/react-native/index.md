@@ -39,8 +39,9 @@ npm install @effector/router @effector/router-react-native \
 npm install react-native-screens react-native-safe-area-context
 ```
 
-`@effector/router-react-native` re-exports `@effector/router-react`, so React and
-React Native bindings use one application-facing entry point. Import the shared
+`@effector/router-react-native` re-exports platform-neutral React bindings such
+as `RouterProvider`, route views, layouts, and route hooks. Browser-only `Link`,
+`useLink`, and `LinkProps` remain in `@effector/router-react`. Import the shared
 router API from `@effector/router`.
 
 ## Quick Example

@@ -14,7 +14,9 @@ npm install @effector/router @effector/router-react-native \
   react-native-screens react-native-safe-area-context
 ```
 
-The package is the React Native entry point and re-exports
+The package is the React Native entry point and re-exports platform-neutral
+React bindings such as `RouterProvider`, route views, layouts, and route hooks.
+Browser-only `Link`, `useLink`, and `LinkProps` remain in
 `@effector/router-react`. Import the shared router API from `@effector/router`.
 
 ## Quick start
