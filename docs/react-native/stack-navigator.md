@@ -15,9 +15,8 @@ import {
   createNavigationContainerRef,
   NavigationContainer,
 } from '@react-navigation/native';
+import { createRoute, createRouter } from '@effector/router';
 import {
-  createRoute,
-  createRouter,
   createRouteView,
   RouterProvider,
   createStackNavigator,

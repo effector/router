@@ -2,11 +2,11 @@ export {
   Outlet,
   RouterProvider,
   createLazyRouteView,
-  createRoute,
   createRouteView,
-  createRouter,
   createRoutesView,
+  Link,
   useIsOpened,
+  useLink,
   useOpenedViews,
   useRouter,
   useRouterContext,
@@ -16,13 +16,12 @@ export {
 export type {
   CreateLazyRouteViewProps,
   CreateRouteViewProps,
-  Route,
+  LinkProps,
   RouteView,
-  Router,
 } from '../lib';
 
-// @ts-expect-error browser-only values are intentionally not re-exported
-export { Link, useLink } from '../lib';
+// @ts-expect-error core units are imported from @effector/router
+export { createRoute, createRouter } from '../lib';
 
-// @ts-expect-error browser-only props are intentionally not re-exported
-export type { LinkProps } from '../lib';
+// @ts-expect-error core types are imported from @effector/router
+export type { Route, Router } from '../lib';

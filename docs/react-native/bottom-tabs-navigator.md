@@ -15,10 +15,9 @@ import {
   createNavigationContainerRef,
   NavigationContainer,
 } from '@react-navigation/native';
+import { createRoute, createRouter } from '@effector/router';
 import {
   createBottomTabsNavigator,
-  createRoute,
-  createRouter,
   createRouteView,
   RouterProvider,
 } from '@effector/router-react-native';

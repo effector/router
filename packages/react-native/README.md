@@ -9,14 +9,13 @@ native rendering, animations, and options, but navigate through route events.
 ## Install
 
 ```bash
-npm install @effector/router-react-native \
+npm install @effector/router @effector/router-react-native \
   @react-navigation/native @react-navigation/stack @react-navigation/bottom-tabs \
   react-native-screens react-native-safe-area-context
 ```
 
-The package is the React Native entry point: it re-exports the core router API
-and platform-neutral React bindings. Browser-only `Link` and `useLink` remain
-in `@effector/router-react`.
+The package is the React Native entry point and re-exports
+`@effector/router-react`. Import the shared router API from `@effector/router`.
 
 ## Quick start
 
@@ -26,9 +25,8 @@ import {
   createNavigationContainerRef,
   NavigationContainer,
 } from '@react-navigation/native';
+import { createRoute, createRouter } from '@effector/router';
 import {
-  createRoute,
-  createRouter,
   RouterProvider,
   createRouteView,
   createStackNavigator,

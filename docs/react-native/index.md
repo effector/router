@@ -32,16 +32,16 @@ React Native bindings for effector router with React Navigation integration.
 ## Installation
 
 ```bash
-npm install @effector/router-react-native \
+npm install @effector/router @effector/router-react-native \
   @react-navigation/native @react-navigation/stack @react-navigation/bottom-tabs
 
 # Also install React Navigation dependencies
 npm install react-native-screens react-native-safe-area-context
 ```
 
-`@effector/router-react-native` is the application-facing entry point. It
-re-exports the core router API and platform-neutral React bindings; browser-only
-`Link` and `useLink` stay in `@effector/router-react`.
+`@effector/router-react-native` re-exports `@effector/router-react`, so React and
+React Native bindings use one application-facing entry point. Import the shared
+router API from `@effector/router`.
 
 ## Quick Example
 
@@ -50,9 +50,8 @@ import {
   createNavigationContainerRef,
   NavigationContainer,
 } from '@react-navigation/native';
+import { createRoute, createRouter } from '@effector/router';
 import {
-  createRoute,
-  createRouter,
   createRouteView,
   RouterProvider,
   createStackNavigator,
