@@ -505,4 +505,32 @@ describe('navigation operators', () => {
     expect(history.index).toBe(1);
     expect(scope.getState(routes.protected.$isOpened)).toBe(true);
   });
+
+  // Every committed navigation opens a hold-collection window (one microtask)
+  // so `beforeNavigate` holds registered synchronously are gathered before the
+  // location commits. This deferral is uniform even when no policy is attached;
+  // it is pinned here so a future fast-path optimization is a deliberate change.
+  test('a command navigation commits after one microtask even without a hold', async () => {
+    const scope = fork();
+    const { router, history } = createFixture(['/']);
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+    expect(scope.getState(router.$path)).toBe('/');
+
+    const settled = allSettled(router.navigate, {
+      scope,
+      params: { path: '/protected' },
+    });
+
+    // Synchronously the location has not committed yet.
+    expect(scope.getState(router.$path)).toBe('/');
+
+    await settled;
+
+    // After the microtask window the commit has landed.
+    expect(scope.getState(router.$path)).toBe('/protected');
+  });
 });
