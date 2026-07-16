@@ -277,7 +277,7 @@ params, the active Router tree, and navigation semantics.
       the latest Router snapshot and synchronize it when ready. Suppress echo
       loops from binding-owned updates and remove stale-state races during fast
       transitions and initialization.
-- [ ] **T49 — Native intents.** Translate screen focus, native back/remove, a
+- [x] **T49 — Native intents.** Translate screen focus, native back/remove, a
       completed back gesture, and tab press into route/controls intent without
       mutating RN state directly inside the handler. Deep-link URL parsing and
       Linking configuration remain app-owned. Normalize only the public ref and

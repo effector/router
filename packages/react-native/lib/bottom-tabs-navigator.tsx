@@ -17,7 +17,10 @@ import {
 } from './route-name';
 import { flattenRouteViews } from './route-views';
 import { createRouterSync } from './navigation-sync';
-import { createRouteListeners, openRoute } from './navigation-events';
+import {
+  createRouteListeners,
+  createTabPressListener,
+} from './navigation-events';
 import { NativeNavigator, NativeNavigatorProps } from './native-navigator';
 import { subscribeNavigation } from './navigation-bridge';
 
@@ -115,13 +118,8 @@ export function createBottomTabsNavigator(
               component={routeView.view}
               options={(routeView as BottomTabsRouteView).options}
               listeners={{
-                ...createRouteListeners(routeView.route),
-                tabPress: (e) => {
-                  // Prevent default navigation
-                  e.preventDefault();
-                  // Open route via  Router
-                  openRoute(routeView.route);
-                },
+                ...createRouteListeners(routeView.route, scope),
+                tabPress: createTabPressListener(routeView.route, scope),
               }}
             />
           );

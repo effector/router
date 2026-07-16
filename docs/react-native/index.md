@@ -161,6 +161,12 @@ command. Once ready, it navigates with route params and preserves Router's
 replace intent; native state notifications are treated as complete snapshots
 and matching binding-originated updates are not echoed back.
 
+Native screen focus, removal/back events, completed closing gestures, and tab
+presses are translated into existing Router `open`/`close` events. Handlers keep
+the native payload types, prevent native selection where required, and bind
+callbacks to the rendered Effector scope; no public native-intent unit is
+introduced.
+
 ## React Navigation Features
 
 While navigation is managed by Effector Router, you still get all React Navigation features:

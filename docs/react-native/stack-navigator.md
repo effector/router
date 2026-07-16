@@ -92,6 +92,10 @@ before readiness, then sends a navigate or stack replace command with the route
 params once the ref is ready. Matching native snapshots suppress the resulting
 echo.
 
+Focus opens a route in Router. A native removal, completed closing transition,
+or completed back gesture closes it through the same route unit; the removal
+handler prevents the native action until Router state synchronizes back.
+
 ### `router` (required)
 
 effector/router Router instance created with [`createRouter`].

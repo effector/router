@@ -17,7 +17,10 @@ import {
 } from './route-name';
 import { flattenRouteViews } from './route-views';
 import { createRouterSync } from './navigation-sync';
-import { createRouteListeners } from './navigation-events';
+import {
+  createClosingTransitionListener,
+  createRouteListeners,
+} from './navigation-events';
 import { NativeNavigator, NativeNavigatorProps } from './native-navigator';
 import { subscribeNavigation } from './navigation-bridge';
 
@@ -116,7 +119,13 @@ export function createStackNavigator(
               name={routeName}
               component={routeView.view}
               options={(routeView as StackRouteView).options}
-              listeners={createRouteListeners(routeView.route)}
+              listeners={{
+                ...createRouteListeners(routeView.route, scope),
+                transitionEnd: createClosingTransitionListener(
+                  routeView.route,
+                  scope,
+                ),
+              }}
             />
           );
         })}
