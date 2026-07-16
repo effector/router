@@ -86,3 +86,34 @@ The core regression suite keeps the accepted phase boundaries executable:
 | Held navigation can be cancelled or proceeded                          | `navigation.test.ts`              |
 | Redirects supersede holds and loops are bounded                        | `navigation.test.ts`              |
 | Native POP respects the same hold/cancel boundary                      | `navigation.test.ts`              |
+
+## Design rationale
+
+The public surface intentionally has only two lifecycle composition points. A
+pre-commit `beforeNavigate` hold can preserve history semantics when a user
+cancels. A post-commit `chainRoute` models preparation and readiness without
+delaying the URL. They share a private attempt coordinator, but they are not
+the same operator and no public transition, task, barrier, blocker, guard, or
+attempt object is introduced.
+
+This boundary follows the roles already established by Effector Router and
+adjacent libraries. Atomic Router's `chainRoute` is a derived readiness route
+after its parent opens; it cannot undo a committed history entry. Farfetched
+barriers are useful for shared recovery around asynchronous work, but do not
+model history, confirmation, or redirects. React Router likewise separates
+pre-commit blockers from post-commit data loading. The router keeps those roles
+composable from ordinary Effector events, effects, stores, and `sample`.
+
+Redirects are semantic navigation targets composed with `sample`; they re-enter
+normal matching, supersede a held attempt, and are bounded to prevent loops.
+Preparation errors remain normal Effect failures, cancel chained readiness, and
+end `$isPending`. Lazy imports belong to framework bindings and their Suspense
+or async-component fallback; core `$isPending` describes model preparation,
+not chunk loading.
+
+## Non-goals
+
+- A public transition or attempt object.
+- A router-specific task, barrier, blocker, guard, or data-loading primitive.
+- Recursive `route.open()` calls from preparation hooks.
+- Moving Router/history construction into shared route declarations.

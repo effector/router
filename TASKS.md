@@ -187,7 +187,7 @@ Do not migrate bindings until public core types are stable.
       params, notFound, query tracking, and adapter initialization.
 - [x] **T32 — Lifecycle compatibility gate.** Re-run and, where required,
       extend the regression suite for the accepted
-      [Navigation lifecycle RFC](NAVIGATION_LIFECYCLE_RFC.md): one preparation
+      [Navigation lifecycle reference](docs/core/navigation-lifecycle.md): one preparation
       per logical transition, pending boundaries, cancellation/error, redirect
       loops, native POP, and takeLatest chainRoute. D1–D5 implementation must not
       change the public lifecycle model.
@@ -309,10 +309,10 @@ changesets rather than deferring them here.
       reproduce the same verified code without an alternative pseudo-API. Every
       fixture builds and typechecks; fixtures with a renderer also open the
       initial route and perform one navigation.
-- [ ] **T55 — Final docs/API audit.** Check package READMEs, docs pages, exports,
+- [x] **T55 — Final docs/API audit.** Check package READMEs, docs pages, exports,
       and examples for every affected package. Separate application policy from
       core contract and remove legacy claims. Consolidate the accepted lifecycle
-      contract and reusable rationale from `NAVIGATION_LIFECYCLE_RFC.md` into
+      contract and reusable rationale from the temporary RFC into
       `docs/core/navigation-lifecycle.md` or a dedicated permanent article,
       update internal references, then delete the temporary root RFC.
 - [ ] **T56 — Full release gate.** After each slice's package checks, run full

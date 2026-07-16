@@ -7,7 +7,7 @@ Rules for executing the ordered backlog in [TASKS.md](TASKS.md).
 When documents disagree, use this order:
 
 1. [DECISIONS.md](DECISIONS.md) defines accepted public contracts.
-2. [NAVIGATION_LIFECYCLE_RFC.md](NAVIGATION_LIFECYCLE_RFC.md) defines accepted
+2. [docs/core/navigation-lifecycle.md](docs/core/navigation-lifecycle.md) defines accepted
    lifecycle invariants that adjacent work must preserve.
 3. [TASKS.md](TASKS.md) defines the order and complete scope of remaining work.
 4. [BUGS.md](BUGS.md) records concrete regressions. Insert a regression into

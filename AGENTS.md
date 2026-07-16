@@ -6,6 +6,6 @@ user explicitly requests otherwise, complete one `Txx` per verified commit and
 do not pull later tasks into the current change.
 
 Public contracts come from [DECISIONS.md](DECISIONS.md). Navigation lifecycle
-invariants come from
-[NAVIGATION_LIFECYCLE_RFC.md](NAVIGATION_LIFECYCLE_RFC.md). Do not change either
+invariants come from the permanent
+[navigation lifecycle reference](docs/core/navigation-lifecycle.md). Do not change either
 contract implicitly while working on an adjacent task.
