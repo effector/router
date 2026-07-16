@@ -737,4 +737,32 @@ describe('router', () => {
 
     expect(calls).toBeCalledTimes(1);
   });
+
+  test('parent route stays open when switching between child routes', async () => {
+    const profile = createRoute({ path: '/profile' });
+    const settings = createRoute({ path: '/settings', parent: profile });
+    const friends = createRoute({ path: '/friends', parent: profile });
+    const router = createRouter({ routes: [profile, settings, friends] });
+    const scope = fork();
+    const history = createMemoryHistory({
+      initialEntries: ['/profile/settings'],
+    });
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    const parentClosed = watchCalls(profile.closed, scope);
+
+    await allSettled(friends.open, { scope, params: undefined });
+
+    // The shared parent must not close while a sibling child takes over; a
+    // binding subscribed through useSyncExternalStore would otherwise unmount
+    // and remount the parent view. `$isOpened` must never emit false here.
+    expect(parentClosed).toBeCalledTimes(0);
+    expect(scope.getState(profile.$isOpened)).toBe(true);
+    expect(scope.getState(settings.$isOpened)).toBe(false);
+    expect(scope.getState(friends.$isOpened)).toBe(true);
+  });
 });
