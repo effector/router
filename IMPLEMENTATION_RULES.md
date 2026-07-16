@@ -79,13 +79,21 @@ imports that type, even if those packages belong to a later stage.
 Full repository gate:
 
 ```sh
-pnpm build
 pnpm typecheck
+pnpm build
 pnpm test
 pnpm lint
 pnpm :docs docs:build
 pnpm changeset status --since=origin/main
 ```
+
+`typecheck` runs first and resolves workspace packages from source
+(`tsconfig.check.json` `compilerOptions.paths`), so it does not depend on a
+prior `pnpm build`. Keep those aliases out of `tsconfig.json`: package dts
+builds read that file and must resolve workspace imports to built `dist`.
+Verify the independence with `pnpm verify:typecheck-standalone`, which removes
+every package `dist` before running the gate. Never reintroduce a build
+dependency into the type gate.
 
 ## Dependencies and ordering
 

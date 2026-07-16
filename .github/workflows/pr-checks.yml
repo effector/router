@@ -28,7 +28,6 @@ jobs:
     uses: ./.github/workflows/build.yml
 
   typecheck:
-    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -36,12 +35,10 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup
 
-      - uses: actions/download-artifact@v4
-        with:
-          name: build-output
-          path: ./packages
-
-      - run: pnpm run typecheck
+      # The root tsconfig resolves workspace packages from source, so the type
+      # gate must pass without a prior build. This also guards F1 against
+      # regressing back to a dist-coupled setup.
+      - run: pnpm run verify:typecheck-standalone
 
   lint:
     needs: build
