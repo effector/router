@@ -84,6 +84,23 @@ The binding listens for native readiness/state changes and removes those
 listeners on unmount. It does not create a container, Router, or history
 adapter.
 
+### Route view `options`
+
+Per-screen options use the native Bottom Tabs option object or callback type
+and are passed directly to `Tab.Screen`:
+
+```tsx
+const TabsNavigator = createBottomTabsNavigator({
+  router,
+  routes: [
+    {
+      ...HomeScreen,
+      options: { tabBarLabel: 'Home' },
+    },
+  ],
+});
+```
+
 ### `router` (required)
 
 effector/router Router instance created with [`createRouter`].

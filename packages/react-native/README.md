@@ -68,9 +68,11 @@ details.open({ params: { id: '123' } });
 - `createStackNavigator` — stack-based, full-screen transitions.
 - `createBottomTabsNavigator` — tab bar navigation.
 
-Both accept React Navigation's `screenOptions` and per-screen options, so styling and behavior stay fully
-configurable. Navigation always flows through route events (`route.open(...)`), which keeps logic centralized and
-easy to test.
+Both accept React Navigation's `screenOptions` and RN-specific per-screen
+`options` on route views, so styling and behavior stay fully configurable.
+Object and callback values are passed through unchanged; stack and tabs retain
+their distinct native option types. Navigation always flows through route events
+(`route.open(...)`), which keeps logic centralized and easy to test.
 
 The navigator factories return the native component directly. The app owns the
 `NavigationContainer` and its ref, and passes that same `navigationRef` to the

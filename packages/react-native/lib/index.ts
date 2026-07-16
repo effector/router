@@ -5,9 +5,11 @@ export type { NativeNavigator, NativeNavigatorProps } from './native-navigator';
 export type {
   StackNavigatorConfig,
   StackNavigatorOptions,
+  StackRouteView,
 } from './stack-navigator';
 
 export type {
   BottomTabsNavigatorConfig,
   BottomTabNavigationOptions,
+  BottomTabsRouteView,
 } from './bottom-tabs-navigator';

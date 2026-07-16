@@ -264,7 +264,7 @@ params, the active Router tree, and navigation semantics.
       synchronization, bind callbacks to the rendered Effector scope, and remove
       ref/Effector subscriptions on unmount. Add public type fixtures and focused
       lifecycle tests.
-- [ ] **T46 — Navigator option types.** Add RN-specific RouteView `options`.
+- [x] **T46 — Navigator option types.** Add RN-specific RouteView `options`.
       Pass navigator `screenOptions` and per-screen `options` through as native
       object/callback values without manually merging them. Stack and Tabs retain
       their distinct native option types.

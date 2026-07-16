@@ -16,9 +16,13 @@ import { createRouteListeners } from './navigation-events';
 import { NativeNavigator, NativeNavigatorProps } from './native-navigator';
 import { subscribeNavigation } from './navigation-bridge';
 
+export type StackRouteView = RouteView & {
+  options?: React.ComponentProps<typeof Stack.Screen>['options'];
+};
+
 export type StackNavigatorConfig = {
   router: Router;
-  routes: RouteView[];
+  routes: StackRouteView[];
   screenOptions?: StackNavigatorProps['screenOptions'];
   initialRouteName?: string;
 };
@@ -102,6 +106,7 @@ export function createStackNavigator(
               key={routeKey}
               name={routeName}
               component={routeView.view}
+              options={(routeView as StackRouteView).options}
               listeners={createRouteListeners(routeView.route)}
             />
           );

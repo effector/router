@@ -9,16 +9,20 @@ import type { Router } from '@effector/router';
 import type { RouteView } from '@effector/router-react';
 import { createWatch, scopeBind } from 'effector';
 import { useProvidedScope } from 'effector-react';
-import { getScreenKey, getScreenName, getScreenTitle } from './route-name';
+import { getScreenKey, getScreenName } from './route-name';
 import { flattenRouteViews } from './route-views';
 import { syncActiveRoute } from './navigation-sync';
 import { createRouteListeners, openRoute } from './navigation-events';
 import { NativeNavigator, NativeNavigatorProps } from './native-navigator';
 import { subscribeNavigation } from './navigation-bridge';
 
+export type BottomTabsRouteView = RouteView & {
+  options?: React.ComponentProps<typeof Tab.Screen>['options'];
+};
+
 export type BottomTabsNavigatorConfig = {
   router: Router;
-  routes: RouteView[];
+  routes: BottomTabsRouteView[];
   screenOptions?: BottomTabNavigatorProps['screenOptions'];
   initialRouteName?: string;
 };
@@ -97,14 +101,12 @@ export function createBottomTabsNavigator(
         {routeViews.map((routeView, index) => {
           const routeName = getScreenName(routeView.route, index);
           const routeKey = getScreenKey(routeView.route, index);
-          const title = getScreenTitle(routeView.route, index);
-
           return (
             <Tab.Screen
               key={routeKey}
               name={routeName}
               component={routeView.view}
-              options={{ title }}
+              options={(routeView as BottomTabsRouteView).options}
               listeners={{
                 ...createRouteListeners(routeView.route),
                 tabPress: (e) => {

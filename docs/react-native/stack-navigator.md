@@ -150,6 +150,29 @@ const StackNavigator = createStackNavigator({
 
 See [React Navigation Stack Navigator documentation](https://reactnavigation.org/docs/stack-navigator) for all available options.
 
+### Route view `options`
+
+Per-screen options belong to the RN route view and use the native Stack option
+object or callback type. They are passed directly to `Stack.Screen` without
+being merged with `screenOptions`:
+
+```tsx
+const ProfileScreen = createRouteView({
+  route: profileRoute,
+  view: Profile,
+});
+
+const StackNavigator = createStackNavigator({
+  router,
+  routes: [
+    {
+      ...ProfileScreen,
+      options: ({ route }) => ({ title: route.name }),
+    },
+  ],
+});
+```
+
 ### `initialRouteName`
 
 Name of the route to render on initial render.
