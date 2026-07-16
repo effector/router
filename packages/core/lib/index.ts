@@ -15,6 +15,7 @@ export type {
   Route,
   PathRoute,
   PathlessRoute,
+  ChainRoute,
   Router,
   Query,
   QueryInput,

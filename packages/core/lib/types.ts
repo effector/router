@@ -61,6 +61,10 @@ export interface PathRoute<T extends object | void = void> extends Omit<
   path: string;
 }
 
+export type ChainRoute<T extends object | void = void> = PathlessRoute<T> & {
+  cancelled: Event<void>;
+};
+
 export type Route<T extends object | void = void> =
   | PathRoute<T>
   | PathlessRoute<T>;

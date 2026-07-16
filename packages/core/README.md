@@ -61,7 +61,8 @@ the router is used with Effector Fork.
 - **Type-safe params** — `createRoute({ path: '/user/:id' })` infers `Route<{ id: string }>`.
 - **Routes as units** — path and virtual routes share `$isOpened`, `$params`,
   `$isPending`, `open`, `close`, `opened`, `updated`, and `closed` units.
-- **Path & pathless routes** — `createRoute()` and `createVirtualRoute()` for modals, dialogs, and nested flows.
+- **Path & pathless routes** — `createRoute({ path })` and `createRoute()` for
+  URL routes, modals, dialogs, and nested flows.
 - **Composable navigation** — `beforeNavigate` and `redirect` for pre-commit policy, `chainRoute` for post-commit readiness.
 
 Routes without required params accept `open()`, `open({})`, and
@@ -88,8 +89,7 @@ the fact that virtual routes never write to history.
 
 | Export                           | Purpose                                          |
 | -------------------------------- | ------------------------------------------------ |
-| `createRoute`                    | Route with a path and typed params.              |
-| `createVirtualRoute`             | Route without a path (modals, tabs, steps).      |
+| `createRoute`                    | Path or pathless route factory.                  |
 | `createRouter`                   | Combine routes and bind them to history.         |
 | `createRouterControls`           | Build router controls separately.                |
 | `beforeNavigate`                 | Hold or confirm navigation before history.       |
@@ -100,9 +100,13 @@ the fact that virtual routes never write to history.
 | `historyAdapter`, `queryAdapter` | Connect the router to a history source.          |
 
 `createRoute<Params>()` is the pathless/virtual form. `createVirtualRoute` is
-the deprecated compatibility factory; new code should use the shared
-`createRoute` lifecycle. A pathless route opens from its own Effector units,
+retained only as a deprecated compatibility factory; new code should use the
+shared `createRoute` lifecycle. A pathless route opens from its own Effector units,
 does not need router registration, and never writes history.
+
+`chainRoute` also returns the shared pathless route shape (plus its
+`cancelled` event), so chained routes do not depend on the legacy virtual-route
+factory.
 
 `RouterAdapter.location` is a live `{ pathname, search, hash }` snapshot. It
 reflects adapter pushes, replaces, and native history updates instead of the

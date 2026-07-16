@@ -1,7 +1,4 @@
-import {
-  createRouter,
-  createVirtualRoute,
-} from '../../packages/core/lib/index';
+import { createRouter, createRoute } from '../../packages/core/lib/index';
 import {
   createRouteView,
   createRoutesView,
@@ -10,8 +7,8 @@ import {
 import { h } from 'vue';
 
 export function createVueQuickStart(): any {
-  const home = createVirtualRoute();
-  const profile = createVirtualRoute<{ id: string }>();
+  const home = createRoute();
+  const profile = createRoute<{ id: string }>();
   const router = createRouter({ routes: [] });
   const Home = createRouteView({
     route: home,

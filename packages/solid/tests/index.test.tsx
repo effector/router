@@ -3,12 +3,7 @@ import { Provider } from 'effector-solid';
 import { createSignal, onCleanup, onMount } from 'solid-js';
 import { describe, expect, test, vi } from 'vitest';
 import { fireEvent, render } from '@solidjs/testing-library';
-import {
-  createRoute,
-  createRouter,
-  createVirtualRoute,
-  historyAdapter,
-} from '@effector/router';
+import { createRoute, createRouter, historyAdapter } from '@effector/router';
 import { createMemoryHistory } from 'history';
 
 import {
@@ -39,8 +34,8 @@ describe('solid bindings', () => {
   });
 
   test('selects the last declared active sibling', async () => {
-    const first = createVirtualRoute();
-    const second = createVirtualRoute();
+    const first = createRoute();
+    const second = createRoute();
     const scope = fork();
     const RoutesView = createRoutesView({
       routes: [
@@ -61,9 +56,9 @@ describe('solid bindings', () => {
   });
 
   test('keeps a grouped layout mounted while sibling pages switch', async () => {
-    const first = createVirtualRoute();
-    const second = createVirtualRoute();
-    const outside = createVirtualRoute();
+    const first = createRoute();
+    const second = createRoute();
+    const outside = createRoute();
     const scope = fork();
     let mounts = 0;
     let unmounts = 0;
@@ -91,13 +86,13 @@ describe('solid bindings', () => {
       </Provider>
     ));
 
-    await allSettled(first.open, { scope });
-    await allSettled(second.open, { scope });
+    await allSettled(first.open, { scope, params: undefined });
+    await allSettled(second.open, { scope, params: undefined });
     expect(container.textContent).toBe('second');
     expect(mounts).toBe(1);
     expect(unmounts).toBe(0);
 
-    await allSettled(outside.open, { scope });
+    await allSettled(outside.open, { scope, params: undefined });
     expect(container.textContent).toBe('outside');
     expect(unmounts).toBe(1);
   });

@@ -4,7 +4,6 @@ import {
   createRoute,
   createRouter,
   createRouterControls,
-  createVirtualRoute,
   group,
 } from '@effector/router';
 import type { RouteOpenedPayload } from '@effector/router';
@@ -77,6 +76,4 @@ export const projectGroup = group([
   projectOverviewRoute,
   projectTaskRoute,
 ]);
-export const drawerRoute = createVirtualRoute<{ panel: string }, string>({
-  transformer: ({ panel }) => panel,
-});
+export const drawerRoute = createRoute<{ panel: string }>();

@@ -3,7 +3,6 @@ import { describe, expect, test, vi } from 'vitest';
 import {
   createRoute,
   createRouter,
-  createVirtualRoute,
   historyAdapter,
   type Router,
 } from '@effector/router';
@@ -63,8 +62,8 @@ describe('vue bindings', () => {
   });
 
   test('selects the last declared active sibling', async () => {
-    const first = createVirtualRoute();
-    const second = createVirtualRoute();
+    const first = createRoute();
+    const second = createRoute();
     const scope = fork();
     const router = createRouter({ routes: [] });
     const RoutesView = createRoutesView({
@@ -81,17 +80,17 @@ describe('vue bindings', () => {
     });
     const wrapper = mountRoutes(router, scope, RoutesView);
 
-    await allSettled(first.open, { scope });
-    await allSettled(second.open, { scope });
+    await allSettled(first.open, { scope, params: undefined });
+    await allSettled(second.open, { scope, params: undefined });
     await flushPromises();
 
     expect(wrapper.text()).toBe('second');
   });
 
   test('keeps a grouped layout mounted while sibling pages switch', async () => {
-    const first = createVirtualRoute();
-    const second = createVirtualRoute();
-    const outside = createVirtualRoute();
+    const first = createRoute();
+    const second = createRoute();
+    const outside = createRoute();
     const scope = fork();
     let mounts = 0;
     let unmounts = 0;
@@ -130,14 +129,14 @@ describe('vue bindings', () => {
       RoutesView,
     );
 
-    await allSettled(first.open, { scope });
-    await allSettled(second.open, { scope });
+    await allSettled(first.open, { scope, params: undefined });
+    await allSettled(second.open, { scope, params: undefined });
     await flushPromises();
     expect(wrapper.text()).toBe('second');
     expect(mounts).toBe(1);
     expect(unmounts).toBe(0);
 
-    await allSettled(outside.open, { scope });
+    await allSettled(outside.open, { scope, params: undefined });
     await flushPromises();
     expect(wrapper.text()).toBe('outside');
     expect(unmounts).toBe(1);

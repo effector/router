@@ -511,7 +511,7 @@ function Drawer() {
   return (
     <Show when={opened()}>
       <div data-testid="activity-drawer" class="drawer">
-        <span>Activity panel: {drawer.params()}</span>
+        <span>Activity panel: {drawer.params()?.panel}</span>
         <button
           data-testid="close-drawer"
           type="button"

@@ -93,7 +93,7 @@ describe('chained routes', () => {
 
   test('virtual route groupping', async () => {
     const scope = fork();
-    const virtualRoute = createVirtualRoute<RouteOpenedPayload<void>>();
+    const virtualRoute = createRoute();
 
     const fx = createEffect((params: RouteOpenedPayload<void>) => params);
 
@@ -127,10 +127,7 @@ describe('chained routes', () => {
 
   test('opens automatically and exposes pending without openOn', async () => {
     let resolve!: () => void;
-    const parent = createVirtualRoute<
-      RouteOpenedPayload<{ id: string }>,
-      { id: string }
-    >({ transformer: (payload) => payload.params });
+    const parent = createRoute<{ id: string }>();
     const prepareFx = createEffect(
       () => new Promise<void>((done) => (resolve = done)),
     );
@@ -156,7 +153,7 @@ describe('chained routes', () => {
   });
 
   test('stays pending while waiting for openOn', async () => {
-    const parent = createVirtualRoute<RouteOpenedPayload<void>>();
+    const parent = createRoute();
     const started = createEvent<RouteOpenedPayload<void>>();
     const ready = createEvent();
     const chained = chainRoute({
@@ -178,7 +175,7 @@ describe('chained routes', () => {
   });
 
   test('effect failure cancels the current chain attempt', async () => {
-    const parent = createVirtualRoute<RouteOpenedPayload<void>>();
+    const parent = createRoute();
     const failedFx = createEffect(() => {
       throw new Error('preparation failed');
     });
@@ -195,7 +192,7 @@ describe('chained routes', () => {
 
   test('parent close cancels pending preparation', async () => {
     let resolve!: () => void;
-    const parent = createVirtualRoute<RouteOpenedPayload<void>>();
+    const parent = createRoute();
     const prepareFx = createEffect(
       () => new Promise<void>((done) => (resolve = done)),
     );
@@ -222,10 +219,7 @@ describe('chained routes', () => {
 
   test('ignores stale preparation results after a newer activation', async () => {
     let resolveFirst!: () => void;
-    const parent = createVirtualRoute<
-      RouteOpenedPayload<{ id: string }>,
-      { id: string }
-    >({ transformer: (payload) => payload.params });
+    const parent = createRoute<{ id: string }>();
     const prepareFx = createEffect(
       async (payload: RouteOpenedPayload<{ id: string }>) => {
         if (payload.params.id === 'first') {

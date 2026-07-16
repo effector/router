@@ -3,11 +3,16 @@ import {
   createEvent,
   createStore,
   sample,
-  type EventCallable,
   type Unit,
 } from 'effector';
-import type { LegacyVirtualRoute, Route, RouteOpenedPayload } from './types';
-import { createVirtualRoute } from './create-virtual-route';
+import type {
+  ChainRoute,
+  LegacyVirtualRoute,
+  Route,
+  RouteOpenedPayload,
+  RouteOpenPayload,
+} from './types';
+import { createRoute } from './create-route';
 import { createAttemptCoordinator } from './transition-attempt';
 
 type BeforeOpenUnit<T extends object | void = void> =
@@ -40,7 +45,7 @@ function asUnits(unit?: Unit<any> | Unit<any>[]): Unit<any>[] {
  */
 export function chainRoute<T extends object | void = void>(
   props: ChainRouteProps<T>,
-): LegacyVirtualRoute<RouteOpenedPayload<T>, T> {
+): ChainRoute<T> {
   const { route, beforeOpen } = props;
   const openOn = asUnits(props.openOn);
   const cancelOn = asUnits(props.cancelOn);
@@ -52,15 +57,11 @@ export function chainRoute<T extends object | void = void>(
 
   const $isPending = coordinator.$current.map(Boolean);
 
-  const transformer = (payload: RouteOpenedPayload<T>): T => {
-    if (!payload) return {} as T;
-    return 'params' in payload ? (payload.params as T) : ({} as T);
-  };
-
-  const chained = createVirtualRoute<RouteOpenedPayload<T>, T>({
+  const chained = {
+    ...createRoute<T>(),
     $isPending,
-    transformer,
-  });
+    cancelled: createEvent<void>(),
+  };
 
   const openRequested = createEvent<number>();
 
@@ -152,7 +153,7 @@ export function chainRoute<T extends object | void = void>(
 
   sample({
     clock: openAttempt,
-    fn: ({ payload }) => payload,
+    fn: ({ payload }) => payload as RouteOpenPayload<T>,
     target: chained.open,
   });
 
@@ -199,7 +200,7 @@ export function chainRoute<T extends object | void = void>(
     fn: () => undefined,
   });
 
-  const cancelledEvent = chained.cancelled as EventCallable<void>;
+  const cancelledEvent = chained.cancelled;
 
   sample({ clock: cancelOpened, target: [chained.close, cancelledEvent] });
 

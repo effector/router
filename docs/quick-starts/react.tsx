@@ -1,4 +1,4 @@
-import { createVirtualRoute } from '../../packages/core/lib/index';
+import { createRoute } from '../../packages/core/lib/index';
 import {
   createRouteView,
   createRoutesView,
@@ -8,8 +8,8 @@ import { createElement, type ComponentType } from 'react';
 import { createRouter } from '../../packages/core/lib/index';
 
 export function createReactQuickStart(): any {
-  const home = createVirtualRoute();
-  const profile = createVirtualRoute<{ id: string }>();
+  const home = createRoute();
+  const profile = createRoute<{ id: string }>();
   const router = createRouter({ routes: [] });
   const Home = createRouteView({
     route: home,

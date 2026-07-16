@@ -21,7 +21,6 @@ import {
   chainRoute,
   createRoute,
   createRouter,
-  createVirtualRoute,
   historyAdapter,
 } from '@effector/router';
 import { createMemoryHistory } from 'history';
@@ -30,7 +29,7 @@ import { userEvent } from '@testing-library/user-event';
 
 describe('react bindings', () => {
   test('accepts a virtual route in a route view', () => {
-    const route = createVirtualRoute();
+    const route = createRoute();
     const routeView = createRouteView({ route, view: () => null });
 
     expect(routeView.route).toBe(route);
@@ -82,8 +81,8 @@ describe('react bindings', () => {
   });
 
   test('selects the last declared active sibling', async () => {
-    const first = createVirtualRoute();
-    const second = createVirtualRoute();
+    const first = createRoute();
+    const second = createRoute();
     const scope = fork();
     const RoutesView = createRoutesView({
       routes: [
@@ -97,8 +96,8 @@ describe('react bindings', () => {
       </Provider>,
     );
 
-    await act(() => allSettled(first.open, { scope }));
-    await act(() => allSettled(second.open, { scope }));
+    await act(() => allSettled(first.open, { scope, params: undefined }));
+    await act(() => allSettled(second.open, { scope, params: undefined }));
 
     expect(container.textContent).toBe('second');
   });

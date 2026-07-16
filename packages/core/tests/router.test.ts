@@ -7,12 +7,7 @@ import {
   sample,
 } from 'effector';
 import { describe, expect, test, vi } from 'vitest';
-import {
-  createRoute,
-  createRouter,
-  createVirtualRoute,
-  historyAdapter,
-} from '../lib';
+import { createRoute, createRouter, historyAdapter } from '../lib';
 import { createMemoryHistory } from 'history';
 import { watchCalls } from './utils';
 
@@ -558,9 +553,9 @@ describe('router', () => {
     });
     expect(serverOpened).toHaveBeenCalled();
 
-    const virtual = createVirtualRoute();
+    const virtual = createRoute();
     const isolatedHistory = createMemoryHistory();
-    await allSettled(virtual.open, { scope });
+    await allSettled(virtual.open, { scope, params: undefined });
 
     expect(scope.getState(virtual.$isOpened)).toBe(true);
     expect(isolatedHistory.location.pathname).toBe('/');

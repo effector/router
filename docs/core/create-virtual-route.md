@@ -19,6 +19,9 @@ This factory is deprecated but remains compatible through the current major:
 its transformer and external `$isPending` store are preserved. New code can
 replace it with `createRoute<Params>()` and ordinary Effector composition.
 
+For new code, prefer `createRoute()` without a `path`. This page documents only
+the deprecated compatibility factory and its legacy transformer contract.
+
 ## Basic UI state
 
 ```ts

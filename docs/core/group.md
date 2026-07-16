@@ -1,34 +1,35 @@
 # group
 
-Create a virtual route that opens when any of the passed routes is opened, and closes when all passed routes are closed.
+Create a pathless route that opens when any of the passed routes is opened, and
+closes when all passed routes are closed.
 
 ## API
 
 ```typescript
-function group(
-  routes: Array<Route<any> | VirtualRoute<any, any>>,
-): VirtualRoute;
+function group(routes: Route<any>[]): PathlessRoute;
 ```
 
 ### Parameters
 
-| Parameter | Type                                          | Description                                |
-| --------- | --------------------------------------------- | ------------------------------------------ |
-| `routes`  | `Array<Route<any> \| VirtualRoute<any, any>>` | Path, pathless, or virtual routes to group |
+| Parameter | Type           | Description                      |
+| --------- | -------------- | -------------------------------- |
+| `routes`  | `Route<any>[]` | Path or pathless routes to group |
 
 ### Returns
 
-`VirtualRoute` - A virtual route that tracks the combined state of all passed routes.
+`PathlessRoute` - A route that tracks the combined state of all passed routes.
+The deprecated `createVirtualRoute` alias remains accepted for compatibility,
+but new route declarations should use `createRoute()`.
 
 ## Usage
 
 ### Basic Example
 
 ```ts
-import { group, createVirtualRoute } from '@effector/router';
+import { group, createRoute } from '@effector/router';
 
-const signInRoute = createVirtualRoute();
-const signUpRoute = createVirtualRoute();
+const signInRoute = createRoute();
+const signUpRoute = createRoute();
 const authorizationRoute = group([signInRoute, signUpRoute]);
 
 signInRoute.open(); // authorizationRoute.$isOpened → true

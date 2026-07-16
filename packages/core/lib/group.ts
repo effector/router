@@ -1,17 +1,17 @@
 import { sample } from 'effector';
-import { createVirtualRoute } from './create-virtual-route';
+import { createRoute } from './create-route';
 import type { LegacyVirtualRoute, Route } from './types';
 import { not, or } from 'patronum';
 
 /**
  * @description Create virtual route which opens when some passed routes is opened. Closes if all passed routes are closed.
  * @link https://router.effector.dev/core/group.html
- * @returns VirtualRoute
+ * @returns PathlessRoute
  * @example ```ts
- * import { group, createVirtualRoute } from '@effector/router';
+ * import { group, createRoute } from '@effector/router';
  *
- * const signInRoute = createVirtualRoute();
- * const signUpRoute = createVirtualRoute();
+ * const signInRoute = createRoute();
+ * const signUpRoute = createRoute();
  * const authorizationRoute = group([signInRoute, signUpRoute]);
  *
  * signInRoute.open(); // authorizationRoute.$isOpened —> true
@@ -21,9 +21,8 @@ import { not, or } from 'patronum';
  * ```
  */
 export function group(routes: (Route<any> | LegacyVirtualRoute<any, any>)[]) {
-  const virtual = createVirtualRoute({
-    $isPending: or(...routes.map((route) => route.$isPending)),
-  });
+  const route = createRoute();
+  const $isPending = or(...routes.map((item) => item.$isPending));
 
   const $hasOpenedRoutes = or(...routes.map((route) => route.$isOpened));
 
@@ -31,15 +30,15 @@ export function group(routes: (Route<any> | LegacyVirtualRoute<any, any>)[]) {
     clock: routes.map((route) => route.$isOpened),
     filter: $hasOpenedRoutes,
     fn: () => undefined,
-    target: virtual.open,
+    target: route.open,
   });
 
   sample({
     clock: routes.map((route) => route.$isOpened),
     filter: not($hasOpenedRoutes),
     fn: () => undefined,
-    target: virtual.close,
+    target: route.close,
   });
 
-  return virtual;
+  return { ...route, $isPending };
 }
