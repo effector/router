@@ -20,6 +20,7 @@ export default defineConfig({
         'effector',
         'effector-react',
         '@effector/router',
+        '@effector/router-paths',
         '@effector/router-react',
         '@react-navigation/native',
         '@react-navigation/bottom-tabs',

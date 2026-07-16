@@ -31,4 +31,6 @@ if (result.status !== 0) {
   process.exit(result.status ?? 1);
 }
 
-console.log('\n[check-typecheck-standalone] OK: typecheck passes on a clean tree.');
+console.log(
+  '\n[check-typecheck-standalone] OK: typecheck passes on a clean tree.',
+);

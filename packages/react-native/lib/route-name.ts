@@ -1,3 +1,5 @@
+import { getParamNames, getRequiredParamNames } from '@effector/router-paths';
+
 function getOwnPath(route: unknown): string | undefined {
   if (
     !route ||
@@ -31,19 +33,11 @@ export function getRegisteredPath(route: unknown): string | undefined {
 }
 
 export function hasRouteParams(route: unknown): boolean {
-  return /(?:[:*])[A-Za-z0-9_]+/.test(getRegisteredPath(route) ?? '');
+  return getParamNames(getRegisteredPath(route) ?? '').length > 0;
 }
 
 export function hasRequiredRouteParams(route: unknown): boolean {
-  const path = getRegisteredPath(route) ?? '';
-
-  return path.split('/').some((segment) => {
-    if (!segment || !/(?:[:*])[A-Za-z0-9_]+/.test(segment)) {
-      return false;
-    }
-
-    return !segment.endsWith('?');
-  });
+  return getRequiredParamNames(getRegisteredPath(route) ?? '').length > 0;
 }
 
 export function getScreenName(route: unknown, index: number): string {
