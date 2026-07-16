@@ -1,0 +1,22 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": "../..",
+    "paths": {
+      "@effector/router": ["packages/core/lib/index.ts"],
+      "@effector/router-paths": ["packages/paths/lib/index.ts"],
+      "@effector/router-react": ["packages/react/lib/index.ts"],
+      "@effector/router-solid": ["packages/solid/lib/index.ts"],
+      "@effector/router-vue": ["packages/vue/lib/index.ts"],
+      "@effector/router-react-native": ["packages/react-native/lib/index.ts"]
+    }
+  },
+  "include": [
+    "./core.ts",
+    "./paths.ts",
+    "./react.tsx",
+    "./vue.ts",
+    "./react-native.tsx"
+  ]
+}

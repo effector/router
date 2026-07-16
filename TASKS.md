@@ -298,7 +298,7 @@ params, the active Router tree, and navigation semantics.
 This stage closes the series, but each earlier stage must ship its own docs and
 changesets rather than deferring them here.
 
-- [ ] **T52 — Typecheck documentation snippets.** Add a pipeline for extracted
+- [x] **T52 — Typecheck documentation snippets.** Add a pipeline for extracted
       or imported public-API snippets. Separately verify expected compile errors
       for params, paths, Link, and RN restrictions.
 - [ ] **T53 — Validate source and sidebar links.** Automate checks for source
