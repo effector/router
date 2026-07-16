@@ -220,7 +220,7 @@ Solid, and Vue do not acquire incompatible trees.
       importer that starts only on render, an observable React/Solid Suspense or
       Vue loading fallback, and absence of recursive `route.open()` or core
       preload hooks.
-- [ ] **T38 — RouteView matrix and docs.** Add equivalent parent/child,
+- [x] **T38 — RouteView matrix and docs.** Add equivalent parent/child,
       router-target, virtual/pathless, priority, layout mount-count, and lazy
       tests for React, Solid, and Vue. Synchronize types, `useOpenedViews`
       examples, package READMEs, docs, and changesets for all three bindings.

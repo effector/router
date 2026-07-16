@@ -316,4 +316,50 @@ describe('solid bindings', () => {
     expect(container.querySelector('[data-testid="child"]')).toBeTruthy();
     expect(container.querySelector('[data-testid="leaf"]')).toBeTruthy();
   });
+
+  test('delegates a Router target to its nested renderer', async () => {
+    const parentRoute = createRoute({ path: '/profile' });
+    const childRoute = createRoute({ path: '/child', parent: parentRoute });
+    const nestedRouter = createRouter({ routes: [childRoute] });
+    const router = createRouter({ routes: [parentRoute, nestedRouter] });
+    const scope = fork();
+    const history = createMemoryHistory({ initialEntries: ['/profile'] });
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    const NestedRoutesView = createRoutesView({
+      routes: [
+        createRouteView({ route: childRoute, view: () => <p>child</p> }),
+      ],
+    });
+    const RoutesView = createRoutesView({
+      routes: [
+        createRouteView({
+          route: parentRoute,
+          view: () => (
+            <div>
+              parent
+              <Outlet />
+            </div>
+          ),
+          children: [
+            createRouteView({ route: nestedRouter, view: NestedRoutesView }),
+          ],
+        }),
+      ],
+    });
+    const { container } = render(() => (
+      <Provider value={scope}>
+        <RouterProvider router={router}>
+          <RoutesView />
+        </RouterProvider>
+      </Provider>
+    ));
+
+    await allSettled(childRoute.open, { scope, params: undefined });
+    expect(container.textContent).toContain('child');
+  });
 });

@@ -2,6 +2,10 @@
 
 Creates a component that renders the currently active route view.
 
+The binding matrix covers path and virtual routes, parent/child suppression,
+nested `Router` targets, declarative sibling priority, persistent layouts, and
+lazy views with the same recursive `children` contract.
+
 ## Import
 
 ```ts

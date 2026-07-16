@@ -315,6 +315,47 @@ describe('vue bindings', () => {
     expect(wrapper.find('[data-testid="leaf"]').exists()).toBe(true);
   });
 
+  test('delegates a Router target to its nested renderer', async () => {
+    const parentRoute = createRoute({ path: '/profile' });
+    const childRoute = createRoute({ path: '/child', parent: parentRoute });
+    const nestedRouter = createRouter({ routes: [childRoute] });
+    const router = createRouter({ routes: [parentRoute, nestedRouter] });
+    const scope = fork();
+    const history = createMemoryHistory({ initialEntries: ['/profile'] });
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    const NestedRoutesView = createRoutesView({
+      routes: [
+        createRouteView({
+          route: childRoute,
+          view: defineComponent({ render: () => h('p', 'child') }),
+        }),
+      ],
+    });
+    const RoutesView = createRoutesView({
+      routes: [
+        createRouteView({
+          route: parentRoute,
+          view: defineComponent({
+            render: () => h('div', ['parent', h(Outlet)]),
+          }),
+          children: [
+            createRouteView({ route: nestedRouter, view: NestedRoutesView }),
+          ],
+        }),
+      ],
+    });
+    const wrapper = mountRoutes(router, scope, RoutesView);
+
+    await allSettled(childRoute.open, { scope, params: undefined });
+    await flushPromises();
+    expect(wrapper.text()).toContain('child');
+  });
+
   test('link navigates on click', async () => {
     const route1 = createRoute({ path: '/app' });
     const route2 = createRoute({ path: '/faq/:id' });
