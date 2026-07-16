@@ -139,9 +139,11 @@ All standard HTML anchor props are supported:
 
 The Link component:
 
-- Prevents default browser navigation
+- Intercepts only an ordinary primary-button, same-origin `_self` click
 - Opens the route via effector/router Router
 - Respects modifier keys (cmd/ctrl click opens in new tab)
+- Preserves native behavior for secondary clicks, downloads, non-`_self`
+  targets, and cross-origin URLs
 - Allows custom `onClick` handlers
 - Supports `e.preventDefault()` to cancel navigation
 

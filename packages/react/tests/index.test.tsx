@@ -25,7 +25,7 @@ import {
   historyAdapter,
 } from '@effector/router';
 import { createMemoryHistory } from 'history';
-import { render, waitFor } from '@testing-library/react';
+import { fireEvent, render, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 
 describe('react bindings', () => {
@@ -319,6 +319,67 @@ describe('react bindings', () => {
     expect(history.location.pathname + history.location.search).toBe(
       '/target/42?flag&keep=yes',
     );
+  });
+
+  test('preserves native behavior for non-navigation clicks', async () => {
+    const routes = {
+      primary: createRoute({ path: '/primary' }),
+      middle: createRoute({ path: '/middle' }),
+      modified: createRoute({ path: '/modified' }),
+      blank: createRoute({ path: '/blank' }),
+      download: createRoute({ path: '/download' }),
+      prevented: createRoute({ path: '/prevented' }),
+      external: createRoute({ path: '/external' }),
+    };
+    const scope = fork();
+    const router = createRouter({ routes: Object.values(routes) });
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(createMemoryHistory()),
+    });
+
+    const { container } = render(
+      <Provider value={scope}>
+        <RouterProvider router={router}>
+          <>
+            <Link to={routes.primary} id="primary" />
+            <Link to={routes.middle} id="middle" />
+            <Link to={routes.modified} id="modified" />
+            <Link to={routes.blank} id="blank" target="_blank" />
+            <Link to={routes.download} id="download" download="file" />
+            <Link
+              to={routes.prevented}
+              id="prevented"
+              onClick={(event) => event.preventDefault()}
+            />
+            <Link to={routes.external} id="external" />
+          </>
+        </RouterProvider>
+      </Provider>,
+    );
+
+    container
+      .querySelector<HTMLAnchorElement>('#external')!
+      .setAttribute('href', 'https://example.com/external');
+    container
+      .querySelector<HTMLAnchorElement>('#blank')!
+      .addEventListener('click', (event) => event.preventDefault());
+    fireEvent.click(container.querySelector('#middle')!, { button: 1 });
+    fireEvent.click(container.querySelector('#modified')!, { metaKey: true });
+    fireEvent.click(container.querySelector('#blank')!);
+    fireEvent.click(container.querySelector('#download')!);
+    fireEvent.click(container.querySelector('#prevented')!);
+    fireEvent.click(container.querySelector('#external')!);
+    fireEvent.click(container.querySelector('#primary')!);
+    await act(() => allSettled(scope));
+
+    expect(scope.getState(routes.primary.$isOpened)).toBe(true);
+    expect(scope.getState(routes.middle.$isOpened)).toBe(false);
+    expect(scope.getState(routes.modified.$isOpened)).toBe(false);
+    expect(scope.getState(routes.blank.$isOpened)).toBe(false);
+    expect(scope.getState(routes.download.$isOpened)).toBe(false);
+    expect(scope.getState(routes.prevented.$isOpened)).toBe(false);
+    expect(scope.getState(routes.external.$isOpened)).toBe(false);
   });
 
   test('chained route', async () => {

@@ -50,13 +50,23 @@ export const Link: ForwardedLink = forwardRef<
           return;
         }
 
-        // let browser handle "_blank" target and etc
+        // Preserve native anchor behavior for non-primary clicks, downloads,
+        // non-self targets, modified clicks, and cross-origin URLs.
+        if (e.button !== 0 || anchorProps.download !== undefined) {
+          return;
+        }
+
         if (anchorProps.target && anchorProps.target !== '_self') {
           return;
         }
 
         // skip modified events (like cmd + click to open the link in new tab)
         if (e.metaKey || e.altKey || e.ctrlKey || e.shiftKey) {
+          return;
+        }
+
+        const href = new URL(e.currentTarget.href, window.location.href);
+        if (href.origin !== window.location.origin) {
           return;
         }
 

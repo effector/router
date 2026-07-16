@@ -233,7 +233,7 @@ This stage depends on final route payloads (D3) and query policy (D1–D2).
       from the complete path params and effective query: an explicit query
       replaces current query, while omission follows D1. A native anchor and
       `route.open` reach the same URL.
-- [ ] **T40 — Native click policy.** Intercept only an ordinary primary-button,
+- [x] **T40 — Native click policy.** Intercept only an ordinary primary-button,
       same-origin `_self` click. Preserve user `preventDefault`, modified clicks,
       `target != _self`, download/native attributes, and normal browser behavior.
       Pass `replace`, params, and query consistently.

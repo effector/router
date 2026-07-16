@@ -462,6 +462,70 @@ describe('vue bindings', () => {
     );
   });
 
+  test('preserves native behavior for non-navigation clicks', async () => {
+    const routes = {
+      primary: createRoute({ path: '/primary' }),
+      middle: createRoute({ path: '/middle' }),
+      modified: createRoute({ path: '/modified' }),
+      blank: createRoute({ path: '/blank' }),
+      download: createRoute({ path: '/download' }),
+      prevented: createRoute({ path: '/prevented' }),
+      external: createRoute({ path: '/external' }),
+    };
+    const scope = fork();
+    const router = createRouter({ routes: Object.values(routes) });
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(createMemoryHistory()),
+    });
+
+    const Links = defineComponent({
+      setup: () => () =>
+        h('div', [
+          h(Link, { to: routes.primary, id: 'primary' }),
+          h(Link, { to: routes.middle, id: 'middle' }),
+          h(Link, { to: routes.modified, id: 'modified' }),
+          h(Link, { to: routes.blank, id: 'blank', target: '_blank' }),
+          h(Link, { to: routes.download, id: 'download', download: 'file' }),
+          h(Link, {
+            to: routes.prevented,
+            id: 'prevented',
+            onClick: (event: MouseEvent) => event.preventDefault(),
+          }),
+          h(Link, { to: routes.external, id: 'external' }),
+        ]),
+    });
+    const wrapper = mount(RouterProvider, {
+      props: { router },
+      slots: { default: () => h(Links) },
+      global: { plugins: [EffectorScopePlugin({ scope })] },
+    });
+
+    wrapper
+      .find('#external')
+      .element.setAttribute('href', 'https://example.com/external');
+    wrapper
+      .find('#blank')
+      .element.addEventListener('click', (event) => event.preventDefault());
+    await wrapper.find('#middle').trigger('click', { button: 1 });
+    await wrapper.find('#modified').trigger('click', { metaKey: true });
+    await wrapper.find('#blank').trigger('click');
+    await wrapper.find('#download').trigger('click');
+    await wrapper.find('#prevented').trigger('click');
+    await wrapper.find('#external').trigger('click');
+    await wrapper.find('#primary').trigger('click');
+    await allSettled(scope);
+    await flushPromises();
+
+    expect(scope.getState(routes.primary.$isOpened)).toBe(true);
+    expect(scope.getState(routes.middle.$isOpened)).toBe(false);
+    expect(scope.getState(routes.modified.$isOpened)).toBe(false);
+    expect(scope.getState(routes.blank.$isOpened)).toBe(false);
+    expect(scope.getState(routes.download.$isOpened)).toBe(false);
+    expect(scope.getState(routes.prevented.$isOpened)).toBe(false);
+    expect(scope.getState(routes.external.$isOpened)).toBe(false);
+  });
+
   test('with layout', async () => {
     const profileRoute = createRoute({ path: '/profile' });
     const authRoute = createRoute({ path: '/auth' });

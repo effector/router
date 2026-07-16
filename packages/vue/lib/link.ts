@@ -40,13 +40,22 @@ export const Link = defineComponent({
       // allow user to prevent navigation
       if (event.defaultPrevented) return;
 
-      // let browser handle "_blank" target and etc
+      // Preserve native anchor behavior for non-primary clicks, downloads,
+      // non-self targets, modified clicks, and cross-origin URLs.
+      if (event.button !== 0 || attrs.download !== undefined) return;
+
       if (props.target && props.target !== '_self') return;
 
       // skip modified events (like cmd + click to open the link in new tab)
       if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
         return;
       }
+
+      const href = new URL(
+        (event.currentTarget as HTMLAnchorElement).href,
+        window.location.href,
+      );
+      if (href.origin !== window.location.origin) return;
 
       event.preventDefault();
 

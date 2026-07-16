@@ -29,6 +29,12 @@ import { Link } from '@effector/router-solid';
 </Link>;
 ```
 
-Calling `preventDefault()` in `onClick` cancels router navigation. Modified clicks and non-`_self` targets are left to the browser. The rendered `href` always includes complete route params and the effective query: omission preserves the current query, an explicit object replaces it, and `{}` clears it. The same payload passed to `route.open` produces the same URL.
+Only an ordinary primary-button, same-origin `_self` click is intercepted.
+Calling `preventDefault()` in `onClick` cancels router navigation. Modified,
+secondary, download, cross-origin, and non-`_self` clicks are left to the
+browser. The rendered `href` always includes complete route params and the
+effective query: omission preserves the current query, an explicit object
+replaces it, and `{}` clears it. The same payload passed to `route.open` produces
+the same URL.
 
 `Link` uses router context and throws when `to` is not registered in the provided router.

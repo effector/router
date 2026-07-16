@@ -8,6 +8,10 @@ omitted `query` preserves the current router query; an explicit object replaces
 it and `{}` clears it. The same payload passed to `route.open` produces the
 same URL.
 
+Only an ordinary primary-button, same-origin `_self` click is intercepted.
+Modified or secondary clicks, downloads, cross-origin URLs, non-`_self` targets,
+and a user `preventDefault()` keep native anchor behavior.
+
 #### `to`
 
 - `type`: `Route<T>`
