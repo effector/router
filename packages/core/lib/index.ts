@@ -23,6 +23,7 @@ export type {
   OpenPayloadBase,
   RouteOpenPayload,
   RouteOpenedPayload,
+  RouteUpdatedPayload,
   NavigatePayload,
   QueryTracker,
   QueryTrackerConfig,

@@ -34,7 +34,7 @@ export interface PathlessRoute<T extends object | void = void> {
   opened: Event<RouteOpenedPayload<T>>;
   openedOnServer: Event<RouteOpenedPayload<T>>;
   openedOnClient: Event<RouteOpenedPayload<T>>;
-  updated: Event<RouteOpenedPayload<T>>;
+  updated: Event<RouteUpdatedPayload<T>>;
 
   close: EventCallable<void>;
   closed: Event<void>;
@@ -91,6 +91,9 @@ export type OpenPayloadBase = {
 export type RouteOpenedPayload<T> = T extends void
   ? void | OpenPayloadBase
   : { params: T } & OpenPayloadBase;
+
+/** Payload emitted when an already-open route receives changed parameters. */
+export type RouteUpdatedPayload<T> = RouteOpenedPayload<T>;
 
 export type RouteOpenPayload<T> = T extends void
   ?

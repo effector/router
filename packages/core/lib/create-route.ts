@@ -11,6 +11,7 @@ import type {
   PathRoute,
   Route,
   RouteOpenedPayload,
+  RouteUpdatedPayload,
 } from './types';
 
 import { ParseUrlParams, ValidatePath } from '@effector/router-paths';
@@ -249,7 +250,7 @@ export function createRoute<Params>(
   const openedOnClient = createEvent<OpenPayload>();
 
   const navigated = createEvent<OpenPayload>();
-  const updated = createEvent<RouteOpenedPayload<Params>>();
+  const updated = createEvent<RouteUpdatedPayload<Params>>();
 
   const closed = createEvent();
 

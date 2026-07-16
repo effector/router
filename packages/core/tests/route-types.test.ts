@@ -1,7 +1,12 @@
 import { expectTypeOf, test } from 'vitest';
 import { createRoute, createRouterControls, trackQuery } from '../lib';
 import type { Event, EventCallable } from 'effector';
-import type { PathlessRoute, RouteOpenedPayload, VirtualRoute } from '../lib';
+import type {
+  PathlessRoute,
+  RouteOpenedPayload,
+  RouteUpdatedPayload,
+  VirtualRoute,
+} from '../lib';
 import { z } from 'zod/v4';
 
 test('path and virtual routes share the public lifecycle contract', () => {
@@ -15,8 +20,8 @@ test('path and virtual routes share the public lifecycle contract', () => {
   expectTypeOf<Route['opened']>().toMatchTypeOf<
     Event<RouteOpenedPayload<Params>>
   >();
-  expectTypeOf<Route['updated']>().toMatchTypeOf<
-    Event<RouteOpenedPayload<Params>>
+  expectTypeOf<Route['updated']>().toEqualTypeOf<
+    Event<RouteUpdatedPayload<Params>>
   >();
   expectTypeOf<Route['closed']>().toMatchTypeOf<Event<void>>();
   expectTypeOf<VirtualRoute<Params>>().toMatchTypeOf<Route>();

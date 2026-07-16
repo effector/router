@@ -37,7 +37,7 @@ Returns either `PathRoute<T>` or `PathlessRoute<T>` depending on whether `path` 
 | `opened`         | `Event<RouteOpenedPayload<T>>`         | Fires when route opens (client or server)    |
 | `openedOnServer` | `Event<RouteOpenedPayload<T>>`         | Fires when opened on server (SSR)            |
 | `openedOnClient` | `Event<RouteOpenedPayload<T>>`         | Fires when opened on client                  |
-| `updated`        | `Event<RouteOpenedPayload<T>>`         | Fires when an open route receives new params |
+| `updated`        | `Event<RouteUpdatedPayload<T>>`         | Fires when an open route receives new params |
 | `close`          | `EventCallable<void>`                  | Closes the route                             |
 | `closed`         | `Event<void>`                          | Fires when route closes                      |
 | `path`           | `string`                               | _PathRoute only_: The route's path template  |
