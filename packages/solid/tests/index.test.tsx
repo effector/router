@@ -11,9 +11,24 @@ import {
   createRoutesView,
   Link,
   RouterProvider,
+  withLayout,
 } from '../lib';
 
 describe('solid bindings', () => {
+  test('assigns one private layout group per withLayout call', () => {
+    const view = createRouteView({ route: createRoute(), view: () => null });
+    const Layout = (props: { children: JSX.Element }) => props.children;
+    const first = withLayout(Layout, [view, view]);
+    const second = withLayout(Layout, [view]);
+    const symbol = Object.getOwnPropertySymbols(first[0])[0];
+
+    expect(symbol).toBeDefined();
+    expect(Reflect.get(first[0], symbol)).toBe(Reflect.get(first[1], symbol));
+    expect(Reflect.get(first[0], symbol)).not.toBe(
+      Reflect.get(second[0], symbol),
+    );
+  });
+
   test('lazy import starts on render and exposes Suspense fallback', async () => {
     let resolve!: (module: { default: () => JSX.Element }) => void;
     const route = createRoute({ path: '/lazy' });

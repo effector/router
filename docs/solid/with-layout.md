@@ -1,6 +1,8 @@
 # withLayout
 
 Wraps multiple route-view components with the same Solid layout component.
+Views returned by one call share a private group identity; switching between
+them replaces only the page child and keeps the layout instance mounted.
 
 ## API
 
@@ -28,7 +30,9 @@ const RoutesView = createRoutesView({
 });
 ```
 
-The current helper returns new objects containing `route` and the wrapped `view`. It does not preserve `children`, so use it only for leaf views. For a parent view with an [`Outlet`], pass `layout` directly to [`createRouteView`] until metadata-preserving transforms are implemented.
+The helper preserves `route`, `children`, and other route-view metadata. The
+layout group identity is private to the binding and is not part of the core
+RouteView contract.
 
 [`createRouteView`]: /solid/create-route-view
 [`Outlet`]: /solid/outlet

@@ -43,6 +43,23 @@ function mountRoutes(
 }
 
 describe('vue bindings', () => {
+  test('assigns one private layout group per withLayout call', () => {
+    const view = createRouteView({
+      route: createRoute(),
+      view: defineComponent({ render: () => null }),
+    });
+    const Layout = defineComponent({ render: () => null });
+    const first = withLayout(Layout, [view, view]);
+    const second = withLayout(Layout, [view]);
+    const symbol = Object.getOwnPropertySymbols(first[0])[0];
+
+    expect(symbol).toBeDefined();
+    expect(Reflect.get(first[0], symbol)).toBe(Reflect.get(first[1], symbol));
+    expect(Reflect.get(first[0], symbol)).not.toBe(
+      Reflect.get(second[0], symbol),
+    );
+  });
+
   test('lazy import starts on render and exposes loading component', async () => {
     type LazyModule = {
       default: ReturnType<typeof defineComponent>;

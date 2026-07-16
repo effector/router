@@ -2,6 +2,11 @@ import type { Route, OpenPayloadBase, Router } from '@effector/router';
 import type { Component, JSX } from 'solid-js';
 
 type LayoutComponent = Component<{ children: JSX.Element }>;
+export const layoutGroup = Symbol('effector-router-solid-layout-group');
+export interface LayoutGroup {
+  token: number;
+  layout: LayoutComponent;
+}
 type RouteViewWithLayout = RouteView & { layout?: LayoutComponent };
 type RouteViewTarget = Pick<Route<any>, '$isOpened'>;
 
@@ -28,6 +33,7 @@ export interface RouteView {
   route: RouteViewTarget | Router;
   view: Component;
   children?: RouteView[];
+  [layoutGroup]?: LayoutGroup;
 }
 
 type AnchorProps = Omit<JSX.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>;

@@ -15,7 +15,7 @@ import {
   RouterProvider,
   withLayout,
 } from '../lib';
-import { act, ReactNode } from 'react';
+import { act, ReactNode, useEffect } from 'react';
 import { describe, expect, test, vi } from 'vitest';
 import {
   chainRoute,
@@ -65,6 +65,20 @@ describe('react bindings', () => {
     const [wrapped] = withLayout(({ children }) => <>{children}</>, [view]);
 
     expect(wrapped.children).toEqual([child]);
+  });
+
+  test('assigns one private layout group per withLayout call', () => {
+    const view = createRouteView({ route: createRoute(), view: () => null });
+    const Layout = ({ children }: { children: ReactNode }) => <>{children}</>;
+    const first = withLayout(Layout, [view, view]);
+    const second = withLayout(Layout, [view]);
+    const symbol = Object.getOwnPropertySymbols(first[0])[0];
+
+    expect(symbol).toBeDefined();
+    expect(Reflect.get(first[0], symbol)).toBe(Reflect.get(first[1], symbol));
+    expect(Reflect.get(first[0], symbol)).not.toBe(
+      Reflect.get(second[0], symbol),
+    );
   });
 
   test('lazy import starts on render and exposes Suspense fallback', async () => {
@@ -392,7 +406,16 @@ describe('react bindings', () => {
       params: historyAdapter(history),
     });
 
+    let layoutMounts = 0;
+    let layoutUnmounts = 0;
     const ProfileLayout = (props: { children: ReactNode }) => {
+      useEffect(() => {
+        layoutMounts += 1;
+        return () => {
+          layoutUnmounts += 1;
+        };
+      }, []);
+
       return (
         <>
           <p data-testid="layout">layout!</p>
@@ -435,6 +458,7 @@ describe('react bindings', () => {
 
     expect(getByTestId('layout').textContent).toBe('layout!');
     expect(getByTestId('message').textContent).toBe('friends');
+    expect(layoutMounts).toBe(1);
 
     await act(() =>
       allSettled(profileRoute.open, { scope, params: undefined }),
@@ -442,10 +466,13 @@ describe('react bindings', () => {
 
     expect(getByTestId('layout').textContent).toBe('layout!');
     expect(getByTestId('message').textContent).toBe('profile');
+    expect(layoutMounts).toBe(1);
+    expect(layoutUnmounts).toBe(0);
 
     await act(() => allSettled(authRoute.open, { scope, params: undefined }));
 
     expect(queryByTestId('layout')).toBeFalsy();
     expect(getByTestId('message').textContent).toBe('auth');
+    expect(layoutUnmounts).toBe(1);
   });
 });

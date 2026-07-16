@@ -197,7 +197,7 @@ Do not migrate bindings until public core types are stable.
 Update the RouteView contract across all web bindings in one stage so React,
 Solid, and Vue do not acquire incompatible trees.
 
-- [ ] **T33 — Binding-private layout group identity.** Each call to the existing
+- [x] **T33 — Binding-private layout group identity.** Each call to the existing
       `withLayout(Layout, views)` creates a unique group token and retains the
       token and Layout in private metadata on every transformed view. The
       renderer keeps the wrapper stable while selected views share a token and

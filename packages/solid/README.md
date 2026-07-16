@@ -76,7 +76,8 @@ const UserScreen = createRouteView({
 - `createRouteView` / `createLazyRouteView` — bind a route to a component (with optional lazy loading).
 - `createRoutesView` — render the currently opened route, with an `otherwise` fallback.
 - `Link`, `useLink` — declarative and imperative navigation.
-- `withLayout` — share a layout across routes.
+- `withLayout` — share a layout across routes. Views returned by one call share
+  a private group identity, so the layout stays mounted while siblings switch.
 - `Outlet`, `useRouter`, `useIsOpened`, `useOpenedViews` — composition helpers.
 
 Unlike the React binding, `useIsOpened` and `useOpenedViews` return Solid accessors (`() => value`). `useLink` returns `{ path, onOpen }`: `path` is an accessor, `onOpen` is a callable Effector event, and the params argument is also an accessor.
