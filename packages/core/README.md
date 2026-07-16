@@ -151,6 +151,9 @@ The lifecycle matrix also covers string/partial adapter round trips, repeated
 initialization, stale-listener cleanup, native POP, Fork isolation, and equal
 snapshot suppression.
 
+The accepted lifecycle contract and its compatibility matrix are documented in
+the [navigation lifecycle reference](../../docs/core/navigation-lifecycle.md).
+
 Route activation, `$activeRoutes`, stale-route closing, and dynamic route
 registration share one internal match result.
 

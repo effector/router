@@ -185,7 +185,7 @@ Do not migrate bindings until public core types are stable.
 - [x] **T31 — Executable core examples.** Move essential snippets into compile
       or runtime fixtures: FSD controls ownership, path/virtual routes, nested
       params, notFound, query tracking, and adapter initialization.
-- [ ] **T32 — Lifecycle compatibility gate.** Re-run and, where required,
+- [x] **T32 — Lifecycle compatibility gate.** Re-run and, where required,
       extend the regression suite for the accepted
       [Navigation lifecycle RFC](NAVIGATION_LIFECYCLE_RFC.md): one preparation
       per logical transition, pending boundaries, cancellation/error, redirect

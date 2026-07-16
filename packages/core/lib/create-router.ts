@@ -1,4 +1,11 @@
-import { attach, createEvent, merge, sample, scopeBind } from 'effector';
+import {
+  attach,
+  createEvent,
+  createStore,
+  merge,
+  sample,
+  scopeBind,
+} from 'effector';
 import type {
   InternalPathlessRoute,
   InternalPathRoute,
@@ -21,6 +28,7 @@ import {
   type InternalRouterControls,
   navigationKind,
 } from './navigation';
+import { isEqualQuery } from './query-codec';
 
 type InputRoute =
   | PathRoute<any>
@@ -117,6 +125,9 @@ export function createRouter(config: RouterConfig): Router {
 
   const knownRoutes: MappedRoute[] = [];
   const nestedRouters: InternalRouter[] = [];
+  const $lastMatchedPath = createStore<string | null>(null);
+  const $lastMatchedQuery = createStore<import('./types').Query>({});
+  const $lastMatchedCount = createStore(0);
 
   function mapRoute(inputRoute: InputRoute): MappedRoute | null {
     if (inputIs.pathlessRoute(inputRoute)) {
@@ -260,14 +271,26 @@ export function createRouter(config: RouterConfig): Router {
   });
 
   const openRoutesByPathFx = attach({
-    source: { query: $query, path: $path },
-    effect: ({ query, path }) => {
+    source: {
+      query: $query,
+      path: $path,
+      previousPath: $lastMatchedPath,
+      previousQuery: $lastMatchedQuery,
+      previousCount: $lastMatchedCount,
+    },
+    effect: ({ query, path, previousPath, previousQuery, previousCount }) => {
       if (!path) {
-        return;
+        return { path, query, count: 0 };
       }
 
       const { matches } = matchRoutes(path);
       const matchedRoutes = new Set(matches.map(({ route }) => route));
+      const pathChanged = previousPath !== path;
+      const queryOnly = !pathChanged && !isEqualQuery(previousQuery, query);
+      const shouldNavigate =
+        pathChanged ||
+        isEqualQuery(previousQuery, query) ||
+        (previousCount === 0 && matches.length > 0);
 
       for (const { route } of ownRoutes) {
         const routeClose = scopeBind(route.internal.close, { safe: true });
@@ -278,6 +301,10 @@ export function createRouter(config: RouterConfig): Router {
       }
 
       for (const { route, params } of matches) {
+        if (!shouldNavigate) {
+          continue;
+        }
+
         const routeNavigate = scopeBind(route.internal.navigated, {
           safe: true,
         });
@@ -287,12 +314,13 @@ export function createRouter(config: RouterConfig): Router {
         });
       }
 
-      if (internalNotFound) {
+      if (internalNotFound && (!queryOnly || matches.length > 0)) {
         const notFoundClose = scopeBind(internalNotFound.internal.close, {
           safe: true,
         });
 
         if (
+          shouldNavigate &&
           isWithinBase(path, base) &&
           matches.length === 0 &&
           !nestedRouters.some((router) => router.internal.handlesPath(path))
@@ -308,8 +336,14 @@ export function createRouter(config: RouterConfig): Router {
           notFoundClose();
         }
       }
+
+      return { path, query, count: matches.length };
     },
   });
+
+  $lastMatchedPath.on(openRoutesByPathFx.doneData, (_, { path }) => path);
+  $lastMatchedQuery.on(openRoutesByPathFx.doneData, (_, { query }) => query);
+  $lastMatchedCount.on(openRoutesByPathFx.doneData, (_, { count }) => count);
 
   function registerRouteApi({ route, build }: MappedRoute) {
     createAction({

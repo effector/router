@@ -72,3 +72,17 @@ after confirmed location activation and cannot block history. Use
 
 `createVirtualRoute` does not implement `beforeOpen`; compose behavior with
 ordinary events/effects or derive a route with `chainRoute`.
+
+## Compatibility matrix
+
+The core regression suite keeps the accepted phase boundaries executable:
+
+| Invariant                                                              | Coverage                          |
+| ---------------------------------------------------------------------- | --------------------------------- |
+| One preparation per committed transition, including query-only updates | `lifecycle-compatibility.test.ts` |
+| Pending starts and ends around `chainRoute` preparation                | `chained-routes.test.ts`          |
+| Preparation failure and parent cancellation end pending                | `chained-routes.test.ts`          |
+| Repeated chain activation is `takeLatest`                              | `chained-routes.test.ts`          |
+| Held navigation can be cancelled or proceeded                          | `navigation.test.ts`              |
+| Redirects supersede holds and loops are bounded                        | `navigation.test.ts`              |
+| Native POP respects the same hold/cancel boundary                      | `navigation.test.ts`              |
