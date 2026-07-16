@@ -93,7 +93,7 @@ export function chainRoute<T extends object | void = void>(
     },
   );
 
-  sample({ clock: route.opened, target: coordinator.requested });
+  sample({ clock: route.opened, target: coordinator.request });
   sample({ clock: coordinator.started, target: runBeforeOpenFx });
 
   sample({

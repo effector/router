@@ -321,7 +321,7 @@ export function createRoute<Params>(
 
   sample({
     clock: navigated,
-    target: lifecycle.requested,
+    target: lifecycle.request,
   });
 
   sample({

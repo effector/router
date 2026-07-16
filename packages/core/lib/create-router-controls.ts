@@ -309,7 +309,7 @@ export function createRouterControls(): RouterControls {
 
   sample({
     clock: acceptedCandidate,
-    target: coordinator.requested,
+    target: coordinator.request,
   });
 
   const reportRedirectLoopFx = createEffect(() => {

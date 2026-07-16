@@ -16,7 +16,7 @@ let lastAttemptId = 0;
 export function createAttemptCoordinator<T>(
   config: AttemptCoordinatorConfig<T>,
 ) {
-  const requested = createEvent<T>();
+  const request = createEvent<T>();
   const complete = createEvent<number>();
   const cancel = createEvent<number>();
 
@@ -25,7 +25,7 @@ export function createAttemptCoordinator<T>(
   });
 
   const started = sample({
-    clock: requested,
+    clock: request,
     source: $current,
     filter: (current, next) =>
       current === null ||
@@ -57,7 +57,7 @@ export function createAttemptCoordinator<T>(
 
   return {
     $current,
-    requested,
+    request,
     started,
     complete,
     completed,
