@@ -11,8 +11,8 @@ import { layoutGroup, type RouteView } from './types';
 
 /**
  * @internal Renders a single resolved view and exposes its nested children to
- * `<Outlet />` through provide/inject. Remounted (via `key`) whenever the
- * opened view changes, so provided children stay fresh.
+ * `<Outlet />` through provide/inject. Grouped views keep a stable group key
+ * while their page child changes.
  */
 export const RouteRenderer = defineComponent({
   name: 'RouteRenderer',

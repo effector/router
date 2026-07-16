@@ -212,7 +212,7 @@ Solid, and Vue do not acquire incompatible trees.
       view's children through context at every level. Cover at least three
       levels, sibling switches, a nested Router, and no active child. The parent
       view remains mounted when its child changes.
-- [ ] **T36 — Persistent `withLayout` (#57).** Preserve one layout instance
+- [x] **T36 — Persistent `withLayout` (#57).** Preserve one layout instance
       during transitions within a group; unmount it on exit. Distinguish separate
       groups that use the same component and support nested/lazy views. Preserve
       `route`, `children`, and all other metadata during transformation.

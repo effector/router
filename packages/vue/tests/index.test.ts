@@ -9,7 +9,7 @@ import {
 } from '@effector/router';
 import { createMemoryHistory } from 'history';
 import { flushPromises, mount } from '@vue/test-utils';
-import { defineComponent, h, type Plugin } from 'vue';
+import { defineComponent, h, onMounted, onUnmounted, type Plugin } from 'vue';
 import { createRequire } from 'node:module';
 import {
   createLazyRouteView,
@@ -86,6 +86,61 @@ describe('vue bindings', () => {
     await flushPromises();
 
     expect(wrapper.text()).toBe('second');
+  });
+
+  test('keeps a grouped layout mounted while sibling pages switch', async () => {
+    const first = createVirtualRoute();
+    const second = createVirtualRoute();
+    const outside = createVirtualRoute();
+    const scope = fork();
+    let mounts = 0;
+    let unmounts = 0;
+    const Layout = defineComponent({
+      setup(_, { slots }) {
+        onMounted(() => {
+          mounts += 1;
+        });
+        onUnmounted(() => {
+          unmounts += 1;
+        });
+        return () => h('section', slots.default?.());
+      },
+    });
+    const RoutesView = createRoutesView({
+      routes: [
+        ...withLayout(Layout, [
+          createRouteView({
+            route: first,
+            view: defineComponent({ render: () => h('p', 'first') }),
+          }),
+          createRouteView({
+            route: second,
+            view: defineComponent({ render: () => h('p', 'second') }),
+          }),
+        ]),
+        createRouteView({
+          route: outside,
+          view: defineComponent({ render: () => h('p', 'outside') }),
+        }),
+      ],
+    });
+    const wrapper = mountRoutes(
+      createRouter({ routes: [] }),
+      scope,
+      RoutesView,
+    );
+
+    await allSettled(first.open, { scope });
+    await allSettled(second.open, { scope });
+    await flushPromises();
+    expect(wrapper.text()).toBe('second');
+    expect(mounts).toBe(1);
+    expect(unmounts).toBe(0);
+
+    await allSettled(outside.open, { scope });
+    await flushPromises();
+    expect(wrapper.text()).toBe('outside');
+    expect(unmounts).toBe(1);
   });
 
   test('lazy import starts on render and exposes loading component', async () => {

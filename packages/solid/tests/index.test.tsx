@@ -1,5 +1,6 @@
 import { allSettled, fork } from 'effector';
 import { Provider } from 'effector-solid';
+import { onCleanup, onMount } from 'solid-js';
 import { describe, expect, test, vi } from 'vitest';
 import { render } from '@solidjs/testing-library';
 import {
@@ -55,6 +56,48 @@ describe('solid bindings', () => {
     await allSettled(second.open, { scope, params: {} });
 
     expect(container.textContent).toBe('second');
+  });
+
+  test('keeps a grouped layout mounted while sibling pages switch', async () => {
+    const first = createVirtualRoute();
+    const second = createVirtualRoute();
+    const outside = createVirtualRoute();
+    const scope = fork();
+    let mounts = 0;
+    let unmounts = 0;
+    const Layout = (props: { children: JSX.Element }) => {
+      onMount(() => {
+        mounts += 1;
+      });
+      onCleanup(() => {
+        unmounts += 1;
+      });
+      return <section>{props.children}</section>;
+    };
+    const RoutesView = createRoutesView({
+      routes: [
+        ...withLayout(Layout, [
+          createRouteView({ route: first, view: () => <p>first</p> }),
+          createRouteView({ route: second, view: () => <p>second</p> }),
+        ]),
+        createRouteView({ route: outside, view: () => <p>outside</p> }),
+      ],
+    });
+    const { container } = render(() => (
+      <Provider value={scope}>
+        <RoutesView />
+      </Provider>
+    ));
+
+    await allSettled(first.open, { scope });
+    await allSettled(second.open, { scope });
+    expect(container.textContent).toBe('second');
+    expect(mounts).toBe(1);
+    expect(unmounts).toBe(0);
+
+    await allSettled(outside.open, { scope });
+    expect(container.textContent).toBe('outside');
+    expect(unmounts).toBe(1);
   });
 
   test('lazy import starts on render and exposes Suspense fallback', async () => {

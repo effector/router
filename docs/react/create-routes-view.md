@@ -127,7 +127,7 @@ function App() {
 }
 ```
 
-For nested navigation, keep the persistent parent UI in a parent route view and render changing child content through [`Outlet`]. The parent view stays mounted while sibling child routes change. [`withLayout`] is useful for applying the same markup to several independent views, but it does not guarantee that the layout component stays mounted when switching between them.
+For nested navigation, keep the persistent parent UI in a parent route view and render changing child content through [`Outlet`]. The parent view stays mounted while sibling child routes change. `withLayout` also keeps one layout instance mounted while views from the same call switch; a separate call creates a separate group.
 
 ## Nested Routes
 
