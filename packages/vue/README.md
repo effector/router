@@ -99,6 +99,8 @@ import { routes } from '@shared/routing';
 - `withLayout` — share a layout across routes. Views returned by one call share
   a private group identity, so the layout stays mounted while siblings switch.
 - `Outlet`, `useRouter`, `useIsOpened`, `useOpenedViews` — composition helpers.
+  `Outlet` recursively provides selected child views, so nested trees can be
+  rendered without a depth limit.
 - `RouterInjectionKey` — the raw Vue injection key, for advanced `provide` use.
 
 ## Scope

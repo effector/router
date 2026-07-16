@@ -208,7 +208,7 @@ Solid, and Vue do not acquire incompatible trees.
       remove a parent whose child is active, choose the last declared active
       sibling, and delegate `route: Router` to its nested renderer. Do not store
       open-order UI state.
-- [ ] **T35 — Recursive `Outlet`.** React, Solid, and Vue provide the selected
+- [x] **T35 — Recursive `Outlet`.** React, Solid, and Vue provide the selected
       view's children through context at every level. Cover at least three
       levels, sibling switches, a nested Router, and no active child. The parent
       view remains mounted when its child changes.

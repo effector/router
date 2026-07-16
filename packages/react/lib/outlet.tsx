@@ -37,5 +37,9 @@ export const Outlet = () => {
     return null;
   }
 
-  return createElement(openedView.view);
+  return (
+    <OutletContext.Provider value={{ children: openedView.children ?? [] }}>
+      {createElement(openedView.view)}
+    </OutletContext.Provider>
+  );
 };

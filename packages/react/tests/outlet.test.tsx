@@ -539,4 +539,65 @@ describe('Outlet Component', () => {
     expect(parentMounts).toBe(1);
     expect(parentUnmounts).toBe(0);
   });
+
+  test('provides recursive outlet context through three levels', async () => {
+    const rootRoute = createRoute({ path: '/root' });
+    const childRoute = createRoute({ path: '/child', parent: rootRoute });
+    const leafRoute = createRoute({ path: '/leaf', parent: childRoute });
+    const scope = fork();
+    const router = createRouter({
+      routes: [rootRoute, childRoute, leafRoute],
+    });
+    const history = createMemoryHistory({
+      initialEntries: ['/root/child/leaf'],
+    });
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    const RoutesView = createRoutesView({
+      routes: [
+        createRouteView({
+          route: rootRoute,
+          view: () => (
+            <div data-testid="root">
+              root
+              <Outlet />
+            </div>
+          ),
+          children: [
+            createRouteView({
+              route: childRoute,
+              view: () => (
+                <div data-testid="child">
+                  child
+                  <Outlet />
+                </div>
+              ),
+              children: [
+                createRouteView({
+                  route: leafRoute,
+                  view: () => <span data-testid="leaf">leaf</span>,
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const { getByTestId } = render(
+      <Provider value={scope}>
+        <RouterProvider router={router}>
+          <RoutesView />
+        </RouterProvider>
+      </Provider>,
+    );
+
+    expect(getByTestId('root')).toBeTruthy();
+    expect(getByTestId('child')).toBeTruthy();
+    expect(getByTestId('leaf')).toBeTruthy();
+  });
 });

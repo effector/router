@@ -81,6 +81,8 @@ const UserScreen = createRouteView({
 - `withLayout` — share a layout across routes. Views returned by one call share
   a private group identity, so the layout stays mounted while siblings switch.
 - `Outlet`, `useRouter`, `useIsOpened`, `useOpenedViews` — composition helpers.
+  `Outlet` recursively provides selected child views, so nested trees can be
+  rendered without a depth limit.
 
 Unlike the React binding, `useIsOpened` and `useOpenedViews` return Solid accessors (`() => value`). `useLink` returns `{ path, onOpen }`: `path` is an accessor, `onOpen` is a callable Effector event, and the params argument is also an accessor.
 

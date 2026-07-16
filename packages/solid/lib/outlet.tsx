@@ -39,7 +39,11 @@ export function Outlet() {
 
   return (
     <Show when={openedView()} keyed>
-      {(view) => <Dynamic component={view.view} />}
+      {(view) => (
+        <OutletContext.Provider value={{ children: view.children ?? [] }}>
+          <Dynamic component={view.view} />
+        </OutletContext.Provider>
+      )}
     </Show>
   );
 }

@@ -16,6 +16,7 @@ import {
   createRouteView,
   createRoutesView,
   Link,
+  Outlet,
   RouterProvider,
   withLayout,
 } from '../lib';
@@ -176,6 +177,61 @@ describe('vue bindings', () => {
     });
     await flushPromises();
     expect(wrapper.find('#message').text()).toBe('not found');
+  });
+
+  test('provides recursive outlet context through three levels', async () => {
+    const rootRoute = createRoute({ path: '/root' });
+    const childRoute = createRoute({ path: '/child', parent: rootRoute });
+    const leafRoute = createRoute({ path: '/leaf', parent: childRoute });
+    const scope = fork();
+    const router = createRouter({
+      routes: [rootRoute, childRoute, leafRoute],
+    });
+    const history = createMemoryHistory({
+      initialEntries: ['/root/child/leaf'],
+    });
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    const RoutesView = createRoutesView({
+      routes: [
+        createRouteView({
+          route: rootRoute,
+          view: defineComponent({
+            setup: () => () =>
+              h('div', { 'data-testid': 'root' }, ['root', h(Outlet)]),
+          }),
+          children: [
+            createRouteView({
+              route: childRoute,
+              view: defineComponent({
+                setup: () => () =>
+                  h('div', { 'data-testid': 'child' }, ['child', h(Outlet)]),
+              }),
+              children: [
+                createRouteView({
+                  route: leafRoute,
+                  view: defineComponent({
+                    setup: () => () =>
+                      h('span', { 'data-testid': 'leaf' }, 'leaf'),
+                  }),
+                }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    });
+
+    const wrapper = mountRoutes(router, scope, RoutesView);
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="root"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="child"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="leaf"]').exists()).toBe(true);
   });
 
   test('link navigates on click', async () => {
