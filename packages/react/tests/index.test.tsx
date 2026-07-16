@@ -15,7 +15,7 @@ import {
   RouterProvider,
   withLayout,
 } from '../lib';
-import { act, ReactNode, useEffect } from 'react';
+import { act, createRef, ReactNode, useEffect } from 'react';
 import { describe, expect, test, vi } from 'vitest';
 import {
   chainRoute,
@@ -217,6 +217,7 @@ describe('react bindings', () => {
             <Link
               params={{ id: '123' }}
               query={{ tab: 'details' }}
+              replace
               to={route2}
               id="link"
             >
@@ -255,6 +256,7 @@ describe('react bindings', () => {
     expect(scope.getState(route2.$isOpened)).toBeTruthy();
     expect(scope.getState(route2.$params)).toStrictEqual({ id: '123' });
     expect(beforeOpen).toHaveBeenCalledTimes(1);
+    expect(history.index).toBe(1);
 
     await userEvent.click(container.querySelector('#link')!);
 
@@ -290,6 +292,13 @@ describe('react bindings', () => {
                 query={{ tab: 'details', flag: null }}
                 id="replace"
               />
+              <Link
+                to={target}
+                params={{ id: '42' }}
+                query={{}}
+                replace
+                id="clear"
+              />
             </>
           ),
         }),
@@ -308,6 +317,9 @@ describe('react bindings', () => {
     );
     expect(container.querySelector('#replace')?.getAttribute('href')).toBe(
       '/target/42?flag&tab=details',
+    );
+    expect(container.querySelector('#clear')?.getAttribute('href')).toBe(
+      '/target/42',
     );
 
     await act(() =>
@@ -380,6 +392,36 @@ describe('react bindings', () => {
     expect(scope.getState(routes.download.$isOpened)).toBe(false);
     expect(scope.getState(routes.prevented.$isOpened)).toBe(false);
     expect(scope.getState(routes.external.$isOpened)).toBe(false);
+  });
+
+  test('forwards refs and native anchor attributes', async () => {
+    const route = createRoute({ path: '/profile' });
+    const scope = fork();
+    const router = createRouter({ routes: [route] });
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(createMemoryHistory()),
+    });
+    const ref = createRef<HTMLAnchorElement>();
+
+    const { container } = render(
+      <Provider value={scope}>
+        <RouterProvider router={router}>
+          <Link
+            ref={ref}
+            to={route}
+            aria-label="Profile"
+            data-testid="profile-link"
+            rel="nofollow"
+          />
+        </RouterProvider>
+      </Provider>,
+    );
+
+    expect(ref.current).toBe(container.querySelector('a'));
+    expect(ref.current?.getAttribute('aria-label')).toBe('Profile');
+    expect(ref.current?.dataset.testid).toBe('profile-link');
+    expect(ref.current?.rel).toBe('nofollow');
   });
 
   test('chained route', async () => {

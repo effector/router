@@ -237,7 +237,7 @@ This stage depends on final route payloads (D3) and query policy (D1–D2).
       same-origin `_self` click. Preserve user `preventDefault`, modified clicks,
       `target != _self`, download/native attributes, and normal browser behavior.
       Pass `replace`, params, and query consistently.
-- [ ] **T41 — React Link.** Add runtime and type coverage for conditional params,
+- [x] **T41 — React Link.** Add runtime and type coverage for conditional params,
       current/explicit/empty query, modified/secondary clicks, `_blank`,
       cancellation, refs, and anchor attributes. Update D7 docs and README.
 - [ ] **T42 — Solid Link/useLink.** Cover direct `useLink`, reactive params and

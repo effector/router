@@ -133,6 +133,11 @@ All standard HTML anchor props are supported:
 </Link>
 ```
 
+`Link` also forwards a ref to the underlying `<a>` element, so focus and
+measurement work like they do for a native anchor. Route parameters remain
+conditionally required by `LinkProps`: a route with `:id` requires
+`params={{id: ...}}`, while a path without parameters accepts omitted params.
+
 ## Behavior
 
 ### Click Handling

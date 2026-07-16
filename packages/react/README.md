@@ -78,6 +78,8 @@ const UserScreen = createRouteView({
   Navigation interception is limited to ordinary primary-button, same-origin
   `_self` clicks; modified, secondary, download, and non-`_self` clicks remain
   native.
+  `LinkProps` conditionally requires route params, and `Link` forwards refs and
+  standard anchor attributes.
 - `withLayout` — share a layout across routes. Views returned by one call share
   a private group identity, so the layout stays mounted while siblings switch.
 - `Outlet`, `useRouter`, `useIsOpened`, `useOpenedViews` — composition helpers.
