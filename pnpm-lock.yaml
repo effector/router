@@ -283,6 +283,9 @@ importers:
       '@effector/router':
         specifier: workspace:^
         version: link:../core
+      '@effector/router-paths':
+        specifier: workspace:^
+        version: link:../paths
       '@effector/router-react':
         specifier: workspace:^
         version: link:../react

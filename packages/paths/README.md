@@ -66,6 +66,8 @@ type Params = ParseUrlParams<'/blog/:year<number>/:slug'>;
 ## Also included
 
 - `convertPath(path, 'express')` — convert patterns to Express-compatible routes.
+- `getParamNames(pattern)` — ordered names of every declared parameter.
+- `getRequiredParamNames(pattern)` — names of the non-optional parameters.
 - Exposed types: `Builder`, `Parser`, `ValidatePath`.
 
 ## Documentation

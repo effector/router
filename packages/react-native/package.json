@@ -55,6 +55,7 @@
   },
   "dependencies": {
     "@effector/router": "workspace:^",
+    "@effector/router-paths": "workspace:^",
     "@effector/router-react": "workspace:^"
   },
   "peerDependencies": {

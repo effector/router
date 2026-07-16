@@ -15,7 +15,11 @@ import type {
   RouteUpdatedPayload,
 } from './types';
 
-import { ParseUrlParams, ValidatePath } from '@effector/router-paths';
+import {
+  getParamNames,
+  ParseUrlParams,
+  ValidatePath,
+} from '@effector/router-paths';
 import { createAction } from 'effector-action';
 import { createAttemptCoordinator } from './transition-attempt';
 
@@ -108,20 +112,6 @@ function getPayloadParams<Params>(
   return { ...payload.params } as Params;
 }
 
-function getPathParamNames(path: string): string[] {
-  const names: string[] = [];
-
-  for (const segment of path.split('/').filter(Boolean)) {
-    const matches = segment.match(/[:*]([A-Za-z0-9_]+)/g) ?? [];
-
-    for (const match of matches) {
-      names.push(match.slice(1));
-    }
-  }
-
-  return names;
-}
-
 /** Normalize equivalent empty payloads at the route lifecycle boundary. */
 function normalizeOpenPayload<Params>(
   payload: unknown,
@@ -211,8 +201,8 @@ export function createRoute<Params>(
   // after the adapter confirms the resulting location. The input is the public
   // `RouteOpenPayload` (which also admits `{ params: {} }`); the effect
   // normalizes it to the resolved `OpenPayload` for the rest of the lifecycle.
-  const openFx = createEffect<RouteOpenPayload<Params>, OpenPayload>((payload) =>
-    normalizeOpenPayload<Params>(payload),
+  const openFx = createEffect<RouteOpenPayload<Params>, OpenPayload>(
+    (payload) => normalizeOpenPayload<Params>(payload),
   );
 
   const forceOpenParentFx = createEffect<OpenPayload, OpenPayload>(
@@ -284,7 +274,7 @@ export function createRoute<Params>(
 
   const defaultParams = {} as Params;
   const ownParamNames =
-    'path' in config ? getPathParamNames(config.path) : undefined;
+    'path' in config ? getParamNames(config.path) : undefined;
 
   function getOwnParams(payload: unknown): Params {
     const params = getPayloadParams(payload, defaultParams);
