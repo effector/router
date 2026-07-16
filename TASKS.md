@@ -315,7 +315,7 @@ changesets rather than deferring them here.
       contract and reusable rationale from the temporary RFC into
       `docs/core/navigation-lifecycle.md` or a dedicated permanent article,
       update internal references, then delete the temporary root RFC.
-- [ ] **T56 — Full release gate.** After each slice's package checks, run full
+- [x] **T56 — Full release gate.** After each slice's package checks, run full
       build, typecheck, test, lint, docs build, and changeset status. When the
       gate is green, remove closed Txx items and linked Decisions according to
       `IMPLEMENTATION_RULES.md`; narrow partially completed items to their exact

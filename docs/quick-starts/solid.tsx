@@ -8,7 +8,7 @@ import {
   RouterProvider,
 } from '../../packages/solid/lib/index';
 
-export function createSolidQuickStart() {
+export function createSolidQuickStart(): any {
   const home = createVirtualRoute();
   const profile = createVirtualRoute<{ id: string }>();
   const router = createRouter({ routes: [] });

@@ -3,7 +3,7 @@ import {
   createVirtualRoute,
 } from '../../packages/core/lib/index';
 
-export function createCoreQuickStart() {
+export function createCoreQuickStart(): any {
   const home = createVirtualRoute();
   const profile = createVirtualRoute<{ id: string }>();
   const router = createRouter({ routes: [] });

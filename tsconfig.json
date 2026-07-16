@@ -108,5 +108,10 @@
   },
   // Solid uses a different JSX runtime (jsxImportSource: "solid-js"); it is
   // typechecked via packages/solid/tsconfig.json instead of the root react-jsx.
-  "exclude": ["packages/solid", "examples/solid-router"]
+  "exclude": [
+    "packages/solid",
+    "examples/solid-router",
+    "docs/snippets",
+    "docs/quick-starts"
+  ]
 }

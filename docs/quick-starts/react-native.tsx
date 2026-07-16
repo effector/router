@@ -3,7 +3,7 @@ import { createStackNavigator } from '../../packages/react-native/lib/index';
 import { createRouteView } from '../../packages/react/lib/index';
 import { Text } from 'react-native';
 
-export function createReactNativeQuickStart() {
+export function createReactNativeQuickStart(): any {
   const home = createRoute({ path: '/home' });
   const profile = createRoute({ path: '/profile/:id' });
   const router = createRouter({ routes: [home, profile] });

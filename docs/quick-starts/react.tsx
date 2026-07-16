@@ -7,7 +7,7 @@ import {
 import { createElement, type ComponentType } from 'react';
 import { createRouter } from '../../packages/core/lib/index';
 
-export function createReactQuickStart() {
+export function createReactQuickStart(): any {
   const home = createVirtualRoute();
   const profile = createVirtualRoute<{ id: string }>();
   const router = createRouter({ routes: [] });

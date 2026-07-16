@@ -9,7 +9,7 @@ import {
 } from '../../packages/vue/lib/index';
 import { h } from 'vue';
 
-export function createVueQuickStart() {
+export function createVueQuickStart(): any {
   const home = createVirtualRoute();
   const profile = createVirtualRoute<{ id: string }>();
   const router = createRouter({ routes: [] });

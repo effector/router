@@ -42,6 +42,7 @@ export default defineConfig({
       entryRoot: resolve(__dirname, 'lib'),
       exclude: [
         resolve(__dirname, 'tests'),
+        resolve(__dirname, '../../docs'),
         resolve(__dirname, '../core'),
         resolve(__dirname, '../paths'),
         resolve(__dirname, '../react'),

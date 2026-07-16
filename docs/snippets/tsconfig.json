@@ -22,5 +22,6 @@
     "../quick-starts/react.tsx",
     "../quick-starts/vue.ts",
     "../quick-starts/react-native.tsx"
-  ]
+  ],
+  "exclude": []
 }

@@ -48,6 +48,7 @@ export default defineConfig({
       entryRoot: resolve(__dirname, 'lib'),
       exclude: [
         resolve(__dirname, 'tests'),
+        resolve(__dirname, '../../docs'),
         resolve(__dirname, '../effector/router-paths'),
         resolve(__dirname, '../effector/router-core'),
         resolve(__dirname, '../effector/router-react'),

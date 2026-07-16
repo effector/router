@@ -35,7 +35,7 @@ export default defineConfig({
     dts({
       outDir: resolve(__dirname, 'dist'),
       entryRoot: resolve(__dirname, 'lib'),
-      exclude: [resolve(__dirname, 'tests')],
+      exclude: [resolve(__dirname, 'tests'), resolve(__dirname, '../../docs')],
       staticImport: true,
       insertTypesEntry: true,
       rollupTypes: true,

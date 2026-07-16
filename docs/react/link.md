@@ -10,17 +10,17 @@ import { Link } from '@effector/router-react';
 
 ## Usage
 
-```tsx
+```text
 import { Link } from '@effector/router-react';
 import { profileRoute, postRoute } from './routes';
 
 function Navigation() {
   return (
     <nav>
-      <Link to={profileRoute}>Profile</Link>
-      <Link to={postRoute} params={{ id: '123' }}>
+      &lt;Link to={profileRoute}&gt;Profile&lt;/Link&gt;
+      &lt;Link to={postRoute} params={ { id: '123' } }&gt;
         View Post
-      </Link>
+      &lt;/Link&gt;
     </nav>
   );
 }
@@ -30,7 +30,7 @@ function Navigation() {
 
 Pass route parameters:
 
-```tsx
+```text
 import { Link } from '@effector/router-react';
 import { createRoute } from '@effector/router';
 
@@ -41,9 +41,9 @@ function UserList({ users }) {
     <ul>
       {users.map((user) => (
         <li key={user.id}>
-          <Link to={userRoute} params={{ id: user.id }}>
+          &lt;Link to={userRoute} params={ { id: user.id } }&gt;
             {user.name}
-          </Link>
+          &lt;/Link&gt;
         </li>
       ))}
     </ul>
@@ -55,10 +55,10 @@ function UserList({ users }) {
 
 Add query parameters to the URL:
 
-```tsx
-<Link to={searchRoute} query={{ q: 'react', sort: 'popular' }}>
+```text
+&lt;Link to={searchRoute} query={ { q: 'react', sort: 'popular' } }&gt;
   Search React
-</Link>
+&lt;/Link&gt;
 ```
 
 The `href` always includes the complete path params and effective query. When
@@ -70,10 +70,10 @@ produces the same URL.
 
 Use `replace` to replace current history entry:
 
-```tsx
-<Link to={loginRoute} replace>
+```text
+&lt;Link to={loginRoute} replace&gt;
   Login
-</Link>
+&lt;/Link&gt;
 ```
 
 ## Props
@@ -82,61 +82,61 @@ Use `replace` to replace current history entry:
 
 The route to navigate to:
 
-```tsx
-<Link to={homeRoute}>Home</Link>
+```text
+&lt;Link to={homeRoute}&gt;Home&lt;/Link&gt;
 ```
 
 ### `params` (optional)
 
 Route parameters (required if route has parameters):
 
-```tsx
+```text
 const userRoute = createRoute({ path: '/user/:id/:tab' });
 
-<Link to={userRoute} params={{ id: '123', tab: 'posts' }}>
+&lt;Link to={userRoute} params={ { id: '123', tab: 'posts' } }&gt;
   User Posts
-</Link>;
+&lt;/Link&gt;;
 ```
 
 ### `query` (optional)
 
 Query parameters to add to the URL:
 
-```tsx
-<Link to={searchRoute} query={{ q: 'term', filter: 'active' }}>
+```text
+&lt;Link to={searchRoute} query={ { q: 'term', filter: 'active' } }&gt;
   Search
-</Link>
+&lt;/Link&gt;
 ```
 
 ### `replace` (optional)
 
 Replace current history entry instead of pushing:
 
-```tsx
-<Link to={homeRoute} replace>
+```text
+&lt;Link to={homeRoute} replace&gt;
   Home
-</Link>
+&lt;/Link&gt;
 ```
 
 ### Standard Anchor Props
 
 All standard HTML anchor props are supported:
 
-```tsx
-<Link
+```text
+&lt;Link
   to={externalRoute}
   className="nav-link"
   target="_blank"
   rel="noopener noreferrer"
 >
   External Link
-</Link>
+&lt;/Link&gt;
 ```
 
 `Link` also forwards a ref to the underlying `<a>` element, so focus and
 measurement work like they do for a native anchor. Route parameters remain
 conditionally required by `LinkProps`: a route with `:id` requires
-`params={{id: ...}}`, while a path without parameters accepts omitted params.
+`params={ {id: ...} }`, while a path without parameters accepts omitted params.
 
 ## Behavior
 
@@ -152,8 +152,8 @@ The Link component:
 - Allows custom `onClick` handlers
 - Supports `e.preventDefault()` to cancel navigation
 
-```tsx
-<Link
+```text
+&lt;Link
   to={profileRoute}
   onClick={(e) => {
     if (!user.isLoggedIn) {
@@ -163,17 +163,17 @@ The Link component:
   }}
 >
   Profile
-</Link>
+&lt;/Link&gt;
 ```
 
 ### External Links
 
 Links with `target` attribute other than `_self` use default browser behavior:
 
-```tsx
-<Link to={docsRoute} target="_blank">
+```text
+&lt;Link to={docsRoute} target="_blank"&gt;
   Open Docs in New Tab
-</Link>
+&lt;/Link&gt;
 ```
 
 ### Modifier Keys
@@ -189,47 +189,47 @@ Holding modifier keys uses browser's default behavior:
 
 Parameters are type-checked:
 
-```tsx
+```text
 const postRoute = createRoute({ path: '/post/:id' });
 
 // ✅ Correct
-<Link to={postRoute} params={{ id: '123' }}>Post</Link>
+&lt;Link to={postRoute} params={ { id: '123' } }&gt;Post&lt;/Link&gt;
 
 // ❌ TypeScript error - missing params
-<Link to={postRoute}>Post</Link>
+&lt;Link to={postRoute}&gt;Post&lt;/Link&gt;
 
 // ❌ TypeScript error - wrong type
-<Link to={postRoute} params={{ id: 123 }}>Post</Link>
+&lt;Link to={postRoute} params={ { id: 123 } }&gt;Post&lt;/Link&gt;
 ```
 
 ## Styling
 
 Style like a regular anchor tag:
 
-```tsx
-<Link
+```text
+&lt;Link
   to={homeRoute}
   className="nav-link active"
-  style={{ color: 'blue', textDecoration: 'none' }}
+  style={ { color: 'blue', textDecoration: 'none' } }
 >
   Home
-</Link>
+&lt;/Link&gt;
 ```
 
 ## Ref Support
 
 Link supports refs:
 
-```tsx
+```text
 import { useRef } from 'react';
 
 function Navigation() {
   const linkRef = useRef<HTMLAnchorElement>(null);
 
   return (
-    <Link ref={linkRef} to={homeRoute}>
+    &lt;Link ref={linkRef} to={homeRoute}&gt;
       Home
-    </Link>
+    &lt;/Link&gt;
   );
 }
 ```
