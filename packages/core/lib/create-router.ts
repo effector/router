@@ -287,12 +287,20 @@ export function createRouter(config: RouterConfig): Router {
 
       const { matches } = matchRoutes(path);
       const matchedRoutes = new Set(matches.map(({ route }) => route));
-      const pathChanged = previousPath !== path;
-      const queryOnly = !pathChanged && !isEqualQuery(previousQuery, query);
+      const isPathChange = previousPath !== path;
+      const queryOnly = !isPathChange && !isEqualQuery(previousQuery, query);
+      // A same-path, same-query commit is a genuine re-navigation to the
+      // identical URL (e.g. re-opening the current route) and re-activates
+      // matching routes.
+      const isSameUrlReNavigation =
+        !isPathChange && isEqualQuery(previousQuery, query);
+      // The first commit that matches a route after matching none.
+      const isInitialMatch = previousCount === 0 && matches.length > 0;
+      // Re-activate matching routes on a new path, an identical-URL re-entry, or
+      // the initial match. A query-only change (queryOnly) is observed through
+      // `$query`/query trackers and must not re-activate routes (D3.4).
       const shouldNavigate =
-        pathChanged ||
-        isEqualQuery(previousQuery, query) ||
-        (previousCount === 0 && matches.length > 0);
+        isPathChange || isSameUrlReNavigation || isInitialMatch;
 
       for (const { route } of ownRoutes) {
         const routeClose = scopeBind(route.internal.close, { safe: true });
