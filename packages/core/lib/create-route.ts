@@ -11,6 +11,7 @@ import type {
   PathRoute,
   Route,
   RouteOpenedPayload,
+  RouteOpenPayload,
   RouteUpdatedPayload,
 } from './types';
 
@@ -207,8 +208,10 @@ export function createRoute<Params>(
   const beforeOpen = config.beforeOpen ?? [];
 
   // Opening a path route is a navigation intent. Preparation starts only
-  // after the adapter confirms the resulting location.
-  const openFx = createEffect<OpenPayload, OpenPayload>((payload) =>
+  // after the adapter confirms the resulting location. The input is the public
+  // `RouteOpenPayload` (which also admits `{ params: {} }`); the effect
+  // normalizes it to the resolved `OpenPayload` for the rest of the lifecycle.
+  const openFx = createEffect<RouteOpenPayload<Params>, OpenPayload>((payload) =>
     normalizeOpenPayload<Params>(payload),
   );
 
@@ -242,7 +245,10 @@ export function createRoute<Params>(
   const $isOpened = createStore(false);
   const $isPending = lifecycle.$current.map(Boolean);
 
-  const open = createEvent<OpenPayload>();
+  // The public contract accepts every normalized-empty form
+  // (`open()`, `open({})`, `open({ params: {} })`); `normalizeOpenPayload`
+  // collapses them before the lifecycle sees an `OpenPayload`.
+  const open = createEvent<RouteOpenPayload<Params>>();
   const close = createEvent();
 
   const opened = createEvent<OpenPayload>();
@@ -389,6 +395,7 @@ export function createRoute<Params>(
     target: {
       openedOnServer,
       openedOnClient,
+      opened,
     },
     fn: (target, payload) => {
       // Strip internal navigate flag before exposing through the public opened event,
@@ -399,18 +406,18 @@ export function createRoute<Params>(
       delete openedPayload.parent;
       const eventPayload = openedPayload as OpenPayload;
 
+      // Emit the environment-specific event first, then the unified `opened`,
+      // preserving the previous ordering. Firing `opened` here (instead of a
+      // second `sample`) avoids effector's tuple/conditional clock inference on
+      // the unreduced `OpenPayload`.
       if (typeof window === 'undefined') {
-        return target.openedOnServer(eventPayload);
+        target.openedOnServer(eventPayload);
+      } else {
+        target.openedOnClient(eventPayload);
       }
 
-      return target.openedOnClient(eventPayload);
+      target.opened(eventPayload);
     },
-  });
-
-  // @ts-expect-error TS is very stupid
-  sample({
-    clock: [openedOnClient, openedOnServer],
-    target: opened,
   });
 
   sample({
@@ -439,12 +446,11 @@ export function createRoute<Params>(
     target: $isOpened,
   });
 
-  return {
+  const route = {
     $params,
     $isOpened,
     $isPending,
 
-    // @ts-expect-error :((
     open,
     closed,
     opened,
@@ -467,8 +473,17 @@ export function createRoute<Params>(
       isPending: $isPending,
       isOpened: $isOpened,
 
-      // @ts-expect-error :((
       onOpen: open,
     }),
   };
+
+  // Effector units are invariant in their payload, and this factory's declared
+  // return type is the `<any>` route instantiation while the object above keeps
+  // the still-generic `Params` (plus the internal wiring that public routes do
+  // not expose). Those cannot be reconciled structurally, so the accepted public
+  // contract is asserted once here — deliberately in place of the scattered
+  // `@ts-expect-error` directives that IMPLEMENTATION_RULES forbids in
+  // production source. `open` is already typed with the public `RouteOpenPayload`
+  // and `normalizeOpenPayload` keeps every empty form sound at runtime.
+  return route as unknown as PathRoute<any> | PathlessRoute<any>;
 }
