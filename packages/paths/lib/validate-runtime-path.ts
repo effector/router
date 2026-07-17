@@ -4,6 +4,10 @@ function fail(message: string): never {
   throw new Error(`Path pattern ${message}`);
 }
 
+function isModifier(character: string | undefined): boolean {
+  return character === '+' || character === '*';
+}
+
 export function validateRuntimePath(path: unknown): asserts path is string {
   if (
     typeof path !== 'string' ||
@@ -40,9 +44,10 @@ export function validateRuntimePath(path: unknown): asserts path is string {
       continue;
     }
 
-    const modifiers = body.match(/[+*]+$/)?.[0];
-
-    if (modifiers && modifiers.length > 1) {
+    if (
+      isModifier(body[body.length - 1]) &&
+      isModifier(body[body.length - 2])
+    ) {
       fail('has conflicting modifiers');
     }
 

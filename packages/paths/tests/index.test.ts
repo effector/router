@@ -24,12 +24,28 @@ describe('parse path', () => {
     expect(() => compile('/profile/:id{3,2}')).toThrow(
       'Path pattern has an invalid range',
     );
-    expect(() => compile('/profile/:id+*')).toThrow(
-      'Path pattern has conflicting modifiers',
-    );
+    for (const modifiers of ['+*', '*+', '++', '**']) {
+      expect(() => compile(`/profile/:id${modifiers}`)).toThrow(
+        'Path pattern has conflicting modifiers',
+      );
+    }
     expect(() => compile('/profile/:id/:id')).toThrow(
       'duplicate parameter name "id"',
     );
+  });
+
+  test('rejects long malformed modifier input without nonlinear scanning', () => {
+    const path = `/:id${'*'.repeat(50_000)}!`;
+    const started = performance.now();
+
+    expect(() => compile(path)).toThrow(
+      'Path pattern has an invalid parameter syntax',
+    );
+
+    // The previous unanchored-start suffix regex took seconds for this input.
+    // Keep a generous ceiling: linear validation completes orders of magnitude
+    // below it even on a loaded CI runner.
+    expect(performance.now() - started).toBeLessThan(500);
   });
 
   test('parse root path', () => {
