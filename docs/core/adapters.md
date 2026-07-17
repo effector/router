@@ -234,6 +234,13 @@ loginModal.open();
 > Both routers must share the **same** `history` instance — that is how the
 > query router layers its state on top of the main URL.
 
+Built-in adapters coordinate native blocking per shared `history` instance.
+There is one physical `history.block` subscription: a router command bypasses
+that blocker after completing its own pre-commit lifecycle, while a native
+back/forward transition retries only after every participating adapter has
+released it. Unsubscribing an adapter also releases its part of a pending
+native transition.
+
 **Tab Navigation Example:**
 
 ```ts

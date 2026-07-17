@@ -1,5 +1,6 @@
-import { createPath, parsePath, type History, type Transition } from 'history';
+import { createPath, parsePath, type History } from 'history';
 import type { RouterAdapter, RouterLocation, To } from './types';
+import { getHistoryBlockCoordinator } from './history-block-coordinator';
 import { normalizeTo } from './normalize-to';
 
 export interface QueryAdapterOptions {
@@ -117,38 +118,7 @@ export function queryAdapter(
     ),
     hash: history.location.hash,
   });
-
-  let blockCallback: Parameters<NonNullable<RouterAdapter['block']>>[0] | null =
-    null;
-  let unblock: (() => void) | null = null;
-
-  const subscribeBlocker = () => {
-    if (!blockCallback) return;
-
-    unblock = history.block((transition: Transition) => {
-      blockCallback?.({
-        action: transition.action,
-        location: strategy.extract(transition.location),
-        retry: () => runWithoutBlocker(() => transition.retry()),
-      });
-    });
-  };
-
-  const runWithoutBlocker = (operation: () => void) => {
-    if (!unblock) {
-      operation();
-      return;
-    }
-
-    unblock();
-    unblock = null;
-
-    try {
-      operation();
-    } finally {
-      subscribeBlocker();
-    }
-  };
+  const blockCoordinator = getHistoryBlockCoordinator(history);
 
   return {
     get location() {
@@ -156,11 +126,11 @@ export function queryAdapter(
     },
 
     push: (to: To) => {
-      runWithoutBlocker(() => history.push(navigate(to)));
+      blockCoordinator.runWithoutBlocking(() => history.push(navigate(to)));
     },
 
     replace: (to: To) => {
-      runWithoutBlocker(() => history.replace(navigate(to)));
+      blockCoordinator.runWithoutBlocking(() => history.replace(navigate(to)));
     },
 
     goBack: () => {
@@ -181,18 +151,6 @@ export function queryAdapter(
       });
     },
 
-    block: (callback) => {
-      unblock?.();
-      blockCallback = callback;
-      subscribeBlocker();
-
-      const unsubscribe = () => {
-        unblock?.();
-        unblock = null;
-        blockCallback = null;
-      };
-
-      return Object.assign(unsubscribe, { unsubscribe });
-    },
+    block: (callback) => blockCoordinator.block(strategy.extract, callback),
   };
 }

@@ -533,4 +533,35 @@ describe('navigation operators', () => {
     // After the microtask window the commit has landed.
     expect(scope.getState(router.$path)).toBe('/protected');
   });
+
+  test('controls sharing one physical history commit a command once', async () => {
+    const scope = fork();
+    const history = createMemoryHistory({ initialEntries: ['/'] });
+    const firstControls = createRouterControls();
+    const secondControls = createRouterControls();
+    const firstRouter = createRouter({ routes: [], controls: firstControls });
+    const secondRouter = createRouter({ routes: [], controls: secondControls });
+    const updates = vi.fn();
+
+    history.listen(updates);
+
+    await allSettled(firstRouter.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+    await allSettled(secondRouter.setHistory, {
+      scope,
+      params: historyAdapter(history),
+    });
+
+    await allSettled(firstControls.navigate, {
+      scope,
+      params: { path: '/projects' },
+    });
+
+    expect(history.location.pathname).toBe('/projects');
+    expect(scope.getState(firstRouter.$path)).toBe('/projects');
+    expect(scope.getState(secondRouter.$path)).toBe('/projects');
+    expect(updates).toHaveBeenCalledTimes(1);
+  });
 });

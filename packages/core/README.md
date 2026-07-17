@@ -121,6 +121,11 @@ router; unrelated keys, host pathname/hash, multiple query adapters, and a
 shared `historyAdapter` remain intact. Whole-search mode intentionally owns the
 entire search section.
 
+Built-in adapters created from the same `History` instance also share one
+physical native-transition blocker. Adapter `push`/`replace` commands commit
+once, while browser back/forward waits for every participating controls model
+to proceed. Detaching one adapter releases its part of a pending transition.
+
 Before initialization, `$path` is `null` and `$query` is `{}`. Each
 `setHistory` loads its adapter snapshot and disconnects the previous adapter's
 listeners before subscribing to the new one.

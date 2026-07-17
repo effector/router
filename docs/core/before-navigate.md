@@ -67,6 +67,9 @@ and keeps the current history location.
 `historyAdapter` and `queryAdapter` implement optional native blocking, so POP
 (browser back/forward) uses the same flow. A custom adapter without `block`
 still guards router commands, but cannot hold an external POP transition.
+Built-in adapters that project the same `History` instance coordinate through
+one physical blocker, so each matching controls model must proceed before the
+native transition retries once.
 
 `beforeNavigate` is not implemented through `chainRoute`: a chain starts after
 `route.opened`, when history has already changed.
