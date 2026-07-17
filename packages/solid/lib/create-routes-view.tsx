@@ -2,11 +2,24 @@ import { Show, type Component } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { OutletContext } from './context';
 import { useOpenedViews } from './use-opened-views';
-import type { RouteView } from './types';
+import { layoutGroup, type RouteView } from './types';
 
 interface CreateRoutesViewProps {
   routes: RouteView[];
   otherwise?: Component;
+}
+
+function LayoutRenderer(props: {
+  view: RouteView;
+  group: NonNullable<RouteView[typeof layoutGroup]>;
+}) {
+  return (
+    <Dynamic component={props.group.layout}>
+      <OutletContext.Provider value={{ children: props.view.children ?? [] }}>
+        <Dynamic component={props.view.view} />
+      </OutletContext.Provider>
+    </Dynamic>
+  );
 }
 
 /**
@@ -40,12 +53,25 @@ export function createRoutesView(props: CreateRoutesViewProps) {
     const openedView = () => openedViews().at(-1);
 
     return (
-      <Show when={openedView()} fallback={NotFound ? <NotFound /> : null} keyed>
-        {(view) => (
-          <OutletContext.Provider value={{ children: view.children ?? [] }}>
-            <Dynamic component={view.view} />
-          </OutletContext.Provider>
-        )}
+      <Show when={openedView()} fallback={NotFound ? <NotFound /> : null}>
+        {(view) => {
+          const group = () => view()[layoutGroup];
+
+          return (
+            <Show
+              when={group()}
+              fallback={
+                <OutletContext.Provider
+                  value={{ children: view().children ?? [] }}
+                >
+                  <Dynamic component={view().view} />
+                </OutletContext.Provider>
+              }
+            >
+              {(layout) => <LayoutRenderer view={view()} group={layout()} />}
+            </Show>
+          );
+        }}
       </Show>
     );
   };

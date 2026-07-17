@@ -7,7 +7,9 @@ import { computed, type ComputedRef } from 'vue';
  * currently opened.
  * @link https://router.effector.dev/vue/use-is-opened.html
  */
-export function useIsOpened(route: Route<any> | Router): ComputedRef<boolean> {
+export function useIsOpened(
+  route: Pick<Route<any>, '$isOpened'> | Router,
+): ComputedRef<boolean> {
   if (is.router(route)) {
     const activeRoutes = useUnit(route.$activeRoutes);
     return computed(() => activeRoutes.value.length > 0);

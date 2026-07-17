@@ -37,6 +37,22 @@ const path = build({ id: 456 });
 // '/user/456'
 ```
 
+## Pathname-only patterns
+
+`compile` accepts pathname patterns only. Query strings, hashes, origins, and
+malformed parameter syntax are rejected before a parser or builder is created:
+
+```ts
+compile('/user/:id'); // valid
+compile('/user?id=123'); // throws: query/hash is not part of a pattern
+compile('https://example.com/user'); // throws: origins are not patterns
+compile('/user/:ids{3,2}'); // throws: invalid range
+```
+
+The parser, builder, and `ParseUrlParams` types are kept in sync by a shared
+conformance matrix covering round-trips, optional omission, embedded values,
+array bounds, malformed patterns, and full-URL rejection.
+
 ## Parameter Types
 
 ### String Parameters (Default)
@@ -69,6 +85,8 @@ const { parse, build } = compile('/edit/:mode<create|update|delete>');
 build({ mode: 'create' }); // '/edit/create'
 parse('/edit/update'); // { path: '/edit/update', params: { mode: 'update' } }
 parse('/edit/other'); // null (not in union)
+
+build({ mode: 'other' }); // throws: value is not in the union
 ```
 
 ### Multiple Parameters
@@ -94,10 +112,11 @@ const { parse, build } = compile('/user/:id?');
 
 build({}); // '/user'
 build({ id: '123' }); // '/user/123'
-
 parse('/user'); // { path: '/user', params: {} }
 parse('/user/456'); // { path: '/user/456', params: { id: '456' } }
 ```
+
+When the segment is absent, the parser omits the optional key from `params`.
 
 ### Optional with Type
 
@@ -107,7 +126,10 @@ const { parse, build } = compile('/post/:id<number>?');
 
 build({}); // '/post'
 build({ id: 123 }); // '/post/123'
+parse('/post'); // { path: '/post', params: {} }
 ```
+
+The same omission rule applies to generic optional parameters.
 
 ### Repeating Parameters (`+`)
 
@@ -166,11 +188,23 @@ const { parse, build } = compile('/items/:ids<number>{1,3}?');
 build({}); // '/items'
 build({ ids: [1, 2] }); // '/items/1/2'
 
+parse('/items'); // { path: '/items', params: {} }
+
 // Range with type
 const { parse, build } = compile('/tag/:names<create|update|delete>{2,2}');
-//                                       ^- { names: ('create' | 'update' | 'delete')[] }
+// ^- { names: ('create' | 'update' | 'delete')[] }
 
 build({ names: ['create', 'delete'] }); // '/tag/create/delete'
+```
+
+`+` and `*` use the same rules. `+` requires at least one value, while `*`
+allows an empty array. A present value still has to satisfy the bound when the
+segment is optional:
+
+```ts
+const repeated = compile('/tags/:id+?');
+repeated.build({}); // '/tags'
+repeated.build({ id: [] }); // throws: Parameter "id" expects at least 1 value
 ```
 
 ## TypeScript Integration

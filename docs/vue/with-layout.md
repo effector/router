@@ -1,6 +1,8 @@
 # withLayout
 
 Group routes by layout, so you don't need to pass the `layout` property manually
+Views returned by one call share a private group identity; switching between
+them replaces only the page child and keeps the layout instance mounted.
 in every route. Works for [`createRouteView`] and [`createLazyRouteView`].
 
 ### Example

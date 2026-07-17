@@ -2,6 +2,10 @@
 
 Creates a component that renders the currently active route view.
 
+The binding matrix covers path and virtual routes, parent/child suppression,
+nested `Router` targets, declarative sibling priority, persistent layouts, and
+lazy views with the same recursive `children` contract.
+
 ## Import
 
 ```ts
@@ -91,7 +95,7 @@ Returns a React component that:
 The routes view:
 
 1. Uses [`useOpenedViews`] to track which routes are currently open
-2. Renders the last (most recent) opened route
+2. Renders the last declared active route after parent suppression
 3. Provides outlet context for nested routes
 4. Re-renders automatically when route state changes
 
@@ -127,7 +131,7 @@ function App() {
 }
 ```
 
-For nested navigation, keep the persistent parent UI in a parent route view and render changing child content through [`Outlet`]. The parent view stays mounted while sibling child routes change. [`withLayout`] is useful for applying the same markup to several independent views, but it does not guarantee that the layout component stays mounted when switching between them.
+For nested navigation, keep the persistent parent UI in a parent route view and render changing child content through [`Outlet`]. The parent view stays mounted while sibling child routes change. `withLayout` also keeps one layout instance mounted while views from the same call switch; a separate call creates a separate group.
 
 ## Nested Routes
 

@@ -30,11 +30,11 @@ features:
     details: "'/user/:id' infers Route<{ id: string }>. Wrong or missing params are a compile-time error, not a runtime surprise."
     link: /core/create-route
     linkText: Type safety
-  - title: Guards & data before render
+  - title: Transition policy & readiness
     icon: 🛡️
-    details: chainRoute gates navigation and loads data at the model level, so pending and error state live next to your logic.
-    link: /core/chain-route
-    linkText: chainRoute
+    details: beforeNavigate holds history transitions; chainRoute derives post-commit model readiness from ordinary Effector units.
+    link: /core/navigation-lifecycle
+    linkText: Navigation lifecycle
   - title: SSR by design
     icon: 🗄️
     details: Fork a scope, allSettled the history, serialize. Isomorphism comes from Effector — the same model runs on server and client.

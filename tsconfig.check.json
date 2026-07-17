@@ -1,0 +1,19 @@
+{
+  // Type gate only (`pnpm typecheck`). Resolves `@effector/router*` imports to
+  // package sources so `tsc --noEmit` passes without a prior `pnpm build`. This
+  // config is intentionally separate from `tsconfig.json`: the package dts
+  // builds (vite-plugin-dts / api-extractor) read `tsconfig.json` and must keep
+  // resolving workspace imports to built `dist`, not source.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@effector/router": ["packages/core/lib/index.ts"],
+      "@effector/router-paths": ["packages/paths/lib/index.ts"],
+      "@effector/router-react": ["packages/react/lib/index.ts"],
+      "@effector/router-vue": ["packages/vue/lib/index.ts"],
+      "@effector/router-react-native": ["packages/react-native/lib/index.ts"]
+    }
+  }
+}

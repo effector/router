@@ -7,12 +7,12 @@ import {
 } from 'vue';
 import { OutletInjectionKey } from './context';
 import { useOpenedViews } from './use-opened-views';
-import type { RouteView } from './types';
+import { layoutGroup, type RouteView } from './types';
 
 /**
  * @internal Renders a single resolved view and exposes its nested children to
- * `<Outlet />` through provide/inject. Remounted (via `key`) whenever the
- * opened view changes, so provided children stay fresh.
+ * `<Outlet />` through provide/inject. Grouped views keep a stable group key
+ * while their page child changes.
  */
 export const RouteRenderer = defineComponent({
   name: 'RouteRenderer',
@@ -22,7 +22,14 @@ export const RouteRenderer = defineComponent({
   setup(props) {
     provide(OutletInjectionKey, props.routeView.children ?? []);
 
-    return () => h(props.routeView.view);
+    return () => {
+      const group = props.routeView[layoutGroup];
+      const content = h(props.routeView.view);
+
+      return group
+        ? h(group.layout, null, { default: () => content })
+        : content;
+    };
   },
 });
 
@@ -59,9 +66,11 @@ export const createRoutesView = (props: CreateRoutesViewProps) => {
           return otherwise ? h(otherwise) : null;
         }
 
+        const group = view[layoutGroup];
+
         return h(RouteRenderer, {
           routeView: view,
-          key: routes.indexOf(view),
+          key: group?.token ?? routes.indexOf(view),
         });
       };
     },

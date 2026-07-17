@@ -1,12 +1,30 @@
 import type { History } from 'history';
 import type { RouterAdapter } from './types';
+import { getHistoryBlockCoordinator } from './history-block-coordinator';
+import { normalizeTo } from './normalize-to';
 
 export function historyAdapter(history: History): RouterAdapter {
-  return {
-    location: history.location,
+  const projectLocation = (location: History['location']) => {
+    const { pathname, search, hash } = location;
 
-    push: history.push.bind(history),
-    replace: history.replace.bind(history),
+    return { pathname, search, hash };
+  };
+  const getLocation = () => projectLocation(history.location);
+  const blockCoordinator = getHistoryBlockCoordinator(history);
+
+  return {
+    get location() {
+      return getLocation();
+    },
+
+    push: (to) =>
+      blockCoordinator.runWithoutBlocking(() =>
+        history.push(normalizeTo(getLocation(), to)),
+      ),
+    replace: (to) =>
+      blockCoordinator.runWithoutBlocking(() =>
+        history.replace(normalizeTo(getLocation(), to)),
+      ),
 
     goBack: history.back.bind(history),
     goForward: history.forward.bind(history),
@@ -18,5 +36,7 @@ export function historyAdapter(history: History): RouterAdapter {
         unsubscribe: unlisten,
       });
     },
+
+    block: (callback) => blockCoordinator.block(projectLocation, callback),
   };
 }

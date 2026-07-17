@@ -11,10 +11,16 @@ import { createStackNavigator } from '@effector/router-react-native';
 ## Usage
 
 ```tsx
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@effector/router-react-native';
-import { createRouter, createRoute } from '@effector/router';
-import { createRouteView, RouterProvider } from '@effector/router-react';
+import {
+  createNavigationContainerRef,
+  NavigationContainer,
+} from '@react-navigation/native';
+import { createRoute, createRouter } from '@effector/router';
+import {
+  createRouteView,
+  RouterProvider,
+  createStackNavigator,
+} from '@effector/router-react-native';
 
 const homeRoute = createRoute({ path: '/home' });
 const detailsRoute = createRoute({ path: '/details/:id' });
@@ -53,12 +59,13 @@ const StackNavigator = createStackNavigator({
     headerTitleStyle: { fontWeight: 'bold' },
   },
 });
+const navigationRef = createNavigationContainerRef();
 
 export default function App() {
   return (
     <RouterProvider router={router}>
-      <NavigationContainer>
-        <StackNavigator />
+      <NavigationContainer ref={navigationRef}>
+        <StackNavigator navigationRef={navigationRef} />
       </NavigationContainer>
     </RouterProvider>
   );
@@ -66,6 +73,31 @@ export default function App() {
 ```
 
 ## Configuration
+
+The factory returns the navigator component directly. `navigationRef` is
+required and must be created and owned by the application, then passed to both
+`NavigationContainer` and the returned component:
+
+```tsx
+const navigationRef = createNavigationContainerRef();
+
+<NavigationContainer ref={navigationRef}>
+  <StackNavigator navigationRef={navigationRef} />
+</NavigationContainer>;
+```
+
+The binding listens for native readiness/state changes and removes those
+listeners on unmount. It does not create a `NavigationContainer`, Router, or
+history adapter.
+
+Router state is the source of truth. The binding keeps only the latest target
+before readiness, then sends a navigate or stack replace command with the route
+params once the ref is ready. Matching native snapshots suppress the resulting
+echo.
+
+Focus opens a route in Router. A native removal, completed closing transition,
+or completed back gesture closes it through the same route unit; the removal
+handler prevents the native action until Router state synchronizes back.
 
 ### `router` (required)
 
@@ -130,9 +162,36 @@ const StackNavigator = createStackNavigator({
 
 See [React Navigation Stack Navigator documentation](https://reactnavigation.org/docs/stack-navigator) for all available options.
 
+### Route view `options`
+
+Per-screen options belong to the RN route view and use the native Stack option
+object or callback type. They are passed directly to `Stack.Screen` without
+being merged with `screenOptions`:
+
+```tsx
+const ProfileScreen = createRouteView({
+  route: profileRoute,
+  view: Profile,
+});
+
+const StackNavigator = createStackNavigator({
+  router,
+  routes: [
+    {
+      ...ProfileScreen,
+      options: ({ route }) => ({ title: route.name }),
+    },
+  ],
+});
+```
+
 ### `initialRouteName`
 
 Name of the route to render on initial render.
+
+Use the complete registered path template. It may reference only a route whose
+required path parameters can be omitted; parameterized routes must be opened by
+Router with real params.
 
 ```tsx
 const StackNavigator = createStackNavigator({

@@ -4,7 +4,6 @@ import {
   createRoute,
   createRouter,
   createRouterControls,
-  createVirtualRoute,
   group,
 } from '@effector/router';
 import type { RouteOpenedPayload } from '@effector/router';
@@ -35,8 +34,9 @@ export const settingsRouter = createRouter({
 export const modalTaskRoute = createRoute({ path: '/task/:taskId' });
 export const modalRouter = createRouter({ routes: [modalTaskRoute] });
 
+export const controls = createRouterControls();
 export const router = createRouter({
-  controls: createRouterControls(),
+  controls,
   routes: [
     homeRoute,
     projectsRoute,
@@ -77,6 +77,4 @@ export const projectGroup = group([
   projectOverviewRoute,
   projectTaskRoute,
 ]);
-export const drawerRoute = createVirtualRoute<{ panel: string }, string>({
-  transformer: ({ panel }) => panel,
-});
+export const drawerRoute = createRoute<{ panel: string }>();

@@ -1,5 +1,7 @@
-import { createElement, type ComponentType, type ReactNode } from 'react';
-import type { RouteView } from './types';
+import { type ComponentType, type ReactNode } from 'react';
+import { layoutGroup, type RouteView } from './types';
+
+let nextLayoutGroupToken = 0;
 
 /**
  * @description Group routes by layout, so you don't need to pass `layout` property manually in all routes. Works for `createRouteView` and `createLazyRouteView`.
@@ -32,10 +34,7 @@ export function withLayout(
   layout: ComponentType<{ children: ReactNode }>,
   views: RouteView[],
 ) {
-  const Layout = layout;
+  const group = { token: ++nextLayoutGroupToken, layout };
 
-  return views.map(({ route, view }) => ({
-    route,
-    view: () => <Layout>{createElement(view)}</Layout>,
-  }));
+  return views.map((view) => ({ ...view, [layoutGroup]: group }));
 }

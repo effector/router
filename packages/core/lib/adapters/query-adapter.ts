@@ -1,5 +1,7 @@
 import { createPath, parsePath, type History } from 'history';
 import type { RouterAdapter, RouterLocation, To } from './types';
+import { getHistoryBlockCoordinator } from './history-block-coordinator';
+import { normalizeTo } from './normalize-to';
 
 export interface QueryAdapterOptions {
   /**
@@ -110,19 +112,25 @@ export function queryAdapter(
 
   const navigate = (to: To) => ({
     pathname: history.location.pathname,
-    search: strategy.search(history.location.search, to),
+    search: strategy.search(
+      history.location.search,
+      normalizeTo(strategy.extract(history.location), to),
+    ),
     hash: history.location.hash,
   });
+  const blockCoordinator = getHistoryBlockCoordinator(history);
 
   return {
-    location: strategy.extract(history.location),
+    get location() {
+      return strategy.extract(history.location);
+    },
 
     push: (to: To) => {
-      history.push(navigate(to));
+      blockCoordinator.runWithoutBlocking(() => history.push(navigate(to)));
     },
 
     replace: (to: To) => {
-      history.replace(navigate(to));
+      blockCoordinator.runWithoutBlocking(() => history.replace(navigate(to)));
     },
 
     goBack: () => {
@@ -142,5 +150,7 @@ export function queryAdapter(
         unsubscribe: unlisten,
       });
     },
+
+    block: (callback) => blockCoordinator.block(strategy.extract, callback),
   };
 }

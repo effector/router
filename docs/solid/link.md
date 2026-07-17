@@ -29,6 +29,26 @@ import { Link } from '@effector/router-solid';
 </Link>;
 ```
 
-Calling `preventDefault()` in `onClick` cancels router navigation. Modified clicks and non-`_self` targets are left to the browser. The rendered `href` is built from route params; `query` and `replace` are applied only to the intercepted route opening.
+Only an ordinary primary-button, same-origin `_self` click is intercepted.
+Calling `preventDefault()` in `onClick` cancels router navigation. Modified,
+secondary, download, cross-origin, and non-`_self` clicks are left to the
+browser. The rendered `href` always includes complete route params and the
+effective query: omission preserves the current query, an explicit object
+replaces it, and `{}` clears it. The same payload passed to `route.open` produces
+the same URL.
 
 `Link` uses router context and throws when `to` is not registered in the provided router.
+
+## `useLink`
+
+`useLink(to, params, query)` is the imperative equivalent. `params` and `query`
+are Solid accessors, so the returned `path` accessor updates when either value
+changes. Call the returned `onOpen` event with the same payload used by
+`route.open`.
+
+```tsx
+const [params, setParams] = createSignal({ id: '42' });
+const link = useLink(userRoute, params);
+
+return <a href={link.path()}>User</a>;
+```

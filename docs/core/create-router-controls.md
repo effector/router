@@ -23,7 +23,6 @@ function createRouterControls(): RouterControls;
 | `back`            | `Event<void>`                  | Navigate back in history                 |
 | `forward`         | `Event<void>`                  | Navigate forward in history              |
 | `locationUpdated` | `Event<{ pathname, query }>`   | Fires when location changes              |
-| [`trackQuery`]    | `function`                     | Create query parameter trackers          |
 
 ## Usage
 
@@ -40,7 +39,14 @@ controls.setHistory(historyAdapter(createBrowserHistory()));
 ```
 
 ::: warning Initialization Required
-Router controls must be initialized with `setHistory` before use. Without a history adapter, navigation methods will throw errors.
+Router controls should be initialized with `setHistory` before use. Before
+initialization, `navigate`, `back`, and `forward` emit
+`controls.navigationFailed` with a discriminated `not-initialized` payload and
+do not throw or create a navigation attempt.
+
+`controls.initialized` and `controls.updated` expose the same location
+lifecycle as Router. Reinitialization emits `initialized`; equal or hash-only
+changes do not emit `updated`.
 :::
 
 ### Navigate to Paths
@@ -137,17 +143,15 @@ function CurrentLocation() {
 ### Track Query Parameters
 
 ```ts
-import { createEvent } from 'effector';
 import { z } from 'zod';
+import { trackQuery } from '@effector/router';
 
-const appStarted = createEvent();
-
-const searchTracker = controls.trackQuery({
+const searchTracker = trackQuery({
   parameters: z.object({
     q: z.string(),
     page: z.string().default('1'),
   }),
-  check: appStarted,
+  controls,
 });
 
 searchTracker.entered.watch(({ q, page }) => {
@@ -158,12 +162,16 @@ searchTracker.entered.watch(({ q, page }) => {
 searchTracker.enter({ q: 'router', page: '2' });
 ```
 
-| Config field | Type          | Description                                                        |
-| ------------ | ------------- | ------------------------------------------------------------------ |
-| `parameters` | `ZodType`     | Schema used to validate and parse the tracked query parameters     |
-| `check`      | `Event<void>` | Optional event that triggers validation instead of automatic check |
+| Config field | Type             | Description                                                    |
+| ------------ | ---------------- | -------------------------------------------------------------- |
+| `controls`   | `RouterControls` | Controls that own query navigation                             |
+| `routes`     | `Route[]`        | Optional OR filter based on each route's `$isOpened` store     |
+| `parameters` | `ZodType`        | Schema used to validate and parse the tracked query parameters |
 
-Unlike `router.trackQuery`, the controls version does not accept `forRoutes`, because standalone controls do not own a route list. See [trackQuery](/core/track-query) for the returned events and route-scoped usage.
+The tracker reacts automatically to query and route activity. Its `$state`
+store exposes the current inactive, pending, or entered state, including when a
+tracker is created after history initialization. Compose one-shot behavior from
+that store and an application event with `sample`.
 
 ### Server-Side Rendering
 
@@ -275,12 +283,24 @@ interface NavigatePayload {
 }
 ```
 
+When `path` or `query` is omitted, controls reuse the current value. Therefore
+`controls.navigate({ path: '/settings' })` preserves the current query.
+
+When `query` is provided, it replaces the complete query. Use `query: {}` to
+clear every key; use `undefined` for individual keys that should be absent.
+Route `open`, redirect targets, and framework link hrefs use the same effective
+URL rule, so a clicked link and native navigation resolve to the same query.
+
 ## Query Type
 
 Query parameters are represented as:
 
 ```typescript
-type Query = Record<string, string | string[] | undefined>;
+type Query = Record<string, string | null | Array<string | null>>;
+type QueryInput = Record<
+  string,
+  string | null | Array<string | null> | undefined
+>;
 ```
 
 Examples:
@@ -296,27 +316,45 @@ Examples:
   tags: ['javascript', 'typescript'];
 }
 
-// Remove parameter
+// Remove parameter (undefined is omitted from the URL)
 {
   filter: undefined;
 }
 ```
 
+`null` is serialized as a flag (`?enabled`), arrays use repeated keys in the
+same order, and object key order does not affect value equality.
+
 ## Best Practices
 
-### Use createRouter Instead
+### Share Controls with Lower Layers
 
-For most applications, use [`createRouter`] which includes controls automatically:
+Create controls beside route declarations when feature models need to compose
+transition policy without importing the application router:
 
 ```ts
-// ✅ Recommended for most cases
-import { createRouter } from '@effector/router';
+// shared/routing
+export const controls = createRouterControls();
+export const routes = {
+  /* createRoute declarations */
+};
 
+// feature model
+export const leaveEditor = beforeNavigate({
+  controls,
+  from: routes.editor,
+  filter: $dirty,
+});
+
+// app/routing
 const router = createRouter({
-  routes: [...],
-  controls: createRouterControls(),
+  routes: Object.values(routes),
+  controls,
 });
 ```
+
+The app remains responsible for `setHistory`. See
+[Navigation lifecycle](/core/navigation-lifecycle).
 
 ### Initialize Early
 

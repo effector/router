@@ -11,9 +11,15 @@ import type { z, ZodType } from 'zod/v4';
 import type { Builder, Parser } from '@effector/router-paths';
 import type { RouterAdapter } from './adapters';
 
-export type AsyncBundleImport = () => Promise<{ default: any }>;
+export type QueryValue = string | null | Array<string | null>;
 
-export type Query = Record<string, string | null | Array<string | null>>;
+export type Query = Record<string, QueryValue>;
+
+export type QueryInput = Record<string, QueryValue | undefined>;
+
+export type QueryParametersInput<ParametersConfig extends ZodType> = Partial<
+  Record<Extract<keyof z.input<ParametersConfig>, string>, QueryValue>
+>;
 
 export interface PathlessRoute<T extends object | void = void> {
   '@@type': 'pathless-route';
@@ -23,15 +29,18 @@ export interface PathlessRoute<T extends object | void = void> {
   $isOpened: Store<boolean>;
   $isPending: Store<boolean>;
 
-  open: EventCallable<RouteOpenedPayload<T>>;
+  open: EventCallable<RouteOpenPayload<T>>;
 
   opened: Event<RouteOpenedPayload<T>>;
   openedOnServer: Event<RouteOpenedPayload<T>>;
   openedOnClient: Event<RouteOpenedPayload<T>>;
+  updated: Event<RouteUpdatedPayload<T>>;
 
+  close: EventCallable<void>;
   closed: Event<void>;
 
   parent?: PathRoute<any> | PathlessRoute<any>;
+  /** @deprecated Compose post-commit preparation with `chainRoute` instead. */
   beforeOpen?: Effect<any, any, any>[];
 
   '@@unitShape': () => {
@@ -39,7 +48,7 @@ export interface PathlessRoute<T extends object | void = void> {
     isOpened: Store<boolean>;
     isPending: Store<boolean>;
 
-    onOpen: EventCallable<RouteOpenedPayload<T>>;
+    onOpen: EventCallable<RouteOpenPayload<T>>;
   };
 }
 
@@ -52,26 +61,41 @@ export interface PathRoute<T extends object | void = void> extends Omit<
   path: string;
 }
 
+export type ChainRoute<T extends object | void = void> = PathlessRoute<T> & {
+  cancelled: Event<void>;
+};
+
 export type Route<T extends object | void = void> =
   | PathRoute<T>
   | PathlessRoute<T>;
 
 export type QueryTrackerConfig<ParametersConfig extends ZodType> = {
-  forRoutes?: Route<any>[];
-  check?: Event<void>;
+  readonly routes?: readonly Route<any>[];
   parameters: ParametersConfig;
 };
 
+export type TrackQueryConfig<ParametersConfig extends ZodType> =
+  QueryTrackerConfig<ParametersConfig> & {
+    controls: RouterControls;
+  };
+
+export type QueryTrackerState<ParametersConfig extends ZodType> =
+  | { status: 'inactive' }
+  | { status: 'pending' }
+  | { status: 'entered'; params: z.output<ParametersConfig> };
+
 export interface QueryTracker<ParametersConfig extends ZodType> {
-  entered: Event<z.infer<ParametersConfig>>;
+  $state: Store<QueryTrackerState<ParametersConfig>>;
+
+  entered: Event<z.output<ParametersConfig>>;
   exited: Event<void>;
 
-  enter: EventCallable<z.infer<ParametersConfig>>;
+  enter: EventCallable<QueryParametersInput<ParametersConfig>>;
   exit: EventCallable<{ ignoreParams: string[] } | void>;
 }
 
 export type OpenPayloadBase = {
-  query?: Query;
+  query?: QueryInput;
   replace?: boolean;
 };
 
@@ -79,11 +103,31 @@ export type RouteOpenedPayload<T> = T extends void
   ? void | OpenPayloadBase
   : { params: T } & OpenPayloadBase;
 
+/** Payload emitted when an already-open route receives changed parameters. */
+export type RouteUpdatedPayload<T> = RouteOpenedPayload<T>;
+
+export type RouteOpenPayload<T> = T extends void
+  ?
+      | RouteOpenedPayload<T>
+      | (OpenPayloadBase & { params: Record<string, never> })
+  : RouteOpenedPayload<T>;
+
 export type NavigatePayload = {
-  query: Query;
+  query?: QueryInput;
   path?: string;
   replace?: boolean;
 };
+
+export type NavigationFailure =
+  | {
+      operation: 'navigate';
+      reason: 'not-initialized';
+      payload: NavigatePayload;
+    }
+  | {
+      operation: 'back' | 'forward';
+      reason: 'not-initialized';
+    };
 
 export type MappedRoute = {
   route: InternalRoute<any>;
@@ -96,44 +140,22 @@ export interface Router {
   '@@type': 'router';
 
   $query: Store<Query>;
-  $path: Store<string>;
+  $path: Store<string | null>;
   $history: Store<RouterAdapter | null>;
   $activeRoutes: Store<Route<any>[]>;
+
+  notFound?: PathlessRoute<any>;
 
   back: EventCallable<void>;
   forward: EventCallable<void>;
   navigate: EventCallable<NavigatePayload>;
 
+  navigationFailed: Event<NavigationFailure>;
+
   setHistory: EventCallable<RouterAdapter>;
 
-  /**
-   * @description Creates query params tracker
-   * @param config Query tacker config
-   * @link https://router.effector.dev/core/track-query.html
-   * @example ```ts
-   * import { parameters } from '@effector/router';
-   * import { router } from '@shared/router';
-   * import { createDialog } from '...';
-   *
-   * const dialog = createDialog();
-   * const tracker = router.trackQuery({
-   *   dialog: 'team-member',
-   *   id: parameters.number,
-   * });
-   *
-   * // triggered for:
-   * // /team?dialog=team-member&id=1
-   * // /team?dialog=team-member&id=10000
-   *
-   * // not triggered for:
-   * // /team?dialog=team&id=1
-   * // /team?id=10000
-   * // /team?dialog=team&id=not_number
-   * ```
-   */
-  trackQuery: <ParametersConfig extends ZodType>(
-    config: QueryTrackerConfig<ParametersConfig>,
-  ) => QueryTracker<ParametersConfig>;
+  initialized: Event<LocationState>;
+  updated: Event<LocationState>;
 
   ownRoutes: MappedRoute[];
   knownRoutes: MappedRoute[];
@@ -147,7 +169,7 @@ export interface Router {
 
   '@@unitShape': () => {
     query: Store<Query>;
-    path: Store<string>;
+    path: Store<string | null>;
     activeRoutes: Store<Route<any>[]>;
 
     onBack: EventCallable<void>;
@@ -159,13 +181,17 @@ export interface Router {
 export interface InternalRouterProps {
   parent: Router | null;
   base?: string;
+  handlesPath: (path: string) => boolean;
 }
 
 export interface InternalRouter extends Router {
   internal: InternalRouterProps;
 }
 
-type InternalOpenedPayload<T> = RouteOpenedPayload<T> & { navigate?: boolean };
+type InternalOpenedPayload<T> = RouteOpenedPayload<T> & {
+  navigate?: boolean;
+  parent?: boolean;
+};
 
 export interface InternalRouteParams<T> {
   close: EventCallable<void>;
@@ -176,8 +202,6 @@ export interface InternalRouteParams<T> {
     InternalOpenedPayload<T>,
     Error
   >;
-
-  setAsyncImport: (value: AsyncBundleImport) => void;
 }
 
 export interface InternalPathlessRoute<
@@ -196,7 +220,8 @@ export type InternalRoute<T extends object | void = any> =
   | InternalPathRoute<T>
   | InternalPathlessRoute<T>;
 
-export interface VirtualRoute<T, TransformerResult> {
+/** @deprecated Internal compatibility shape for the old two-argument virtual route. */
+export interface LegacyVirtualRoute<T, TransformerResult> {
   '@@type': 'pathless-route';
 
   $params: StoreWritable<TransformerResult>;
@@ -216,8 +241,6 @@ export interface VirtualRoute<T, TransformerResult> {
   cancelled: Event<void>;
 
   path: string;
-  beforeOpen?: Effect<any, any, any>[];
-
   '@@unitShape': () => {
     params: Store<TransformerResult>;
     isOpened: Store<boolean>;
@@ -228,18 +251,41 @@ export interface VirtualRoute<T, TransformerResult> {
   };
 }
 
-export type LocationState = { path: string; query: Query };
+interface LegacyVirtualRouteMarker {
+  readonly __legacyVirtualRoute?: unique symbol;
+}
+
+/**
+ * @deprecated The two-argument form is retained for `createVirtualRoute` and
+ * `chainRoute` compatibility. Use `createRoute<Params>()` for new virtual
+ * routes.
+ */
+export type VirtualRoute<
+  T = void,
+  TransformerResult = LegacyVirtualRouteMarker,
+> = TransformerResult extends LegacyVirtualRouteMarker
+  ? T extends object | void
+    ? PathlessRoute<T>
+    : never
+  : LegacyVirtualRoute<T, TransformerResult>;
+
+export type LocationState = { path: string | null; query: Query };
 
 export interface RouterControls {
   $history: StoreWritable<RouterAdapter | null>;
   $locationState: StoreWritable<LocationState>;
 
   $query: Store<Query>;
-  $path: Store<string>;
+  $path: Store<string | null>;
 
   setHistory: EventCallable<RouterAdapter>;
 
+  initialized: Event<LocationState>;
+  updated: Event<LocationState>;
+
   navigate: EventCallable<NavigatePayload>;
+
+  navigationFailed: Event<NavigationFailure>;
 
   back: EventCallable<void>;
   forward: EventCallable<void>;
@@ -248,35 +294,4 @@ export interface RouterControls {
     pathname: string;
     query: Query;
   }>;
-
-  /**
-   * @description Creates query params tracker
-   * @param config Query tacker config
-   * @link https://router.effector.dev/core/track-query.html
-   * @example ```ts
-   * import { z } from 'zod/v4';
-   * import { router } from '@shared/router';
-   * import { createDialog } from '...';
-   *
-   * const dialog = createDialog();
-   * const tracker = router.trackQuery({
-   *  parameters: {
-   *    dialog: z.literal('team-member'),
-   *    id: z.cource.number(),
-   *  },
-   * });
-   *
-   * // triggered for:
-   * // /team?dialog=team-member&id=1
-   * // /team?dialog=team-member&id=10000
-   *
-   * // not triggered for:
-   * // /team?dialog=team&id=1
-   * // /team?id=10000
-   * // /team?dialog=team&id=not_number
-   * ```
-   */
-  trackQuery: <T extends ZodType>(
-    config: Omit<QueryTrackerConfig<T>, 'forRoutes'>,
-  ) => QueryTracker<T>;
 }

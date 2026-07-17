@@ -1,8 +1,221 @@
 import { createMemoryHistory } from 'history';
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { historyAdapter, queryAdapter } from '../lib';
+import type { RouterTransition } from '../lib/adapters/types';
+
+describe('historyAdapter location', () => {
+  test('always reflects the current history snapshot', () => {
+    const history = createMemoryHistory({
+      initialEntries: ['/start?tab=one#top'],
+    });
+    const adapter = historyAdapter(history);
+
+    expect(adapter.location).toMatchObject({
+      pathname: '/start',
+      search: '?tab=one',
+      hash: '#top',
+    });
+
+    adapter.push('/next?tab=two#middle');
+    expect(adapter.location).toMatchObject({
+      pathname: '/next',
+      search: '?tab=two',
+      hash: '#middle',
+    });
+
+    adapter.replace('/final?tab=three#bottom');
+    expect(adapter.location).toMatchObject({
+      pathname: '/final',
+      search: '?tab=three',
+      hash: '#bottom',
+    });
+
+    history.push('/native?tab=four#native');
+    expect(adapter.location).toMatchObject({
+      pathname: '/native',
+      search: '?tab=four',
+      hash: '#native',
+    });
+  });
+
+  test('resolves omitted string and object fields from current location', () => {
+    const history = createMemoryHistory({
+      initialEntries: ['/start?tab=one#top'],
+    });
+    const adapter = historyAdapter(history);
+
+    adapter.push('/next');
+    expect(adapter.location).toMatchObject({
+      pathname: '/next',
+      search: '?tab=one',
+      hash: '#top',
+    });
+
+    adapter.replace({ search: '?tab=two' });
+    expect(adapter.location).toMatchObject({
+      pathname: '/next',
+      search: '?tab=two',
+      hash: '#top',
+    });
+  });
+});
+
+describe('shared history blocking', () => {
+  test('adapter commands bypass every blocker on the same history', () => {
+    const history = createMemoryHistory({ initialEntries: ['/'] });
+    const main = historyAdapter(history);
+    const modal = queryAdapter(history, { key: 'modal' });
+    const mainBlocked = vi.fn();
+    const modalBlocked = vi.fn();
+
+    const stopMain = main.block!(mainBlocked);
+    const stopModal = modal.block!(modalBlocked);
+
+    main.push('/projects');
+    modal.push('/task/one');
+
+    expect(history.location.pathname).toBe('/projects');
+    expect(new URLSearchParams(history.location.search).get('modal')).toBe(
+      '/task/one',
+    );
+    expect(mainBlocked).not.toHaveBeenCalled();
+    expect(modalBlocked).not.toHaveBeenCalled();
+
+    stopMain.unsubscribe();
+    stopModal.unsubscribe();
+  });
+
+  test('native navigation retries once after every blocker proceeds', () => {
+    const history = createMemoryHistory({ initialEntries: ['/'] });
+    const first = historyAdapter(history);
+    const second = historyAdapter(history);
+    const firstTransitions: RouterTransition[] = [];
+    const secondTransitions: RouterTransition[] = [];
+
+    const stopFirst = first.block!((transition) => {
+      firstTransitions.push(transition);
+    });
+    const stopSecond = second.block!((transition) => {
+      secondTransitions.push(transition);
+    });
+
+    history.push('/projects');
+
+    expect(history.location.pathname).toBe('/');
+    expect(firstTransitions).toHaveLength(1);
+    expect(secondTransitions).toHaveLength(1);
+
+    firstTransitions[0]!.retry();
+    firstTransitions[0]!.retry();
+    expect(history.location.pathname).toBe('/');
+
+    secondTransitions[0]!.retry();
+    expect(history.location.pathname).toBe('/projects');
+    expect(firstTransitions).toHaveLength(1);
+    expect(secondTransitions).toHaveLength(1);
+
+    stopFirst.unsubscribe();
+    stopSecond.unsubscribe();
+  });
+
+  test('unsubscribing releases a pending native transition', () => {
+    const history = createMemoryHistory({ initialEntries: ['/'] });
+    const first = historyAdapter(history);
+    const second = historyAdapter(history);
+    let firstTransition: RouterTransition | null = null;
+
+    const stopFirst = first.block!((transition) => {
+      firstTransition = transition;
+    });
+    const stopSecond = second.block!(() => {});
+
+    history.push('/projects');
+    firstTransition!.retry();
+    expect(history.location.pathname).toBe('/');
+
+    stopSecond.unsubscribe();
+    expect(history.location.pathname).toBe('/projects');
+
+    stopFirst.unsubscribe();
+  });
+
+  test('an adapter command invalidates stale native retries', () => {
+    const history = createMemoryHistory({ initialEntries: ['/'] });
+    const first = historyAdapter(history);
+    const second = historyAdapter(history);
+    let firstTransition: RouterTransition | null = null;
+    let secondTransition: RouterTransition | null = null;
+
+    const stopFirst = first.block!((transition) => {
+      firstTransition = transition;
+    });
+    const stopSecond = second.block!((transition) => {
+      secondTransition = transition;
+    });
+
+    history.push('/native');
+    expect(history.location.pathname).toBe('/');
+
+    first.push('/command');
+    expect(history.location.pathname).toBe('/command');
+
+    firstTransition!.retry();
+    secondTransition!.retry();
+    expect(history.location.pathname).toBe('/command');
+
+    stopFirst.unsubscribe();
+    stopSecond.unsubscribe();
+  });
+});
 
 describe('queryAdapter', () => {
+  test('location reflects push, replace, and native history updates', () => {
+    const history = createMemoryHistory({ initialEntries: ['/host'] });
+    const adapter = queryAdapter(history);
+
+    adapter.push('/nested?tab=one#top');
+    expect(adapter.location).toEqual({
+      pathname: '/nested',
+      search: '?tab=one',
+      hash: '#top',
+    });
+
+    adapter.replace('/nested?tab=two#middle');
+    expect(adapter.location).toEqual({
+      pathname: '/nested',
+      search: '?tab=two',
+      hash: '#middle',
+    });
+
+    history.push('/host?%2Fnative%3Ftab%3Dthree%23native');
+    expect(adapter.location).toEqual({
+      pathname: '/native',
+      search: '?tab=three',
+      hash: '#native',
+    });
+  });
+
+  test('resolves partial nested targets against the current nested location', () => {
+    const history = createMemoryHistory({
+      initialEntries: ['/host?%2Fnested%3Ftab%3Done%23top'],
+    });
+    const adapter = queryAdapter(history);
+
+    adapter.push({ pathname: '/next' });
+    expect(adapter.location).toEqual({
+      pathname: '/next',
+      search: '?tab=one',
+      hash: '#top',
+    });
+
+    adapter.replace({ hash: '#bottom' });
+    expect(adapter.location).toEqual({
+      pathname: '/next',
+      search: '?tab=one',
+      hash: '#bottom',
+    });
+  });
+
   test('does not throw on empty search', () => {
     const history = createMemoryHistory({
       initialEntries: ['/users'],

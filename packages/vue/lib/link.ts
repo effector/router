@@ -1,5 +1,5 @@
 import { defineComponent, h, type PropType } from 'vue';
-import type { Query, Route, RouteOpenedPayload } from '@effector/router';
+import type { QueryInput, Route, RouteOpenedPayload } from '@effector/router';
 import { useLink } from './use-link';
 
 /**
@@ -24,7 +24,7 @@ export const Link = defineComponent({
       type: Boolean as PropType<boolean | undefined>,
       default: undefined,
     },
-    query: { type: Object as PropType<Query>, default: undefined },
+    query: { type: Object as PropType<QueryInput>, default: undefined },
     target: { type: String as PropType<string>, default: undefined },
     onClick: {
       type: Function as PropType<(event: MouseEvent) => void>,
@@ -40,13 +40,22 @@ export const Link = defineComponent({
       // allow user to prevent navigation
       if (event.defaultPrevented) return;
 
-      // let browser handle "_blank" target and etc
+      // Preserve native anchor behavior for non-primary clicks, downloads,
+      // non-self targets, modified clicks, and cross-origin URLs.
+      if (event.button !== 0 || attrs.download !== undefined) return;
+
       if (props.target && props.target !== '_self') return;
 
       // skip modified events (like cmd + click to open the link in new tab)
       if (event.metaKey || event.altKey || event.ctrlKey || event.shiftKey) {
         return;
       }
+
+      const href = new URL(
+        (event.currentTarget as HTMLAnchorElement).href,
+        window.location.href,
+      );
+      if (href.origin !== window.location.origin) return;
 
       event.preventDefault();
 

@@ -19,6 +19,7 @@ export default defineConfig({
       outDir: resolve(__dirname, 'dist'),
       entryRoot: resolve(__dirname, 'lib'),
       exclude: [
+        resolve(__dirname, '../../docs'),
         resolve(__dirname, '../effector/router-core'),
         resolve(__dirname, '../effector/router-react'),
         resolve(__dirname, '../effector/router-react-native'),

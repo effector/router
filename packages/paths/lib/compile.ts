@@ -1,7 +1,49 @@
 import { prepareParser } from './prepare-parser';
-import { getTokenParameters } from './get-token-parameters';
 import { ParameterToken, ParseUrlParams, Token } from './types';
 import { prepareBuilder } from './prepare-builder';
+import { tokenizePath } from './tokenize-path';
+import { validateRuntimePath } from './validate-runtime-path';
+
+function removeWhitespace(value: string): string {
+  let result = '';
+
+  for (const character of value) {
+    if (
+      character !== ' ' &&
+      character !== '\t' &&
+      character !== '\n' &&
+      character !== '\r' &&
+      character !== '\f' &&
+      character !== '\v'
+    ) {
+      result += character;
+    }
+  }
+
+  return result;
+}
+
+function parseRange(value: string | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  const parts = value.split(',');
+
+  if (parts.length !== 2 || parts.some((part) => part.length === 0)) {
+    return null;
+  }
+
+  for (const part of parts) {
+    for (const character of part) {
+      if (character < '0' || character > '9') {
+        return null;
+      }
+    }
+  }
+
+  return { min: Number(parts[0]), max: Number(parts[1]) };
+}
 
 /**
  * @param path Route path
@@ -28,53 +70,45 @@ import { prepareBuilder } from './prepare-builder';
  * ```
  */
 export function compile<T extends string, Params = ParseUrlParams<T>>(path: T) {
+  validateRuntimePath(path);
+
   const tokens: Token[] = [];
 
-  const regexp = /:(\w+)(<[\s?\w|]+>)?({\d+,\d+})?([+*?])?/;
-  const parsedTokens = path.split('/').filter(Boolean);
-
-  for (let i = 0; i < parsedTokens.length; i++) {
-    const parsedToken = parsedTokens[i];
-
-    if (!parsedToken) {
+  for (const segment of tokenizePath(path)) {
+    if (segment.type === 'literal') {
+      tokens.push({ type: 'const', name: segment.value, payload: undefined });
       continue;
-    }
-
-    const parameters = getTokenParameters(parsedToken.match(regexp));
-
-    if (!parameters) {
-      tokens.push({ type: 'const', name: parsedToken, payload: undefined });
-      continue;
-    }
-
-    const { arrayProps, genericProps, modificator, name } = parameters;
-
-    if (!name) {
-      throw new Error(
-        `Invalid path: "${path}". Name for argument must be provided`,
-      );
     }
 
     const token: ParameterToken = {
       type: 'parameter',
-      name,
+      name: segment.name,
       payload: {
-        required: true,
+        prefix: segment.prefix,
+        required: !segment.optional,
       },
     };
 
-    if (genericProps && genericProps === 'number') {
+    const generic = segment.generic
+      ? removeWhitespace(segment.generic)
+      : undefined;
+
+    if (generic === 'number') {
       token.payload.genericProps = { type: 'number' };
     }
 
-    if (genericProps && genericProps.includes('|')) {
+    if (generic?.includes('|')) {
       token.payload.genericProps = {
         type: 'union',
-        items: genericProps.split('|'),
+        items: generic.split('|'),
       };
     }
 
-    switch (modificator) {
+    if (segment.marker === '*') {
+      token.payload.arrayProps = { min: 1 };
+    }
+
+    switch (segment.modifier) {
       case '*': {
         token.payload.arrayProps = {};
         break;
@@ -83,17 +117,14 @@ export function compile<T extends string, Params = ParseUrlParams<T>>(path: T) {
         token.payload.arrayProps = { min: 1 };
         break;
       }
-      case '?': {
-        token.payload.required = false;
-        break;
-      }
     }
 
-    if (arrayProps) {
+    const range = parseRange(segment.range);
+
+    if (range) {
       token.payload.arrayProps = {
         ...token.payload.arrayProps,
-        min: arrayProps[0],
-        max: arrayProps[1],
+        ...range,
       };
     }
 

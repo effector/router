@@ -1,6 +1,4 @@
 import { lazy, Suspense } from 'solid-js';
-import { is } from '@effector/router';
-import type { InternalRoute } from '@effector/router';
 import type { CreateLazyRouteViewProps, RouteView } from './types';
 
 /**
@@ -30,10 +28,6 @@ import type { CreateLazyRouteViewProps, RouteView } from './types';
 export function createLazyRouteView<T extends object | void = void>(
   props: CreateLazyRouteViewProps<T>,
 ): RouteView {
-  if (!is.router(props.route)) {
-    (props.route as InternalRoute<T>).internal.setAsyncImport(props.view);
-  }
-
   const View = lazy(props.view);
   const { layout: Layout, fallback: Fallback, children } = props;
 

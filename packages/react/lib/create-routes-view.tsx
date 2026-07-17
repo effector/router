@@ -1,11 +1,27 @@
 import { type ComponentType, createElement } from 'react';
 import { OutletContext } from './context';
 import { useOpenedViews } from './use-opened-views';
-import type { RouteView } from './types';
+import { layoutGroup, type LayoutGroup, type RouteView } from './types';
 
 interface CreateRoutesViewProps {
   routes: RouteView[];
   otherwise?: ComponentType;
+}
+
+function LayoutRenderer({
+  group,
+  view,
+}: {
+  group: LayoutGroup;
+  view: RouteView;
+}) {
+  return (
+    <group.layout>
+      <OutletContext.Provider value={{ children: view.children ?? [] }}>
+        {createElement(view.view)}
+      </OutletContext.Provider>
+    </group.layout>
+  );
 }
 
 /**
@@ -39,6 +55,14 @@ export const createRoutesView = (props: CreateRoutesViewProps) => {
 
     if (!openedView) {
       return NotFound ? <NotFound /> : null;
+    }
+
+    const group = openedView[layoutGroup];
+
+    if (group) {
+      return (
+        <LayoutRenderer key={group.token} group={group} view={openedView} />
+      );
     }
 
     return (

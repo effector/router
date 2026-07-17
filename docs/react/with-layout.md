@@ -1,6 +1,8 @@
 # withLayout
 
 Utility function to wrap multiple route views with a shared layout component.
+Views returned by one call share a private group identity; switching between
+them replaces only the page child and keeps the layout instance mounted.
 
 ## Import
 

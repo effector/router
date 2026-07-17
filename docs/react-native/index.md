@@ -26,26 +26,37 @@ React Native bindings for effector router with React Navigation integration.
 ```
 
 1. **Effector router** manages which routes are open, their parameters, and navigation state
-2. **React Navigation** handles UI rendering, animations, gestures, and platform-specific behavior
+2. **React Navigation** handles UI rendering, animations, and platform-specific behavior
 3. The adapters **sync state** between both systems
 
 ## Installation
 
 ```bash
-npm install @effector/router-react-native @effector/router @effector/router-react \
+npm install @effector/router @effector/router-react-native \
   @react-navigation/native @react-navigation/stack @react-navigation/bottom-tabs
 
 # Also install React Navigation dependencies
 npm install react-native-screens react-native-safe-area-context
 ```
 
+`@effector/router-react-native` re-exports platform-neutral React bindings such
+as `RouterProvider`, route views, layouts, and route hooks. Browser-only `Link`,
+`useLink`, and `LinkProps` remain in `@effector/router-react`. Import the shared
+router API from `@effector/router`.
+
 ## Quick Example
 
 ```tsx
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@effector/router-react-native';
-import { createRouter, createRoute } from '@effector/router';
-import { createRouteView, RouterProvider } from '@effector/router-react';
+import {
+  createNavigationContainerRef,
+  NavigationContainer,
+} from '@react-navigation/native';
+import { createRoute, createRouter } from '@effector/router';
+import {
+  createRouteView,
+  RouterProvider,
+  createStackNavigator,
+} from '@effector/router-react-native';
 
 // 1. Define routes
 const homeRoute = createRoute({ path: '/home' });
@@ -75,13 +86,14 @@ const StackNavigator = createStackNavigator({
     headerStyle: { backgroundColor: '#f4511e' },
   },
 });
+const navigationRef = createNavigationContainerRef();
 
 // 5. Use in app
 export default function App() {
   return (
     <RouterProvider router={router}>
-      <NavigationContainer>
-        <StackNavigator />
+      <NavigationContainer ref={navigationRef}>
+        <StackNavigator navigationRef={navigationRef} />
       </NavigationContainer>
     </RouterProvider>
   );
@@ -137,20 +149,76 @@ This approach provides:
 
 - Centralized navigation logic
 - Easy testing (trigger events in tests)
-- State persistence
-- Time-travel debugging
+- Router-owned state and deterministic route events
+
+The app owns `NavigationContainer` and its `navigationRef`. Pass the same ref to
+the navigator component returned by `createStackNavigator` or
+`createBottomTabsNavigator`; the binding does not create a container, Router, or
+history adapter. It subscribes to native `ready` and `state` notifications,
+reads a complete root snapshot from the ref, handles an already-ready ref, and
+cleans up listeners on unmount.
+
+Screen names are complete registered path templates, including parent segments
+(for example, `/users/:userId/settings`); no positional/index fallback is
+generated. A route with required path parameters cannot be selected through
+`initialRouteName` and must be opened by Router with real params.
+
+Router-to-native synchronization is readiness-gated. Before the app-owned ref
+is ready, the binding retains only the latest Router target and sends no native
+command. Once ready, it navigates with route params and preserves Router's
+replace intent; native state notifications are treated as complete snapshots
+and matching binding-originated updates are not echoed back.
+
+Native screen focus, removal/back events, completed closing gestures, and tab
+presses are translated into existing Router `open`/`close` events. Handlers keep
+the native payload types, prevent native selection where required, and bind
+callbacks to the rendered Effector scope; no public native-intent unit is
+introduced.
+
+The package integration fixture renders both navigator shapes with an
+app-owned ref and covers screen/options rendering, readiness races, params,
+native echo suppression, tab intent, and listener cleanup.
 
 ## React Navigation Features
 
-While navigation is managed by Effector Router, you still get all React Navigation features:
+While navigation is managed by Effector Router, you still get the React Navigation
+features covered by the navigator configuration:
 
 - Native animations and transitions
-- Gesture handling (swipe back, etc.)
 - Header customization
 - Tab bar customization
-- Deep linking support
 - Screen options and configuration
 - Platform-specific behavior
+
+Deep linking, persistence, time-travel debugging, and gesture-specific flows are
+outside this adapter's documented contract until each scenario has an integration
+test. They can still be configured directly in the native application layer.
+
+## Adapter boundary
+
+Create and configure the Router, history (when needed), and native ref in the
+application layer. The binding only connects an existing Router to an existing
+React Navigation container:
+
+```tsx
+const router = createRouter({ routes: [home, details] });
+// For URL/history-backed apps, configure the adapter in the app as well:
+// router.setHistory(historyAdapter(createBrowserHistory()));
+const navigationRef = createNavigationContainerRef();
+
+const Stack = createStackNavigator({
+  router,
+  routes: [HomeScreen, DetailsScreen],
+});
+
+<NavigationContainer ref={navigationRef}>
+  <Stack navigationRef={navigationRef} />
+</NavigationContainer>;
+```
+
+No binding-created Router, history adapter, or container is hidden inside the
+navigator. This keeps setup explicit and allows the same route units to be used
+from FSD `shared/routing` while app-level integration remains configuration.
 
 ## Type Safety
 

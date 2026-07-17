@@ -92,10 +92,24 @@ import { routes } from '@shared/routing';
 
 - `RouterProvider` — provide the router to the tree (via `provide`/`inject`).
 - `createRouteView` / `createLazyRouteView` — bind a route to a component (with optional lazy loading).
+- Lazy importers start when their view renders; preload is an application-owned
+  Effect and never a recursive `route.open()` call.
 - `createRoutesView` — render the currently opened route, with an `otherwise` fallback.
+- Selection is declarative: active parents are suppressed by active children and
+  the last declared remaining view wins.
 - `Link`, `useLink` — declarative and imperative navigation.
-- `withLayout` — share a layout across routes.
+  Both build the same effective href as `route.open`: omitted query preserves
+  current query, explicit query replaces it, and `{}` clears it.
+  Only ordinary primary-button, same-origin `_self` clicks are intercepted;
+  modified, secondary, download, and non-`_self` clicks remain native.
+  The exported generic `LinkProps<Params>` conditionally requires params in
+  TypeScript; Vue templates may need an explicit annotation for that check.
+  Standard anchor attributes and `onClick` are forwarded.
+- `withLayout` — share a layout across routes. Views returned by one call share
+  a private group identity, so the layout stays mounted while siblings switch.
 - `Outlet`, `useRouter`, `useIsOpened`, `useOpenedViews` — composition helpers.
+  `Outlet` recursively provides selected child views, so nested trees can be
+  rendered without a depth limit.
 - `RouterInjectionKey` — the raw Vue injection key, for advanced `provide` use.
 
 ## Scope

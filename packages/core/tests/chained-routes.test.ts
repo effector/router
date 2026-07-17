@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, expectTypeOf, test, vi } from 'vitest';
 import {
   chainRoute,
   createRoute,
@@ -7,11 +7,36 @@ import {
   historyAdapter,
   createVirtualRoute,
 } from '../lib';
-import { allSettled, createEffect, createEvent, fork, sample } from 'effector';
+import {
+  allSettled,
+  createEffect,
+  createEvent,
+  fork,
+  sample,
+  scopeBind,
+} from 'effector';
 import { createMemoryHistory } from 'history';
 import { watchCalls } from './utils';
 
 describe('chained routes', () => {
+  test('child route params include parent route params (#23)', () => {
+    const user = createRoute({ path: '/users/:userId' });
+    const post = createRoute({ path: '/posts/:postId', parent: user });
+
+    expectTypeOf(post.$params.getState()).toMatchTypeOf<{
+      userId: string;
+      postId: string;
+    }>();
+    post.open({ params: { userId: 'user', postId: 'post' } });
+  });
+
+  test('virtual route options do not expose beforeOpen', () => {
+    type Options = NonNullable<Parameters<typeof createVirtualRoute>[0]>;
+    type HasBeforeOpen = 'beforeOpen' extends keyof Options ? true : false;
+
+    expectTypeOf<HasBeforeOpen>().toEqualTypeOf<false>();
+  });
+
   test('authorized route', async () => {
     const scope = fork();
 
@@ -68,7 +93,7 @@ describe('chained routes', () => {
 
   test('virtual route groupping', async () => {
     const scope = fork();
-    const virtualRoute = createVirtualRoute<RouteOpenedPayload<void>>();
+    const virtualRoute = createRoute();
 
     const fx = createEffect((params: RouteOpenedPayload<void>) => params);
 
@@ -98,5 +123,131 @@ describe('chained routes', () => {
     expect(scope.getState(chainedRoute.$isOpened)).toBeTrueWithMessage(
       'Chained route is must be opened',
     );
+  });
+
+  test('opens automatically and exposes pending without openOn', async () => {
+    let resolve!: () => void;
+    const parent = createRoute<{ id: string }>();
+    const prepareFx = createEffect(
+      () => new Promise<void>((done) => (resolve = done)),
+    );
+    const chained = chainRoute({ route: parent, beforeOpen: prepareFx });
+    const scope = fork();
+
+    const opening = allSettled(parent.open, {
+      scope,
+      params: { params: { id: '42' } },
+    });
+
+    await vi.waitFor(() =>
+      expect(scope.getState(chained.$isPending)).toBe(true),
+    );
+    expect(scope.getState(chained.$isOpened)).toBe(false);
+
+    resolve();
+    await opening;
+
+    expect(scope.getState(chained.$isPending)).toBe(false);
+    expect(scope.getState(chained.$isOpened)).toBe(true);
+    expect(scope.getState(chained.$params)).toEqual({ id: '42' });
+  });
+
+  test('stays pending while waiting for openOn', async () => {
+    const parent = createRoute();
+    const started = createEvent<RouteOpenedPayload<void>>();
+    const ready = createEvent();
+    const chained = chainRoute({
+      route: parent,
+      beforeOpen: started,
+      openOn: ready,
+    });
+    const scope = fork();
+
+    await allSettled(parent.open, { scope, params: {} });
+
+    expect(scope.getState(chained.$isPending)).toBe(true);
+    expect(scope.getState(chained.$isOpened)).toBe(false);
+
+    await allSettled(ready, { scope });
+
+    expect(scope.getState(chained.$isPending)).toBe(false);
+    expect(scope.getState(chained.$isOpened)).toBe(true);
+  });
+
+  test('effect failure cancels the current chain attempt', async () => {
+    const parent = createRoute();
+    const failedFx = createEffect(() => {
+      throw new Error('preparation failed');
+    });
+    const chained = chainRoute({ route: parent, beforeOpen: failedFx });
+    const scope = fork();
+    const cancelled = watchCalls(chained.cancelled, scope);
+
+    await allSettled(parent.open, { scope, params: {} });
+
+    expect(cancelled).toHaveBeenCalledTimes(1);
+    expect(scope.getState(chained.$isPending)).toBe(false);
+    expect(scope.getState(chained.$isOpened)).toBe(false);
+  });
+
+  test('parent close cancels pending preparation', async () => {
+    let resolve!: () => void;
+    const parent = createRoute();
+    const prepareFx = createEffect(
+      () => new Promise<void>((done) => (resolve = done)),
+    );
+    const chained = chainRoute({ route: parent, beforeOpen: prepareFx });
+    const scope = fork();
+    const cancelled = watchCalls(chained.cancelled, scope);
+    const closed = watchCalls(chained.closed, scope);
+
+    const opening = allSettled(parent.open, { scope, params: {} });
+    await vi.waitFor(() =>
+      expect(scope.getState(chained.$isPending)).toBe(true),
+    );
+
+    scopeBind(parent.close, { scope })();
+
+    expect(scope.getState(chained.$isPending)).toBe(false);
+    expect(cancelled).toHaveBeenCalledTimes(1);
+    expect(closed).toHaveBeenCalledTimes(1);
+
+    resolve();
+    await opening;
+    expect(scope.getState(chained.$isOpened)).toBe(false);
+  });
+
+  test('ignores stale preparation results after a newer activation', async () => {
+    let resolveFirst!: () => void;
+    const parent = createRoute<{ id: string }>();
+    const prepareFx = createEffect(
+      async (payload: RouteOpenedPayload<{ id: string }>) => {
+        if (payload.params.id === 'first') {
+          await new Promise<void>((done) => (resolveFirst = done));
+        }
+      },
+    );
+    const chained = chainRoute({ route: parent, beforeOpen: prepareFx });
+    const scope = fork();
+
+    const firstOpening = allSettled(parent.open, {
+      scope,
+      params: { params: { id: 'first' } },
+    });
+    await vi.waitFor(() =>
+      expect(scope.getState(chained.$isPending)).toBe(true),
+    );
+
+    scopeBind(parent.open, { scope })({ params: { id: 'second' } });
+
+    await vi.waitFor(() => {
+      expect(scope.getState(chained.$isOpened)).toBe(true);
+      expect(scope.getState(chained.$params)).toEqual({ id: 'second' });
+    });
+
+    resolveFirst();
+    await firstOpening;
+
+    expect(scope.getState(chained.$params)).toEqual({ id: 'second' });
   });
 });

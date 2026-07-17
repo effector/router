@@ -24,6 +24,18 @@ const history = createBrowserHistory();
 router.setHistory(historyAdapter(history));
 ```
 
+Before initialization, `router.navigate`, `router.back`, and `router.forward`
+emit `router.navigationFailed` with `reason: 'not-initialized'` instead of
+throwing or starting a navigation attempt.
+
+`router.initialized` fires after every successful `setHistory`, including
+reinitialization. `router.updated` fires only for later path/query changes;
+equal snapshots and hash-only changes are suppressed.
+
+The router calculates one match result for each normalized location. The same
+result drives route activation, `$activeRoutes`, stale-route closing, and
+dynamic `registerRoute` matches.
+
 For React apps with Effector scope:
 
 ```ts
@@ -78,6 +90,34 @@ const router = createRouter({
   ],
 });
 ```
+
+### `notFound` (optional)
+
+Pass a pathless route to handle a location for which this router has no
+matching route. The fallback is opened with the current query, appears as the
+only entry in `$activeRoutes`, and is closed automatically when a known route
+matches again. If `notFound` is omitted, an unknown location leaves all routes
+closed and does not activate a special route.
+
+```ts
+const notFound = createRoute();
+
+const router = createRouter({
+  routes: [homeRoute, profileRoute],
+  notFound,
+});
+```
+
+For nested routers, matching is resolved from the deepest configured router
+outward. A nested `notFound` handles an unknown remainder inside its base and
+prevents an ancestor fallback from opening. If the nested router has no
+fallback, the missing location propagates to the nearest ancestor that does.
+Local and ancestor fallbacks are never open together.
+
+The not-found contract is stable across root and nested routers: a router with
+no fallback leaves an unknown location inactive, query-only changes keep the
+selected fallback open, and registering a route takes effect on the next
+location update. These behaviors are also isolated by Effector Fork scopes.
 
 ### `base` (optional)
 
@@ -223,20 +263,43 @@ const mainRouter = createRouter({
 
 ## API Reference
 
-| Name            | Type                             | Description                                                |
-| --------------- | -------------------------------- | ---------------------------------------------------------- |
-| `$query`        | `Store<Query>`                   | Current query parameters                                   |
-| `$path`         | `Store<string>`                  | Current path                                               |
-| `$history`      | `Store<RouterAdapter \| null>`   | Current history adapter                                    |
-| `$activeRoutes` | `Store<Route<any>[]>`            | Currently active routes                                    |
-| `back`          | `EventCallable<void>`            | Navigate back (if possible)                                |
-| `forward`       | `EventCallable<void>`            | Navigate forward (if possible)                             |
-| `navigate`      | `EventCallable<NavigatePayload>` | Navigate to path with query                                |
-| `setHistory`    | `EventCallable<RouterAdapter>`   | Initialize router with history adapter                     |
-| [`trackQuery`]  | `(config) => QueryTracker`       | Track query parameters, see [trackQuery](./track-query.md) |
-| `registerRoute` | `(route: InputRoute) => void`    | Dynamically register a route                               |
-| `ownRoutes`     | `MappedRoute[]`                  | Routes owned by this router                                |
-| `knownRoutes`   | `MappedRoute[]`                  | All known routes (including nested)                        |
+| Name            | Type                             | Description                            |
+| --------------- | -------------------------------- | -------------------------------------- |
+| `$query`        | `Store<Query>`                   | Current query parameters               |
+| `$path`         | `Store<string>`                  | Current path                           |
+| `$history`      | `Store<RouterAdapter \| null>`   | Current history adapter                |
+| `$activeRoutes` | `Store<Route<any>[]>`            | Currently active routes                |
+| `back`          | `EventCallable<void>`            | Navigate back (if possible)            |
+| `forward`       | `EventCallable<void>`            | Navigate forward (if possible)         |
+| `navigate`      | `EventCallable<NavigatePayload>` | Navigate to path with query            |
+| `setHistory`    | `EventCallable<RouterAdapter>`   | Initialize router with history adapter |
+| `registerRoute` | `(route: InputRoute) => void`    | Dynamically register a route           |
+| `ownRoutes`     | `MappedRoute[]`                  | Routes owned by this router            |
+| `knownRoutes`   | `MappedRoute[]`                  | All known routes (including nested)    |
+
+## Shared controls configuration
+
+`controls` may be created with routes in a lower FSD layer. `createRouter`
+registers route matchers on that instance; the app then attaches history:
+
+```ts
+const router = createRouter({ routes: Object.values(routes), controls });
+controls.setHistory(historyAdapter(createBrowserHistory()));
+```
+
+This lets features use `beforeNavigate({ controls, ... })` without depending on
+the application router. Routes in `from`/`to` must be registered on a router
+using the same controls.
+
+Query tracking is also composed from the same controls:
+
+```ts
+const tracker = trackQuery({
+  controls,
+  routes: Object.values(routes),
+  parameters,
+});
+```
 
 ## Types
 
@@ -253,8 +316,14 @@ type NavigatePayload = {
 ### Query
 
 ```ts
-type Query = Record<string, string | null | Array<string | null>>;
+type QueryValue = string | null | Array<string | null>;
+type Query = Record<string, QueryValue>;
+type QueryInput = Record<string, QueryValue | undefined>;
 ```
+
+The core codec parses repeated keys into ordered arrays, serializes `null` as a
+flag, and omits `undefined` keys. `$query` stores the normalized `Query`; input
+payloads may use `QueryInput` when a key must be removed.
 
 ### InputRoute
 

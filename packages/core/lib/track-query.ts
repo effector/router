@@ -1,7 +1,9 @@
 import {
+  combine,
   createEvent,
   createStore,
   EventCallable,
+  merge,
   sample,
   type Store,
 } from 'effector';
@@ -11,108 +13,94 @@ import type {
   Query,
   QueryTracker,
   QueryTrackerConfig,
-  Route,
+  QueryTrackerState,
+  QueryParametersInput,
+  TrackQueryConfig,
 } from './types';
+import type { InternalRouterControls } from './navigation';
 
 import type { z, ZodType } from 'zod/v4';
 
-function isForRouteActive(forRoutes: Route<any>[], activeRoutes: Route<any>[]) {
-  for (const route of forRoutes) {
-    if (activeRoutes.includes(route)) {
-      return true;
-    }
-  }
-
-  return false;
-}
+const inactiveState = { status: 'inactive' } as const;
+const pendingState = { status: 'pending' } as const;
 
 type FactoryPayload = {
-  $activeRoutes: Store<Route<any>[]>;
+  $ready: Store<boolean>;
+  $eligible: Store<boolean>;
   $query: Store<Query>;
   navigate: EventCallable<NavigatePayload>;
 };
 
-type ControlsFactory = <T extends ZodType>(
-  config: Omit<QueryTrackerConfig<T>, 'forRoutes'>,
-) => QueryTracker<T>;
-
-export function trackQueryControlsFactory({
-  $query,
-  navigate,
-}: Omit<FactoryPayload, '$activeRoutes'>): ControlsFactory {
-  return trackQueryFactory({
-    $activeRoutes: createStore([]),
-    $query,
-    navigate,
-  });
-}
-
 export function trackQueryFactory({
-  $activeRoutes,
+  $ready,
+  $eligible,
   $query,
   navigate,
 }: FactoryPayload) {
   return <T extends ZodType>(
     config: QueryTrackerConfig<T>,
   ): QueryTracker<T> => {
-    const { check, parameters, forRoutes } = config;
+    const { parameters } = config;
+    const schemaKeys = Object.keys(
+      ((parameters as unknown as { shape?: Record<string, unknown> }).shape ??
+        {}) as Record<string, unknown>,
+    );
 
-    const $entered = createStore(false);
-
-    const entered = createEvent<z.infer<T>>();
-    const exited = createEvent();
-
-    const enter = createEvent<z.infer<T>>();
+    const enter = createEvent<QueryParametersInput<T>>();
     const exit = createEvent<{ ignoreParams: string[] } | void>();
 
+    const $entered = createStore(false);
+    const entered = createEvent<z.output<T>>();
+    const exited = createEvent();
     const changeEntered = createEvent<boolean>();
 
-    sample({
-      clock: changeEntered,
-      target: $entered,
+    sample({ clock: changeEntered, target: $entered });
+
+    const $result = combine($eligible, $query, (eligible, query) =>
+      eligible ? parameters.safeParse(query) : null,
+    );
+    const $evaluation = combine({
+      ready: $ready,
+      eligible: $eligible,
+      result: $result,
     });
 
-    if (check) {
-      sample({
-        clock: check,
-        source: { activeRoutes: $activeRoutes, query: $query },
-        filter: ({ activeRoutes, query }) =>
-          (!forRoutes || isForRouteActive(forRoutes, activeRoutes)) &&
-          parameters.safeParse(query).success,
-        fn: ({ query }) => parameters.safeParse(query).data,
-        target: [entered, changeEntered.prepend(() => true)],
-      });
-    } else {
-      sample({
-        source: { activeRoutes: $activeRoutes, query: $query },
-        filter: ({ activeRoutes, query }) =>
-          (!forRoutes || isForRouteActive(forRoutes, activeRoutes)) &&
-          parameters.safeParse(query).success,
-        fn: ({ query }) => parameters.safeParse(query).data,
-        target: [entered, changeEntered.prepend(() => true)],
-      });
-    }
+    const $state = $evaluation.map(
+      ({ ready, eligible, result }): QueryTrackerState<T> => {
+        if (!eligible) return inactiveState;
+        if (!ready) return pendingState;
+        if (!result?.success) return inactiveState;
+
+        return { status: 'entered', params: result.data };
+      },
+    );
+    const evaluation = sample({
+      clock: $evaluation.updates,
+      fn: (state) => state,
+    });
 
     sample({
-      source: { activeRoutes: $activeRoutes, query: $query, entered: $entered },
-      filter: ({ activeRoutes, query, entered }) =>
-        entered &&
-        !(
-          (!forRoutes || isForRouteActive(forRoutes, activeRoutes)) &&
-          parameters.safeParse(query).success
-        ),
+      clock: evaluation,
+      filter: ({ ready, result }) => ready && result?.success === true,
+      fn: ({ result }) => result!.data,
+      target: [entered, changeEntered.prepend(() => true)],
+    });
+
+    sample({
+      clock: evaluation,
+      source: $entered,
+      filter: (entered, { ready, eligible, result }) =>
+        entered && (!eligible || (ready && result?.success !== true)),
       target: [
         exited.prepend(() => undefined),
         changeEntered.prepend(() => false),
       ],
     });
 
-    // @ts-expect-error TS is wrong
     sample({
       clock: enter,
       source: $query,
       fn: (query, payload) => {
-        // @ts-expect-error TS is also wrong
         return { query: { ...query, ...payload } };
       },
       target: navigate,
@@ -122,24 +110,24 @@ export function trackQueryFactory({
       clock: exit,
       source: $query,
       fn: (query, payload) => {
-        if (payload && payload.ignoreParams) {
-          const copy: Query = {};
+        const ignored = new Set(payload?.ignoreParams ?? []);
+        const owned = new Set(schemaKeys);
+        const copy: Query = {};
 
-          for (const key of payload.ignoreParams) {
-            if (query[key]) {
-              copy[key] = query[key];
-            }
+        for (const [key, value] of Object.entries(query)) {
+          if (!owned.has(key) || ignored.has(key)) {
+            copy[key] = value;
           }
-
-          return { query: copy };
         }
 
-        return { query: {} };
+        return { query: copy };
       },
       target: navigate,
     });
 
     return {
+      $state,
+
       enter,
       entered,
 
@@ -147,4 +135,115 @@ export function trackQueryFactory({
       exit,
     };
   };
+}
+
+export function trackQuery<T extends ZodType>(
+  config: TrackQueryConfig<T>,
+): QueryTracker<T> {
+  let $ready: Store<boolean>;
+  let $eligible: Store<boolean>;
+
+  if (config.routes?.length) {
+    const routes = config.routes;
+    const controls = config.controls as InternalRouterControls;
+
+    // A location commits before its matching route finishes activation. Match
+    // registered routes to that location so an old open route cannot validate
+    // the new query while the selected target is still preparing.
+    const $activity = combine(
+      {
+        path: controls.$path,
+        opened: combine(routes.map((route) => route.$isOpened)),
+        pending: combine(routes.map((route) => route.$isPending)),
+      },
+      ({ path, opened, pending }) => {
+        let ready = false;
+        let waiting = false;
+        let registeredTarget = false;
+
+        for (let index = 0; index < routes.length; index += 1) {
+          const route = routes[index];
+          const pathMatch =
+            path === null
+              ? undefined
+              : controls.internal.routeMatches(route, path);
+          const registered = pathMatch !== undefined;
+          const matches = registered ? pathMatch : true;
+
+          if (registered && matches) registeredTarget = true;
+          if (matches && opened[index]) ready = true;
+          if (matches && pending[index]) waiting = true;
+        }
+
+        return { ready, waiting, registeredTarget };
+      },
+    );
+
+    $ready = $activity.map(({ ready }) => ready);
+
+    const pendingChanges = merge(
+      routes.map((route) => route.$isPending.updates),
+    );
+    const pendingStarted = sample({
+      clock: pendingChanges,
+      source: $activity,
+      filter: ({ waiting }) => waiting,
+    });
+    const $pendingObserved = createStore(false, { serialize: 'ignore' });
+    const pendingFinished = sample({
+      clock: pendingChanges,
+      source: { activity: $activity, observed: $pendingObserved },
+      filter: ({ activity, observed }) => observed && !activity.waiting,
+    });
+    const activationFailed = sample({
+      clock: pendingFinished,
+      source: $activity,
+      filter: ({ ready }) => !ready,
+    });
+
+    $pendingObserved.on(pendingStarted, () => true).reset(pendingFinished);
+
+    const readyStarted = sample({
+      clock: $ready.updates,
+      filter: Boolean,
+    });
+    const routeClosed = merge(
+      routes.map((route) => route.closed.map(() => route)),
+    );
+    const relevantRouteClosed = sample({
+      clock: routeClosed,
+      source: { activity: $activity, path: controls.$path },
+      filter: ({ activity, path }, route) => {
+        if (activity.ready) return false;
+        if (path === null) return true;
+        return controls.internal.routeMatches(route, path) ?? true;
+      },
+    });
+
+    // A matching path is eligible while its activation is pending, but stops
+    // being eligible after that attempt fails or the active route is closed.
+    const $targetInactive = createStore(false, { serialize: 'ignore' })
+      .on([activationFailed, relevantRouteClosed], () => true)
+      .reset([controls.$path.updates, pendingStarted, readyStarted]);
+
+    $eligible = combine(
+      $activity,
+      $targetInactive,
+      ({ ready, waiting, registeredTarget }, targetInactive) =>
+        ready || waiting || (registeredTarget && !targetInactive),
+    );
+  } else if (config.routes) {
+    $ready = createStore(false);
+    $eligible = $ready;
+  } else {
+    $ready = createStore(true);
+    $eligible = $ready;
+  }
+
+  return trackQueryFactory({
+    $ready,
+    $eligible,
+    $query: config.controls.$query,
+    navigate: config.controls.navigate,
+  })(config);
 }

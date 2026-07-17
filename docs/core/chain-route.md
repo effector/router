@@ -1,307 +1,119 @@
 # chainRoute
 
-Create a virtual route that wraps an existing route with additional lifecycle hooks and conditions. Useful for implementing guards, loading data before navigation, or creating conditional navigation flows.
+Creates a post-commit readiness route from an already activated route.
+`chainRoute` prepares data or state after history has changed; use
+[`beforeNavigate`](/core/before-navigate) when navigation itself must be held.
 
 ## API
 
-```typescript
-function chainRoute<T extends object | void = void>(
-  props: ChainRouteProps<T>,
-): VirtualRoute<RouteOpenedPayload<T>, T>;
+```ts
+function chainRoute<T>({
+  route: Route<T>,
+  beforeOpen: CallableUnit | CallableUnit[],
+  openOn?: Unit | Unit[],
+  cancelOn?: Unit | Unit[],
+}): ChainRoute<T>
 ```
 
-### Parameters
+`beforeOpen` accepts existing callable Effector events and effects. Units run in
+array order; Effects are awaited. No router-specific task primitive is needed.
+The returned `ChainRoute<T>` is a pathless route with an additional
+`cancelled` event and uses the same `createRoute()` lifecycle.
+The deprecated `createVirtualRoute` result remains accepted as an input for
+compatibility.
 
-| Parameter          | Type                       | Description                                                         |
-| ------------------ | -------------------------- | ------------------------------------------------------------------- |
-| `props.route`      | `Route<T>`                 | The route to wrap                                                   |
-| `props.beforeOpen` | `Event \| Effect \| Array` | Unit(s) to execute when route opens                                 |
-| `props.openOn`     | `Unit \| Unit[]`           | Optional. Unit(s) that trigger the virtual route to open            |
-| `props.cancelOn`   | `Unit \| Unit[]`           | Optional. Unit(s) that close the virtual route and fire `cancelled` |
+## Effect shorthand
 
-### Returns
-
-`VirtualRoute<RouteOpenedPayload<T>, T>` - A virtual route with all standard virtual route properties plus a `cancelled` event.
-
-## Usage
-
-### Basic Authorization Guard
+When `openOn` is omitted, the chained route opens as soon as `beforeOpen`
+finishes successfully:
 
 ```ts
-import { createRoute, chainRoute } from '@effector/router';
-import { createEvent, createEffect, sample } from 'effector';
+const loadUserFx = createEffect(async ({ params }) =>
+  api.getUser(params.userId),
+);
 
-const profileRoute = createRoute({ path: '/profile' });
+export const readyUserRoute = chainRoute({
+  route: routes.user,
+  beforeOpen: loadUserFx,
+});
+```
 
+An Effect failure cancels the current chained attempt. Observe the reason from
+the Effect's normal `fail` or `failData` units.
+
+## Explicit completion and cancellation
+
+Use `openOn` when preparation starts one flow and readiness arrives through
+another unit:
+
+```ts
 const authorized = createEvent();
 const rejected = createEvent();
 
-const checkAuthFx = createEffect(async () => {
-  const isAuthorized = await checkUserAuth();
-  if (!isAuthorized) throw new Error('Not authorized');
-});
-
-sample({
-  clock: checkAuthFx.doneData,
-  target: authorized,
-});
-
-sample({
-  clock: checkAuthFx.failData,
-  target: rejected,
-});
-
-const guardedProfile = chainRoute({
-  route: profileRoute,
-  beforeOpen: checkAuthFx,
+const authorizedRoute = chainRoute({
+  route: routes.profile,
+  beforeOpen: checkAuthorizationFx,
   openOn: authorized,
   cancelOn: rejected,
 });
+```
 
-// Redirect to login when cancelled
+If an `openOn` signal fires while a `beforeOpen` Effect is still running, it is
+remembered and the route opens after preparation succeeds. `cancelOn` closes an
+already opened chain or cancels a pending one and emits `cancelled`.
+
+## Pending
+
+`chained.$isPending` is true from the parent route's `opened` event until one of
+these terminal states:
+
+- the chained route opens;
+- preparation fails;
+- `cancelOn` fires;
+- the parent closes.
+
+This includes time spent waiting for an explicit `openOn` signal.
+
+```ts
 sample({
-  clock: guardedProfile.cancelled,
-  target: loginRoute.open,
+  clock: readyUserRoute.$isPending,
+  target: pageProgress.changed,
 });
 ```
 
-### Load Data Before Route Opens
+## Repeated activation
+
+Repeated parent activation is `takeLatest`. A new payload starts a new attempt,
+closes the previously opened derived route, and ignores late Effect results
+from older attempts.
+
+## Chaining concerns
+
+Because the result is a virtual route, readiness can be derived in layers:
 
 ```ts
-import { createRoute, chainRoute } from '@effector/router';
-import { createEffect, sample } from 'effector';
-
-const userRoute = createRoute({ path: '/user/:userId' });
-
-const loadUserDataFx = createEffect(
-  async ({ params }: { params: { userId: string } }) => {
-    return await fetchUser(params.userId);
-  },
-);
-
-const userRouteWithData = chainRoute({
-  route: userRoute,
-  beforeOpen: loadUserDataFx,
-  openOn: loadUserDataFx.done,
-});
-
-// Use the loaded data
-sample({
-  clock: loadUserDataFx.doneData,
-  target: $currentUser,
-});
-```
-
-### Multiple Before Open Effects
-
-```ts
-import { createRoute, chainRoute } from '@effector/router';
-import { createEffect } from 'effector';
-
-const dashboardRoute = createRoute({ path: '/dashboard' });
-
-const checkAuthFx = createEffect(async () => {
-  await verifyAuth();
-});
-
-const loadDashboardDataFx = createEffect(async () => {
-  return await fetchDashboardData();
-});
-
-const guardedDashboard = chainRoute({
-  route: dashboardRoute,
-  // Effects run sequentially in order
-  beforeOpen: [checkAuthFx, loadDashboardDataFx],
-  openOn: loadDashboardDataFx.done,
-  cancelOn: [checkAuthFx.fail, loadDashboardDataFx.fail],
-});
-```
-
-### Chain Multiple Guards
-
-```ts
-import { createRoute, chainRoute } from '@effector/router';
-
-const adminRoute = createRoute({ path: '/admin' });
-
-// First check: authentication
-const authenticatedRoute = chainRoute({
-  route: adminRoute,
-  beforeOpen: checkAuthFx,
-  openOn: checkAuthFx.done,
-  cancelOn: checkAuthFx.fail,
-});
-
-// Second check: admin role
-const authorizedAdminRoute = chainRoute({
-  route: authenticatedRoute,
-  beforeOpen: checkAdminRoleFx,
-  openOn: checkAdminRoleFx.done,
-  cancelOn: checkAdminRoleFx.fail,
-});
-
-// Third check: load admin data
-const adminRouteWithData = chainRoute({
-  route: authorizedAdminRoute,
-  beforeOpen: loadAdminDataFx,
-  openOn: loadAdminDataFx.done,
-});
-```
-
-### Conditional Navigation
-
-```ts
-import { createRoute, chainRoute } from '@effector/router';
-import { createEvent, sample } from 'effector';
-
-const purchaseRoute = createRoute({ path: '/purchase/:productId' });
-
-const hasInventory = createEvent();
-const outOfStock = createEvent();
-
-const checkInventoryFx = createEffect(async ({ params }) => {
-  const product = await fetchProduct(params.productId);
-  if (product.stock === 0) throw new Error('Out of stock');
-  return product;
-});
-
-sample({
-  clock: checkInventoryFx.doneData,
-  target: hasInventory,
-});
-
-sample({
-  clock: checkInventoryFx.failData,
-  target: outOfStock,
-});
-
-const validatedPurchase = chainRoute({
-  route: purchaseRoute,
-  beforeOpen: checkInventoryFx,
-  openOn: hasInventory,
-  cancelOn: outOfStock,
-});
-
-// Show error when out of stock
-sample({
-  clock: validatedPurchase.cancelled,
-  fn: () => 'Product is out of stock',
-  target: showErrorToast,
-});
-```
-
-### With Multiple Cancel Conditions
-
-```ts
-import { createRoute, chainRoute } from '@effector/router';
-import { createEvent } from 'effector';
-
-const editorRoute = createRoute({ path: '/edit/:documentId' });
-
-const documentLocked = createEvent();
-const permissionDenied = createEvent();
-const documentDeleted = createEvent();
-
-const guardedEditor = chainRoute({
-  route: editorRoute,
-  beforeOpen: checkDocumentAccessFx,
-  openOn: checkDocumentAccessFx.done,
-  cancelOn: [documentLocked, permissionDenied, documentDeleted],
-});
-
-// Handle different cancellation reasons
-sample({
-  clock: guardedEditor.cancelled,
-  source: {
-    isLocked: documentLocked,
-    isDenied: permissionDenied,
-    isDeleted: documentDeleted,
-  },
-  fn: (reasons) => {
-    if (reasons.isLocked) return 'Document is locked';
-    if (reasons.isDenied) return 'Permission denied';
-    if (reasons.isDeleted) return 'Document was deleted';
-  },
-  target: showErrorMessage,
-});
-```
-
-## How It Works
-
-1. When the original `route.opened` fires, `beforeOpen` effect(s) execute sequentially
-2. If `openOn` is provided, the virtual route opens when those units trigger
-3. If `cancelOn` units trigger, the virtual route closes and `cancelled` event fires
-4. The virtual route's `$params` store contains the transformed route parameters
-
-## Using the Cancelled Event
-
-The virtual route includes a `cancelled` event that fires when navigation is prevented:
-
-```ts
-const guardedRoute = chainRoute({
-  route: someRoute,
-  beforeOpen: checkSomethingFx,
-  openOn: checkSomethingFx.done,
-  cancelOn: checkSomethingFx.fail,
-});
-
-// React to cancellation
-sample({
-  clock: guardedRoute.cancelled,
-  target: showAccessDeniedMessage,
-});
-```
-
-## Best Practices
-
-### Use for Guards
-
-Perfect for implementing authorization, permissions, and data loading:
-
-```ts
-// ✅ Good: Clear guard pattern
-const guardedRoute = chainRoute({
-  route: protectedRoute,
-  beforeOpen: checkPermissionsFx,
-  openOn: checkPermissionsFx.done,
-  cancelOn: checkPermissionsFx.fail,
-});
-```
-
-### Chain Multiple Concerns
-
-Keep each concern separate by chaining multiple guards:
-
-```ts
-// ✅ Good: Separate authentication and authorization
-const authenticated = chainRoute({
-  route: baseRoute,
-  beforeOpen: checkAuthFx,
-  openOn: checkAuthFx.done,
-  cancelOn: checkAuthFx.fail,
-});
-
 const authorized = chainRoute({
-  route: authenticated,
+  route: routes.admin,
   beforeOpen: checkRoleFx,
-  openOn: checkRoleFx.done,
-  cancelOn: checkRoleFx.fail,
+});
+
+const ready = chainRoute({
+  route: authorized,
+  beforeOpen: loadAdminDataFx,
 });
 ```
 
-### Handle All Cancel Cases
+Use this for post-commit authorization/readiness UI, not for protecting a URL
+from entering history. For a true transition guard, compose
+`beforeNavigate({ controls, to: routes.admin, ... })`.
 
-Always handle the `cancelled` event to provide user feedback:
+## Lifecycle summary
 
-```ts
-sample({
-  clock: guardedRoute.cancelled,
-  target: redirectToLogin,
-});
-```
+1. Parent `opened` starts preparation and pending.
+2. Callable units execute sequentially.
+3. Successful preparation auto-opens, or waits for `openOn` when supplied.
+4. Error, `cancelOn`, or parent close cancels pending.
+5. A newer parent activation supersedes the older attempt.
 
-## See Also
-
-- [createVirtualRoute](/core/create-virtual-route) - Create virtual routes
-- [createRoute](/core/create-route) - Create regular routes
-- [group](/core/group) - Group multiple routes
+See [Navigation lifecycle](/core/navigation-lifecycle) for the pre-/post-commit
+boundary.

@@ -37,6 +37,22 @@ compile('/path/:seg{2,3}'); //         { seg: string[] }  range
 ```
 
 Modifiers combine: `'/items/:ids<number>{1,3}?'` → `{ ids?: number[] }`.
+When an optional parameter is absent, `parse` omits its key from `params`:
+`parse('/user')` for `'/user/:id?'` returns `{path: '/user', params: {}}`.
+The builder enforces the same cardinality as the parser and throws when a
+present array is outside its bounds.
+Number and literal-union values are validated before serialization, so the
+builder cannot produce a URL that its parser rejects.
+
+Path patterns are pathname-only. Query strings, hashes, origins, malformed
+ranges, unclosed generic/range syntax, and conflicting modifiers are rejected
+by `compile` with a descriptive error.
+Duplicate parameter names are rejected as well, including when the pattern is
+provided as a runtime `string`.
+
+Parser, builder, and inferred parameter types are covered by one conformance
+matrix, including round-trips, optional omission, embedded parameters, and
+array bounds.
 
 ## Type extraction
 
@@ -50,6 +66,8 @@ type Params = ParseUrlParams<'/blog/:year<number>/:slug'>;
 ## Also included
 
 - `convertPath(path, 'express')` — convert patterns to Express-compatible routes.
+- `getParamNames(pattern)` — ordered names of every declared parameter.
+- `getRequiredParamNames(pattern)` — names of the non-optional parameters.
 - Exposed types: `Builder`, `Parser`, `ValidatePath`.
 
 ## Documentation

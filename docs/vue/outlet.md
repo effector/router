@@ -11,9 +11,7 @@ export const RoutesView = createRoutesView({
     createRouteView({
       route: routes.profile,
       view: Profile, // renders <Outlet /> somewhere inside
-      children: [
-        createRouteView({ route: routes.settings, view: Settings }),
-      ],
+      children: [createRouteView({ route: routes.settings, view: Settings })],
     }),
   ],
 });
@@ -31,3 +29,6 @@ import { Outlet } from '@effector/router-vue';
   <Outlet />
 </template>
 ```
+
+`Outlet` is recursive: every selected child provides its own `children` to the
+next outlet, with no depth limit. When no child is active it renders nothing.

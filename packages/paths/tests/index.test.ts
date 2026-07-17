@@ -2,6 +2,52 @@ import { describe, expect, test } from 'vitest';
 import { compile } from '../lib/compile';
 
 describe('parse path', () => {
+  test('rejects non-pathname and malformed patterns at compile time', () => {
+    expect(() => compile('profile')).toThrow(
+      'Path pattern must be a pathname starting with "/"',
+    );
+    expect(() => compile('/profile?tab=posts')).toThrow(
+      'Path pattern must not contain a query or hash',
+    );
+    expect(() => compile('/profile#details')).toThrow(
+      'Path pattern must not contain a query or hash',
+    );
+    expect(() => compile('https://example.com/profile')).toThrow(
+      'Path pattern must be a pathname starting with "/"',
+    );
+    expect(() => compile('/profile/:id<')).toThrow(
+      'Path pattern has an unclosed generic or range',
+    );
+    expect(() => compile('/profile/:id{1,}')).toThrow(
+      'Path pattern has an invalid range',
+    );
+    expect(() => compile('/profile/:id{3,2}')).toThrow(
+      'Path pattern has an invalid range',
+    );
+    for (const modifiers of ['+*', '*+', '++', '**']) {
+      expect(() => compile(`/profile/:id${modifiers}`)).toThrow(
+        'Path pattern has conflicting modifiers',
+      );
+    }
+    expect(() => compile('/profile/:id/:id')).toThrow(
+      'duplicate parameter name "id"',
+    );
+  });
+
+  test('rejects long malformed modifier input without nonlinear scanning', () => {
+    const path = `/:id${'*'.repeat(50_000)}!`;
+    const started = performance.now();
+
+    expect(() => compile(path)).toThrow(
+      'Path pattern has an invalid parameter syntax',
+    );
+
+    // The previous unanchored-start suffix regex took seconds for this input.
+    // Keep a generous ceiling: linear validation completes orders of magnitude
+    // below it even on a loaded CI runner.
+    expect(performance.now() - started).toBeLessThan(500);
+  });
+
   test('parse root path', () => {
     const { parse } = compile('/');
 
@@ -24,6 +70,26 @@ describe('parse path', () => {
       path: '/profile/12323',
       params: { id: '12323' },
     });
+  });
+
+  test('parse parameters embedded in a segment', () => {
+    const user = compile('/@:user');
+    const namedUser = compile('/name-:user?');
+
+    expect(user.parse('/@alice')).toStrictEqual({
+      path: '/@alice',
+      params: { user: 'alice' },
+    });
+    expect(user.parse('/alice')).toStrictEqual(null);
+    expect(namedUser.parse('/name-alice')).toStrictEqual({
+      path: '/name-alice',
+      params: { user: 'alice' },
+    });
+    expect(namedUser.parse('/name-')).toStrictEqual({
+      path: '/name-',
+      params: {},
+    });
+    expect(namedUser.parse('/')).toStrictEqual(null);
   });
 
   test('parse path with generic parameter (number)', () => {
@@ -94,6 +160,20 @@ describe('parse path', () => {
     expect(parse('/profile/1/2/3/4/5')).toStrictEqual(null);
   });
 
+  test('parse and build zero-cardinality ranges consistently', () => {
+    const { parse, build } = compile('/profile/:id{0,0}');
+
+    expect(parse('/profile')).toStrictEqual({
+      path: '/profile',
+      params: { id: [] },
+    });
+    expect(parse('/profile/1')).toStrictEqual(null);
+    expect(build({ id: [] })).toBe('/profile');
+    expect(() => build({ id: ['1'] })).toThrow(
+      'Parameter "id" expects at most 0 values',
+    );
+  });
+
   test('parse path with range number parameter', () => {
     const { parse } = compile('/profile/:id<number>{3,4}');
 
@@ -134,6 +214,11 @@ describe('parse path', () => {
 
   test('parse path with range string parameter with modificator ?', () => {
     const { parse } = compile('/profile/:id{3,4}?');
+
+    expect(parse('/profile')).toStrictEqual({
+      path: '/profile',
+      params: {},
+    });
 
     expect(parse('/profile/1/2')).toStrictEqual(null);
 
@@ -195,7 +280,29 @@ describe('parse path', () => {
 
     expect(parse('/profile')).toStrictEqual({
       path: '/profile',
-      params: { id: undefined },
+      params: {},
+    });
+  });
+
+  test('omits absent optional generic and array parameters', () => {
+    expect(compile('/profile/:id<number>?').parse('/profile')).toStrictEqual({
+      path: '/profile',
+      params: {},
+    });
+
+    expect(compile('/profile/:ids{1,2}?').parse('/profile')).toStrictEqual({
+      path: '/profile',
+      params: {},
+    });
+
+    expect(compile('/profile/:ids+?').parse('/profile')).toStrictEqual({
+      path: '/profile',
+      params: {},
+    });
+
+    expect(compile('/profile/*ids?').parse('/profile')).toStrictEqual({
+      path: '/profile',
+      params: {},
     });
   });
 
@@ -244,7 +351,7 @@ describe('parse path', () => {
 
     expect(parse('/profile')).toStrictEqual({
       path: '/profile',
-      params: { id: undefined },
+      params: {},
     });
   });
 
@@ -310,7 +417,7 @@ describe('parse path', () => {
 
     expect(parse('/profile')).toStrictEqual({
       path: '/profile',
-      params: { id: undefined },
+      params: {},
     });
   });
 
@@ -354,10 +461,28 @@ describe('build path', () => {
     expect(build({ id: '123' })).toBe('/profile/123');
   });
 
+  test('build parameters embedded in a segment', () => {
+    expect(compile('/@:user').build({ user: 'alice' })).toBe('/@alice');
+    expect(compile('/name-:user?').build({ user: undefined })).toBe('/name-');
+  });
+
   test('build path with generic parameter (number)', () => {
     const { build } = compile('/profile/:id<number>');
 
     expect(build({ id: 123 })).toBe('/profile/123');
+    expect(() => build({ id: Number.NaN })).toThrow(
+      'Parameter "id" expects a number',
+    );
+    expect(() => build({ id: 'not-a-number' } as any)).toThrow(
+      'Parameter "id" expects a number',
+    );
+  });
+
+  test('build path preserves falsy parameter values', () => {
+    expect(compile('/profile/:id<number>').build({ id: 0 })).toBe('/profile/0');
+    expect(() => compile('/profile/:id').build({ id: '' })).toThrow(
+      'Parameter "id" expects a value',
+    );
   });
 
   test('build path with generic parameter (union)', () => {
@@ -365,6 +490,9 @@ describe('build path', () => {
 
     expect(build({ id: 'hello' })).toBe('/profile/hello');
     expect(build({ id: 'world' })).toBe('/profile/world');
+    expect(() => build({ id: 'other' } as any)).toThrow(
+      'Parameter "id" expects one of: hello, world',
+    );
   });
 
   test('build path with default string parameter and modificator +', () => {
@@ -372,6 +500,12 @@ describe('build path', () => {
 
     expect(build({ id: ['123', '321'] })).toBe('/profile/123/321');
     expect(build({ id: ['123'] })).toBe('/profile/123');
+    expect(() => build({ id: [] })).toThrow(
+      'Parameter "id" expects at least 1 value',
+    );
+    expect(() => build({} as { id: string[] })).toThrow(
+      'Parameter "id" expects at least 1 value',
+    );
   });
 
   test('build path with default string parameter and modificator *', () => {
@@ -380,6 +514,36 @@ describe('build path', () => {
     expect(build({ id: ['123', '321'] })).toBe('/profile/123/321');
     expect(build({ id: ['123'] })).toBe('/profile/123');
     expect(build({ id: [] })).toBe('/profile');
+  });
+
+  test('build path enforces explicit array ranges', () => {
+    const { build } = compile('/profile/:id{2,3}');
+
+    expect(build({ id: ['1', '2'] })).toBe('/profile/1/2');
+    expect(build({ id: ['1', '2', '3'] })).toBe('/profile/1/2/3');
+    expect(() => build({ id: ['1'] })).toThrow(
+      'Parameter "id" expects between 2 and 3 values',
+    );
+    expect(() => build({ id: ['1', '2', '3', '4'] })).toThrow(
+      'Parameter "id" expects between 2 and 3 values',
+    );
+  });
+
+  test('optional cardinality still validates present values', () => {
+    const { build } = compile('/profile/:id{2,3}?');
+
+    expect(build({})).toBe('/profile');
+    expect(build({ id: ['1', '2'] })).toBe('/profile/1/2');
+    expect(() => build({ id: ['1'] })).toThrow(
+      'Parameter "id" expects between 2 and 3 values',
+    );
+
+    const repeated = compile('/profile/:id+?');
+    expect(repeated.build({})).toBe('/profile');
+    expect(repeated.build({ id: ['1'] })).toBe('/profile/1');
+    expect(() => repeated.build({ id: [] })).toThrow(
+      'Parameter "id" expects at least 1 value',
+    );
   });
 
   test('build path with default string parameter and modificator ?', () => {
@@ -394,6 +558,9 @@ describe('build path', () => {
 
     expect(build({ id: [123, 321] })).toBe('/profile/123/321');
     expect(build({ id: [123] })).toBe('/profile/123');
+    expect(() => build({ id: [123, Number.NaN] })).toThrow(
+      'Parameter "id" expects a number',
+    );
   });
 
   test('build path with generic parameter (number) and modificator *', () => {
@@ -417,7 +584,12 @@ describe('build path', () => {
     expect(build({ id: ['hello', 'world'] })).toBe('/profile/hello/world');
     expect(build({ id: ['hello', 'hello'] })).toBe('/profile/hello/hello');
     expect(build({ id: ['hello'] })).toBe('/profile/hello');
-    expect(build({ id: [] })).toBe('/profile');
+    expect(() => build({ id: [] })).toThrow(
+      'Parameter "id" expects at least 1 value',
+    );
+    expect(() => build({ id: ['hello', 'other'] } as any)).toThrow(
+      'Parameter "id" expects one of: hello, world',
+    );
   });
 
   test('build path with generic parameter (union) and modificator *', () => {

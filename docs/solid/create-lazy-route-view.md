@@ -31,6 +31,25 @@ const ProfileScreen = createLazyRouteView({
 });
 ```
 
-The imported module must have a default component export. For a normal route, the dynamic import is also registered with the route, so route opening waits for the bundle. A `Router` target is rendered through Solid lazy loading but does not receive a route-level async import hook.
+The imported module must have a default component export. The importer starts
+when Solid renders the lazy view. It is not registered with core and route
+opening does not wait for the chunk, so the configured `Suspense` fallback is
+observable.
+
+Route/chained `$isPending` describes model preparation, not chunk loading. For
+preload, reuse the importer in an ordinary Effect:
+
+```tsx
+import { createEffect } from 'effector';
+
+const importProfile = () => import('./screens/ProfileScreen');
+const preloadProfileFx = createEffect(importProfile);
+
+const ProfileScreen = createLazyRouteView({
+  route: profileRoute,
+  view: importProfile,
+  fallback: ProfileSkeleton,
+});
+```
 
 [`Outlet`]: /solid/outlet

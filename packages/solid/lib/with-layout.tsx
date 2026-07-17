@@ -1,5 +1,7 @@
 import type { Component, JSX } from 'solid-js';
-import type { RouteView } from './types';
+import { layoutGroup, type RouteView } from './types';
+
+let nextLayoutGroupToken = 0;
 
 /**
  * @description Group routes by layout, so you don't need to pass `layout` property manually in all routes. Works for `createRouteView` and `createLazyRouteView`.
@@ -34,14 +36,7 @@ export function withLayout(
   layout: Component<{ children: JSX.Element }>,
   views: RouteView[],
 ): RouteView[] {
-  const Layout = layout;
+  const group = { token: ++nextLayoutGroupToken, layout };
 
-  return views.map(({ route, view: View }) => ({
-    route,
-    view: () => (
-      <Layout>
-        <View />
-      </Layout>
-    ),
-  }));
+  return views.map((view) => ({ ...view, [layoutGroup]: group }));
 }

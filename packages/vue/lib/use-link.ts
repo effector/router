@@ -1,6 +1,10 @@
-import type { InternalRoute, Query, Route } from '@effector/router';
+import {
+  stringifyQuery,
+  type InternalRoute,
+  type QueryInput,
+  type Route,
+} from '@effector/router';
 import { useUnit } from 'effector-vue/composition';
-import queryString from 'query-string';
 import { toRaw } from 'vue';
 import { useRouterContext } from './use-router';
 
@@ -11,6 +15,7 @@ import { useRouterContext } from './use-router';
  */
 export function useLink<T extends object | void = void>(to: Route<T>) {
   const router = useRouterContext();
+  const currentQuery = useUnit(router.$query);
 
   // `to` may arrive as a Vue reactive proxy (e.g. from component props);
   // unwrap it so the identity check against knownRoutes works.
@@ -32,9 +37,12 @@ export function useLink<T extends object | void = void>(to: Route<T>) {
   const { onOpen } = useUnit(route);
 
   return {
-    build: (params?: T, query?: Query) => {
+    build: (params?: T, query?: QueryInput) => {
       const path = target.build(params ?? undefined);
-      const search = query ? queryString.stringify(query) : '';
+      const effectiveQuery = query === undefined ? currentQuery.value : query;
+      const search = effectiveQuery
+        ? stringifyQuery(effectiveQuery as QueryInput)
+        : '';
 
       return search ? `${path}?${search}` : path;
     },

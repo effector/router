@@ -11,6 +11,22 @@ An adapter translates between effector/router's internal navigation system and e
 - Listening to navigation events
 - Providing back/forward navigation
 
+Every adapter exposes a live `location` snapshot with exactly `pathname`,
+`search`, and `hash`. Reading it after `push`, `replace`, or a native history
+change returns the current value; it is not the object captured at creation.
+
+`push` and `replace` accept either a full history string or a partial location
+object. Any omitted field is retained from the adapter's current location; the
+same rule is used for nested targets handled by `queryAdapter`.
+
+Before `setHistory`, router state is explicit: `$path` is `null` and `$query`
+is `{}`. Initialization loads the adapter snapshot atomically. Replacing the
+adapter removes the previous listen/block subscriptions first.
+
+The adapter/router lifecycle keeps these guarantees across repeated
+initialization, native POP, equal snapshots, hash-only changes, and isolated
+Effector Fork scopes.
+
 ## Built-in Adapters
 
 ### historyAdapter
@@ -218,6 +234,13 @@ loginModal.open();
 > Both routers must share the **same** `history` instance — that is how the
 > query router layers its state on top of the main URL.
 
+Built-in adapters coordinate native blocking per shared `history` instance.
+There is one physical `history.block` subscription: a router command bypasses
+that blocker after completing its own pre-commit lifecycle, while a native
+back/forward transition retries only after every participating adapter has
+released it. Unsubscribing an adapter also releases its part of a pending
+native transition.
+
 **Tab Navigation Example:**
 
 ```ts
@@ -254,6 +277,7 @@ interface RouterAdapter {
   goBack: () => void;
   goForward: () => void;
   listen: (callback: (location: RouterLocation) => void) => Subscription;
+  block?: (callback: (transition: RouterTransition) => void) => Subscription;
 }
 
 interface RouterLocation {
@@ -264,6 +288,11 @@ interface RouterLocation {
 
 type To = string | Partial<RouterLocation>;
 ```
+
+`block` is optional. It lets [`beforeNavigate`](/core/before-navigate) hold
+native POP transitions and supplies `{ action, location, retry }` to controls.
+Without it, router commands are still intercepted, but external browser
+back/forward cannot be held reliably.
 
 The custom adapter examples below use one helper to normalize both `To` forms. A string is parsed as a complete `pathname[?search][#hash]` target rather than treated as a pathname only:
 
@@ -749,6 +778,7 @@ interface RouterAdapter {
   goBack: () => void;
   goForward: () => void;
   listen: (callback: (location: RouterLocation) => void) => Subscription;
+  block?: (callback: (transition: RouterTransition) => void) => Subscription;
 }
 
 interface RouterLocation {
@@ -763,6 +793,9 @@ interface Subscription {
   unsubscribe: () => void;
 }
 ```
+
+The built-in `historyAdapter` and `queryAdapter` implement `block`. A custom
+adapter may omit it when the host platform cannot retry native transitions.
 
 ## See Also
 

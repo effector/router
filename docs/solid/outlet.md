@@ -32,3 +32,6 @@ const RoutesView = createRoutesView({ routes: [ProfileScreen] });
 
 [`createRoutesView`]: /solid/create-routes-view
 [`useOpenedViews`]: /solid/use-opened-views
+
+`Outlet` is recursive: every selected child provides its own `children` to the
+next outlet, with no depth limit. When no child is active it renders nothing.

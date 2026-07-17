@@ -1,5 +1,7 @@
-import { defineComponent, h, type Component } from 'vue';
-import type { RouteView } from './types';
+import { type Component } from 'vue';
+import { layoutGroup, type RouteView } from './types';
+
+let nextLayoutGroupToken = 0;
 
 /**
  * @description Group routes by layout, so you don't need to pass `layout`
@@ -19,14 +21,10 @@ import type { RouteView } from './types';
  * ```
  */
 export function withLayout(layout: Component, views: RouteView[]): RouteView[] {
-  return views.map(({ route, view, children }) => ({
-    route,
-    children,
-    view: defineComponent({
-      name: 'WithLayout',
-      setup() {
-        return () => h(layout, null, { default: () => h(view) });
-      },
-    }),
+  const group = { token: ++nextLayoutGroupToken, layout };
+
+  return views.map((view) => ({
+    ...view,
+    [layoutGroup]: group,
   }));
 }

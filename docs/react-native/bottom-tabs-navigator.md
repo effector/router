@@ -11,10 +11,16 @@ import { createBottomTabsNavigator } from '@effector/router-react-native';
 ## Usage
 
 ```tsx
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabsNavigator } from '@effector/router-react-native';
-import { createRouter, createRoute } from '@effector/router';
-import { createRouteView, RouterProvider } from '@effector/router-react';
+import {
+  createNavigationContainerRef,
+  NavigationContainer,
+} from '@react-navigation/native';
+import { createRoute, createRouter } from '@effector/router';
+import {
+  createBottomTabsNavigator,
+  createRouteView,
+  RouterProvider,
+} from '@effector/router-react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const homeRoute = createRoute({ path: '/home' });
@@ -51,12 +57,13 @@ const TabsNavigator = createBottomTabsNavigator({
     ),
   },
 });
+const navigationRef = createNavigationContainerRef();
 
 export default function App() {
   return (
     <RouterProvider router={router}>
-      <NavigationContainer>
-        <TabsNavigator />
+      <NavigationContainer ref={navigationRef}>
+        <TabsNavigator navigationRef={navigationRef} />
       </NavigationContainer>
     </RouterProvider>
   );
@@ -64,6 +71,46 @@ export default function App() {
 ```
 
 ## Configuration
+
+The factory returns the tab navigator component directly. The app owns the
+`navigationRef` and passes it to both `NavigationContainer` and the navigator:
+
+```tsx
+const navigationRef = createNavigationContainerRef();
+
+<NavigationContainer ref={navigationRef}>
+  <TabsNavigator navigationRef={navigationRef} />
+</NavigationContainer>;
+```
+
+The binding listens for native readiness/state changes and removes those
+listeners on unmount. It does not create a container, Router, or history
+adapter.
+
+Router state remains canonical. Before readiness only the latest target is
+retained; once ready, the binding sends the target and params to the tab
+navigator and suppresses matching native echoes.
+
+Tab presses prevent native selection and open the selected route through Router.
+Screen focus and completed closing events use the same private route-unit
+normalization.
+
+### Route view `options`
+
+Per-screen options use the native Bottom Tabs option object or callback type
+and are passed directly to `Tab.Screen`:
+
+```tsx
+const TabsNavigator = createBottomTabsNavigator({
+  router,
+  routes: [
+    {
+      ...HomeScreen,
+      options: { tabBarLabel: 'Home' },
+    },
+  ],
+});
+```
 
 ### `router` (required)
 
@@ -148,6 +195,10 @@ See [React Navigation Bottom Tabs documentation](https://reactnavigation.org/doc
 ### `initialRouteName`
 
 Name of the route to render on initial render.
+
+Bottom Tabs accept only routes without path parameters (including optional
+parameters). Use a Stack navigator or Router-driven screen for parameterized
+routes.
 
 ```tsx
 const TabsNavigator = createBottomTabsNavigator({

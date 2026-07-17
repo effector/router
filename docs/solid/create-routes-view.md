@@ -2,6 +2,10 @@
 
 Creates a Solid component that renders the selected opened route view.
 
+The binding matrix covers path and virtual routes, parent/child suppression,
+nested `Router` targets, declarative sibling priority, persistent layouts, and
+lazy views with the same recursive `children` contract.
+
 ## API
 
 ```ts

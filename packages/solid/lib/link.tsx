@@ -1,7 +1,8 @@
-import type { Route, RouteOpenedPayload } from '@effector/router';
+import type { Route, RouteOpenPayload } from '@effector/router';
 import { splitProps, type JSX } from 'solid-js';
 import type { LinkProps } from './types';
 import { useLink } from './use-link';
+import { useIsOpened } from './use-is-opened';
 
 /**
  * @description Navigates user to provided route on click
@@ -36,13 +37,20 @@ export function Link<Params extends object | void = void>(
     'onClick',
     'replace',
     'query',
+    'activeClass',
     'children',
   ]);
 
   const { path, onOpen } = useLink<Params>(
     local.to as Route<Params>,
     () => local.params as Params,
+    () => local.query,
   );
+  const isOpened = useIsOpened(local.to as Route<Params>);
+  const className = () =>
+    [anchorProps.class, isOpened() ? local.activeClass : undefined]
+      .filter(Boolean)
+      .join(' ');
 
   const handleClick: JSX.EventHandler<HTMLAnchorElement, MouseEvent> = (
     event,
@@ -54,7 +62,12 @@ export function Link<Params extends object | void = void>(
       return;
     }
 
-    // let browser handle "_blank" target and etc
+    // Preserve native anchor behavior for non-primary clicks, downloads,
+    // non-self targets, modified clicks, and cross-origin URLs.
+    if (event.button !== 0 || anchorProps.download !== undefined) {
+      return;
+    }
+
     if (anchorProps.target && anchorProps.target !== '_self') {
       return;
     }
@@ -64,17 +77,22 @@ export function Link<Params extends object | void = void>(
       return;
     }
 
+    const href = new URL(event.currentTarget.href, window.location.href);
+    if (href.origin !== window.location.origin) {
+      return;
+    }
+
     event.preventDefault();
 
     onOpen({
       params: local.params || {},
       replace: local.replace,
       query: local.query,
-    } as RouteOpenedPayload<Params>);
+    } as RouteOpenPayload<Params>);
   };
 
   return (
-    <a {...anchorProps} href={path()} onClick={handleClick}>
+    <a {...anchorProps} class={className()} href={path()} onClick={handleClick}>
       {local.children}
     </a>
   );

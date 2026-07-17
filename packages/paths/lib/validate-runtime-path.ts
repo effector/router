@@ -1,0 +1,100 @@
+import { tokenizeSegment } from './tokenize-path';
+
+function fail(message: string): never {
+  throw new Error(`Path pattern ${message}`);
+}
+
+function isModifier(character: string | undefined): boolean {
+  return character === '+' || character === '*';
+}
+
+export function validateRuntimePath(path: unknown): asserts path is string {
+  if (
+    typeof path !== 'string' ||
+    !path.startsWith('/') ||
+    path.startsWith('//')
+  ) {
+    fail('must be a pathname starting with "/"');
+  }
+
+  if (path.includes('://')) {
+    fail('must not contain an origin');
+  }
+
+  const parameterNames = new Set<string>();
+
+  for (const segment of path.split('/').filter(Boolean)) {
+    if (segment.includes('#')) {
+      fail('must not contain a query or hash');
+    }
+
+    const questionIndex = segment.indexOf('?');
+    const parameterLike =
+      segment.startsWith(':') ||
+      segment.startsWith('*') ||
+      segment.includes(':');
+
+    if (questionIndex >= 0 && (!segment.endsWith('?') || !parameterLike)) {
+      fail('must not contain a query or hash');
+    }
+
+    const body = segment.endsWith('?') ? segment.slice(0, -1) : segment;
+
+    if (!parameterLike) {
+      continue;
+    }
+
+    if (
+      isModifier(body[body.length - 1]) &&
+      isModifier(body[body.length - 2])
+    ) {
+      fail('has conflicting modifiers');
+    }
+
+    const genericStart = body.indexOf('<');
+    const genericEnd = body.lastIndexOf('>');
+
+    if (
+      (genericStart >= 0 && genericEnd < genericStart) ||
+      (genericStart < 0 && genericEnd >= 0)
+    ) {
+      fail('has an unclosed generic or range');
+    }
+
+    const rangeStart = body.indexOf('{');
+    const rangeEnd = body.lastIndexOf('}');
+
+    if (
+      (rangeStart >= 0 && rangeEnd < rangeStart) ||
+      (rangeStart < 0 && rangeEnd >= 0)
+    ) {
+      fail('has an unclosed generic or range');
+    }
+
+    if (rangeStart >= 0) {
+      const range = body.slice(rangeStart + 1, rangeEnd);
+
+      if (!/^\d+,\d+$/.test(range)) {
+        fail('has an invalid range');
+      }
+
+      const [min, max] = range.split(',').map(Number);
+
+      if (min > max) {
+        fail('has an invalid range');
+      }
+    }
+
+    const token = tokenizeSegment(segment);
+
+    if (token.type === 'literal') {
+      fail('has an invalid parameter syntax');
+    }
+
+    if (parameterNames.has(token.name)) {
+      fail(`contains duplicate parameter name "${token.name}"`);
+    }
+
+    parameterNames.add(token.name);
+  }
+}
