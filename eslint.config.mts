@@ -38,6 +38,7 @@ export default defineConfig([
       parserOptions: {
         projectService: {
           allowDefaultProject: [
+            '.changeset/*.cjs',
             'docs/.vitepress/*.mts',
             'docs/.vitepress/theme/index.ts',
             'scripts/*.mjs',

@@ -4,52 +4,52 @@
 
 ### Minor Changes
 
-- [#45](https://github.com/effector/router/pull/45) [`8fa32de`](https://github.com/effector/router/commit/8fa32de5f883d883f8944873a3335a814324db97) Thanks [@sergeysova](https://github.com/sergeysova)! - Add `@effector/router-solid`, a new SolidJS bindings package implemented with Solid primitives, targeting SolidJS 1.x.
+- Add `@effector/router-solid`, a new SolidJS bindings package implemented with Solid primitives, targeting SolidJS 1.x. ([#45](https://github.com/effector/router/pull/45) [`8fa32de`](https://github.com/effector/router/commit/8fa32de5f883d883f8944873a3335a814324db97))
 
 ### Patch Changes
 
-- [#82](https://github.com/effector/router/pull/82) [`4200e69`](https://github.com/effector/router/commit/4200e69f7ccd1971da3c38393936d3e76592cb4d) Thanks [@sergeysova](https://github.com/sergeysova)! - Add the composable pre-commit `beforeNavigate` and `redirect` operators, define
+- Add the composable pre-commit `beforeNavigate` and `redirect` operators, define
   pending/cancellation/concurrency for `chainRoute`, and ensure route preparation
   runs once per confirmed navigation. Lazy bindings now start dynamic imports at
-  render time so React/Solid Suspense and Vue loading fallbacks are observable.
+  render time so React/Solid Suspense and Vue loading fallbacks are observable. ([#82](https://github.com/effector/router/pull/82) [`4200e69`](https://github.com/effector/router/commit/4200e69f7ccd1971da3c38393936d3e76592cb4d))
 
-- [#82](https://github.com/effector/router/pull/82) [`3865f69`](https://github.com/effector/router/commit/3865f69f42fa089bebe26e04f9c9584ed6eb84fe) Thanks [@sergeysova](https://github.com/sergeysova)! - Align Link and useLink href serialization with the core query codec and route
-  navigation semantics.
+- Align Link and useLink href serialization with the core query codec and route
+  navigation semantics. ([#82](https://github.com/effector/router/pull/82) [`3865f69`](https://github.com/effector/router/commit/3865f69f42fa089bebe26e04f9c9584ed6eb84fe))
 
-- [#82](https://github.com/effector/router/pull/82) [`e9f7bab`](https://github.com/effector/router/commit/e9f7babfb060d3aa477ddd006777c4e39ac78661) Thanks [@sergeysova](https://github.com/sergeysova)! - Keep layouts mounted across sibling route-view switches with binding-private
-  layout group metadata.
+- Keep layouts mounted across sibling route-view switches with binding-private
+  layout group metadata. ([#82](https://github.com/effector/router/pull/82) [`e9f7bab`](https://github.com/effector/router/commit/e9f7babfb060d3aa477ddd006777c4e39ac78661))
 
-- [#82](https://github.com/effector/router/pull/82) [`4219358`](https://github.com/effector/router/commit/4219358c5099764e42e83f64a8fa37cb9b905ade) Thanks [@sergeysova](https://github.com/sergeysova)! - Complete lazy/eager RouteView parity coverage for render-time imports,
-  fallbacks, recursive children, and application-owned preloading.
+- Complete lazy/eager RouteView parity coverage for render-time imports,
+  fallbacks, recursive children, and application-owned preloading. ([#82](https://github.com/effector/router/pull/82) [`4219358`](https://github.com/effector/router/commit/4219358c5099764e42e83f64a8fa37cb9b905ade))
 
-- [#82](https://github.com/effector/router/pull/82) [`9fbe080`](https://github.com/effector/router/commit/9fbe080f65a97d371b70e2d27b7f55052a14fa7b) Thanks [@sergeysova](https://github.com/sergeysova)! - Preserve native anchor behavior for non-primary, modified, download, cross-origin,
-  and non-self target clicks.
+- Preserve native anchor behavior for non-primary, modified, download, cross-origin,
+  and non-self target clicks. ([#82](https://github.com/effector/router/pull/82) [`9fbe080`](https://github.com/effector/router/commit/9fbe080f65a97d371b70e2d27b7f55052a14fa7b))
 
-- [#82](https://github.com/effector/router/pull/82) [`c4b8e60`](https://github.com/effector/router/commit/c4b8e6010f63506a5ea35a188adf3956e3490dfc) Thanks [@sergeysova](https://github.com/sergeysova)! - Verify persistent layout instances across grouped sibling transitions and
-  unmount them when leaving the group.
+- Verify persistent layout instances across grouped sibling transitions and
+  unmount them when leaving the group. ([#82](https://github.com/effector/router/pull/82) [`c4b8e60`](https://github.com/effector/router/commit/c4b8e6010f63506a5ea35a188adf3956e3490dfc))
 
-- [#82](https://github.com/effector/router/pull/82) [`2672fb2`](https://github.com/effector/router/commit/2672fb26e2b25a5447b5afb56d8a5fb9cd2bec48) Thanks [@sergeysova](https://github.com/sergeysova)! - Centralize URL query encoding and expose QueryInput removal semantics across
-  core and framework link types.
+- Centralize URL query encoding and expose QueryInput removal semantics across
+  core and framework link types. ([#82](https://github.com/effector/router/pull/82) [`2672fb2`](https://github.com/effector/router/commit/2672fb26e2b25a5447b5afb56d8a5fb9cd2bec48))
 
-- [#82](https://github.com/effector/router/pull/82) [`18805d8`](https://github.com/effector/router/commit/18805d85ce0f2a3db012fd387c3b7b453820014d) Thanks [@sergeysova](https://github.com/sergeysova)! - Align query replacement, preservation, and clearing semantics across navigation,
-  route opens, redirects, and framework link hrefs.
+- Align query replacement, preservation, and clearing semantics across navigation,
+  route opens, redirects, and framework link hrefs. ([#82](https://github.com/effector/router/pull/82) [`18805d8`](https://github.com/effector/router/commit/18805d85ce0f2a3db012fd387c3b7b453820014d))
 
-- [#82](https://github.com/effector/router/pull/82) [`fe905b3`](https://github.com/effector/router/commit/fe905b33079c4ba1f0c7c0fa2fa91ec3f3198dd4) Thanks [@sergeysova](https://github.com/sergeysova)! - Make Outlet recursive across React, Solid, and Vue so nested RouteView trees
-  receive each selected child's children.
+- Make Outlet recursive across React, Solid, and Vue so nested RouteView trees
+  receive each selected child's children. ([#82](https://github.com/effector/router/pull/82) [`fe905b3`](https://github.com/effector/router/commit/fe905b33079c4ba1f0c7c0fa2fa91ec3f3198dd4))
 
-- [#82](https://github.com/effector/router/pull/82) [`5d244fd`](https://github.com/effector/router/commit/5d244fd5d71a01320e75a0c8b70cd421e2999dbf) Thanks [@sergeysova](https://github.com/sergeysova)! - Fix route parameter parsing and updates, and preserve route-view metadata across
+- Fix route parameter parsing and updates, and preserve route-view metadata across
   web bindings. Links now expose query parameters in their rendered href, and
-  Solid links can apply an `activeClass` while their route is open.
+  Solid links can apply an `activeClass` while their route is open. ([#82](https://github.com/effector/router/pull/82) [`5d244fd`](https://github.com/effector/router/commit/5d244fd5d71a01320e75a0c8b70cd421e2999dbf))
 
-- [#82](https://github.com/effector/router/pull/82) [`0b71111`](https://github.com/effector/router/commit/0b711115315caee8171a5db642f651e4584bda3c) Thanks [@sergeysova](https://github.com/sergeysova)! - Complete the cross-binding RouteView matrix and synchronize its documentation.
+- Complete the cross-binding RouteView matrix and synchronize its documentation. ([#82](https://github.com/effector/router/pull/82) [`0b71111`](https://github.com/effector/router/commit/0b711115315caee8171a5db642f651e4584bda3c))
 
-- [#82](https://github.com/effector/router/pull/82) [`516bb03`](https://github.com/effector/router/commit/516bb03f627c5366e3a27512ca203fba1ebe866d) Thanks [@sergeysova](https://github.com/sergeysova)! - Document and verify declarative RouteView selection priority across web
-  bindings.
+- Document and verify declarative RouteView selection priority across web
+  bindings. ([#82](https://github.com/effector/router/pull/82) [`516bb03`](https://github.com/effector/router/commit/516bb03f627c5366e3a27512ca203fba1ebe866d))
 
-- [#82](https://github.com/effector/router/pull/82) [`1768ebf`](https://github.com/effector/router/commit/1768ebf9786e194b3be070128bdcb0353a676436) Thanks [@sergeysova](https://github.com/sergeysova)! - Add Solid Link/useLink coverage for reactive params and query plus conditional
-  parameter types.
+- Add Solid Link/useLink coverage for reactive params and query plus conditional
+  parameter types. ([#82](https://github.com/effector/router/pull/82) [`1768ebf`](https://github.com/effector/router/commit/1768ebf9786e194b3be070128bdcb0353a676436))
 
-- [#82](https://github.com/effector/router/pull/82) [`2e9b4ec`](https://github.com/effector/router/commit/2e9b4ecda39347bd9f2e3226caccdd8f644cf2bd) Thanks [@sergeysova](https://github.com/sergeysova)! - Document and verify the shared cross-binding web Link contract matrix.
+- Document and verify the shared cross-binding web Link contract matrix. ([#82](https://github.com/effector/router/pull/82) [`2e9b4ec`](https://github.com/effector/router/commit/2e9b4ecda39347bd9f2e3226caccdd8f644cf2bd))
 
-- Updated dependencies [[`4200e69`](https://github.com/effector/router/commit/4200e69f7ccd1971da3c38393936d3e76592cb4d), [`38ccf80`](https://github.com/effector/router/commit/38ccf804c3bd8c7ad9baa242b9b893e9eb4b065a), [`9b0404f`](https://github.com/effector/router/commit/9b0404f24ca8581b884ec55a9375209dfcfcc9cb), [`8798ff4`](https://github.com/effector/router/commit/8798ff487f68f364864d7d5c7b907ce31d9e828b), [`a72f373`](https://github.com/effector/router/commit/a72f3739eb0b9dc1aa83d38dc10a1d8d94dcb808), [`eda3d34`](https://github.com/effector/router/commit/eda3d3426ce3d95a85f9fc3d640ca25b30b3e7b0), [`0c4e2bd`](https://github.com/effector/router/commit/0c4e2bd35430d565f8183b81e0ef70c815ffe282), [`f2af6b4`](https://github.com/effector/router/commit/f2af6b4f52065ef60a1d8b5a5ded486e868cbb55), [`d013248`](https://github.com/effector/router/commit/d013248fe72ad61ad0fbb2166ee34dc658debeed), [`b986fc3`](https://github.com/effector/router/commit/b986fc3e86f0d93310d43f320a4c188109e9075b), [`fd3d1c2`](https://github.com/effector/router/commit/fd3d1c260330f2c3f640c85bfd29d10d7d15ba34), [`e1a3985`](https://github.com/effector/router/commit/e1a3985b6db6934f06ea26ac4e79182385e8dc06), [`ba7ef23`](https://github.com/effector/router/commit/ba7ef2382c3f5ea3e115aeb6c56ff5f09b840511), [`30cfeb0`](https://github.com/effector/router/commit/30cfeb07b61e6e9a9fc55eae96ac516d9583544d), [`474bcc5`](https://github.com/effector/router/commit/474bcc5dd2cb6dea54d5b7f04c2e8e94c9ad7d67), [`4bcdba8`](https://github.com/effector/router/commit/4bcdba83463709f0e62be07a02b3b094ed51bc49), [`88ed1e0`](https://github.com/effector/router/commit/88ed1e0c6f381bdd887b5f53c38cd153452cade5), [`4a03bd0`](https://github.com/effector/router/commit/4a03bd0557969640f68708970a60cab78936fd8d), [`fc36192`](https://github.com/effector/router/commit/fc36192cffbad1b32087562b072404716895b6b8), [`fd3937f`](https://github.com/effector/router/commit/fd3937fe3812ea60de869b14bef2e7cd822de765), [`95d031a`](https://github.com/effector/router/commit/95d031ae4298c1ce9cf331b06afedabc0870cab6), [`2c8148a`](https://github.com/effector/router/commit/2c8148a9d72232d6bab9f4a8b0f0b825af71a6b4), [`2672fb2`](https://github.com/effector/router/commit/2672fb26e2b25a5447b5afb56d8a5fb9cd2bec48), [`9102583`](https://github.com/effector/router/commit/9102583bc370e32100e60a9fc37199504d6dfea2), [`672f427`](https://github.com/effector/router/commit/672f4278a9bd0009b4bf82d8553f6842c90d0906), [`18805d8`](https://github.com/effector/router/commit/18805d85ce0f2a3db012fd387c3b7b453820014d), [`a502d68`](https://github.com/effector/router/commit/a502d68b3bbe894bbd14ad9a2314e69436af125a), [`5d244fd`](https://github.com/effector/router/commit/5d244fd5d71a01320e75a0c8b70cd421e2999dbf), [`9dc6c2f`](https://github.com/effector/router/commit/9dc6c2f4fbfc2d35d8ba9c6ce4a7619a7e82efe2), [`7983df2`](https://github.com/effector/router/commit/7983df2ae762f6a7bd9735c6b6b0cbca5ca00bd8), [`5abb9da`](https://github.com/effector/router/commit/5abb9dafc8f0f937cfda1d3d168335855324d966), [`b01c71e`](https://github.com/effector/router/commit/b01c71e7345fb15de67ca8fbe7fab3527b55acc8), [`fb708b9`](https://github.com/effector/router/commit/fb708b9d62318cc544bd2c23c6bee2fe7250f1b1), [`bc30897`](https://github.com/effector/router/commit/bc308972567f4d1081653e0dc93cf9e9ada5d49a), [`4158b70`](https://github.com/effector/router/commit/4158b701dff777a3f61c7ea418ea7f69c341e293), [`136a1f0`](https://github.com/effector/router/commit/136a1f06cf4bb4a0c06d039a4536433168056b39), [`7e86724`](https://github.com/effector/router/commit/7e86724e53ba723fb0f9f4446ba2e2c982fbe54c), [`f7a03cd`](https://github.com/effector/router/commit/f7a03cd4e10c32af2544b2a6cabe22681afbd6a4), [`d5e22b1`](https://github.com/effector/router/commit/d5e22b1b3e882461d472c7807ebf14c6c53652cf)]:
+- Updated dependencies:
   - @effector/router@1.2.0
