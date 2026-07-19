@@ -35,7 +35,7 @@
   font-weight: 700;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 1279px) {
   .hero-triad {
     justify-content: center;
   }

@@ -87,6 +87,14 @@
 .hero-code .c { color: var(--vp-c-text-3); font-style: italic; }
 .hero-code .v { color: var(--vp-c-text-1); }
 
+@media (max-width: 1279px) {
+  .hero-code {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
 @media (max-width: 960px) {
   .hero-code {
     max-width: 100%;
