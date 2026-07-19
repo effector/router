@@ -3,8 +3,12 @@
   "private": true,
   "type": "module",
   "devDependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/jetbrains-mono": "^5.2.8",
     "@iconify-json/logos": "1.2.10",
+    "@resvg/resvg-js": "^2.6.2",
     "@unocss/preset-icons": "66.6.4",
+    "satori": "^0.28.0",
     "unocss": "66.6.4",
     "vite": "catalog:",
     "vitepress": "catalog:"
