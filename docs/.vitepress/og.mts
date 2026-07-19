@@ -62,6 +62,7 @@ function firstParagraph(relativePath: string): string | undefined {
   }
 
   const body = raw
+    .replace(/\r\n/g, '\n') // normalize CRLF so the strips below match
     .replace(/^---\n[\s\S]*?\n---\n/, '')
     .replace(/```[\s\S]*?```/g, '');
 
@@ -411,6 +412,14 @@ export async function renderCard(input: CardInput): Promise<Buffer> {
     .asPng();
 }
 
+/** Per-page overrides read from the `og:` frontmatter block. */
+export interface PageOg {
+  /** Two-line headline for the home card; falls back to the page title. */
+  headline?: string;
+  /** Brand claim chips (home card only). */
+  chips?: string[];
+}
+
 export interface OgImagesOptions {
   /** Absolute site origin, e.g. `https://router.effector.dev`. */
   site: string;
@@ -459,16 +468,23 @@ export function createOgImages(options: OgImagesOptions): OgImagesPlugin {
     ],
 
     transformPageData(pageData) {
-      const isHome = pageData.frontmatter.layout === 'home';
-      const pageTitle = isHome
-        ? 'A route is a unit of logic'
-        : (pageData.frontmatter.title ?? pageData.title);
+      const fm = pageData.frontmatter;
+      const hero = fm.hero as { text?: string; tagline?: string } | undefined;
+      const og = (fm.og ?? {}) as PageOg;
+      // The home page is the only one with a `home` layout and a hero, so the
+      // few genuine differences hang off this single flag.
+      const isHome = fm.layout === 'home';
+
+      // Home derives its title from the hero; other pages from their heading.
+      const pageTitle = hero?.text ?? fm.title ?? pageData.title;
       const title = isHome
-        ? `${siteTitle} — a route is a unit of logic`
+        ? `${siteTitle} — ${pageTitle}`
         : `${pageTitle} · ${siteTitle}`;
+      // Meta description: the page's own, else its first prose paragraph (the
+      // home page has none, so it falls through to the site description).
       const description =
-        pageData.frontmatter.description ??
-        (isHome ? undefined : firstParagraph(pageData.relativePath)) ??
+        fm.description ??
+        firstParagraph(pageData.relativePath) ??
         siteDescription;
       const url = `${site}/${pageData.relativePath
         .replace(/index\.md$/, '')
@@ -478,21 +494,17 @@ export function createOgImages(options: OgImagesOptions): OgImagesPlugin {
       const image = `${site}/og/${slug}.png`;
       // On a section's overview page the title already is the section name, so
       // the corner label would just repeat it — drop it there.
-      const section = isHome ? undefined : sectionLabel(pageData.relativePath);
+      const section = sectionLabel(pageData.relativePath);
       cards.set(slug, {
         title: pageTitle,
-        // The home meta description repeats the title for SEO keywords; on the
-        // card the shorter hero tagline reads better under the same title.
-        description: isHome
-          ? (pageData.frontmatter.hero?.tagline ?? description)
-          : description,
+        // The hero tagline reads better on the card than the keyword-stuffed
+        // meta description; only the home page has one.
+        description: hero?.tagline ?? description,
         section: section === pageTitle ? undefined : section,
-        chips: isHome
-          ? ['Type-safe', 'Framework-agnostic', 'Observable']
-          : undefined,
+        chips: og.chips,
+        headline: og.headline,
         home: isHome,
         version: isHome ? version : undefined,
-        headline: isHome ? 'A route is a\nunit of logic' : undefined,
       });
 
       pageData.frontmatter.head ??= [];

@@ -2,6 +2,17 @@
 # https://vitepress.dev/reference/default-theme-home-page
 layout: home
 
+# Social card overrides (docs/.vitepress/og.mts). The card otherwise derives
+# its title and description from the hero above.
+og:
+  headline: |-
+    A route is a
+    unit of logic
+  chips:
+    - Type-safe
+    - Framework-agnostic
+    - Observable
+
 hero:
   name: '@effector/router'
   text: 'A route is a unit of logic'
