@@ -33,7 +33,7 @@
 <style scoped>
 .hero-code {
   width: 100%;
-  max-width: 540px;
+  max-width: 480px;
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid var(--vp-c-divider);

@@ -100,6 +100,39 @@
   );
 }
 
+/* Keep the hero heading on one line and clear of the code panel */
+@media (min-width: 960px) {
+  .VPHero .name,
+  .VPHero .text {
+    font-size: 52px;
+    line-height: 1.15;
+  }
+
+  .VPHero .text,
+  .VPHero .tagline {
+    text-wrap: balance;
+  }
+}
+
+/* Below 1280px there isn't room for the code panel beside the hero.
+   Stack it below the copy — text first, code after — overriding the
+   default theme's image-on-top negative margins that assume a small image. */
+@media (max-width: 1279px) {
+  .VPHero .container {
+    flex-direction: column;
+  }
+
+  .VPHero .main {
+    max-width: 100%;
+    order: 1;
+  }
+
+  .VPHero .image {
+    order: 2;
+    margin: 32px 0 0;
+  }
+}
+
 /**
  * Component: Custom Block
  * -------------------------------------------------------------------------- */
