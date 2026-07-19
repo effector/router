@@ -122,29 +122,36 @@
     flex-direction: column;
   }
 
-  .VPHero .main {
+  .VPHero.has-image .container .main {
     order: 1;
     margin-left: auto;
     margin-right: auto;
   }
 
-  .VPHero .heading,
-  .VPHero .text,
-  .VPHero .tagline {
+  .VPHero.has-image .main .name,
+  .VPHero.has-image .main .text {
+    display: block;
+    width: 100%;
     text-align: center;
   }
 
-  .VPHero .actions {
+  .VPHero.has-image .main .tagline {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .VPHero.has-image .main .actions {
     justify-content: center;
   }
 
-  .VPHero .image {
+  .VPHero.has-image .container .image {
     order: 2;
     width: 100%;
     margin: 32px 0 0;
   }
 
-  .VPHero .image-container {
+  .VPHero.has-image .container .image-container {
     width: 100%;
     padding: 0;
     transform: none;

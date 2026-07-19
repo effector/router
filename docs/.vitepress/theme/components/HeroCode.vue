@@ -8,24 +8,25 @@
       <span class="hero-code__dot" />
       <span class="hero-code__file">routing.ts</span>
     </div>
-    <pre class="hero-code__body"><code><span class="k">import</span> { createRoute } <span class="k">from</span> <span class="s">'@effector/router'</span>
+    <pre class="hero-code__body"><code><span class="k">import</span> { beforeNavigate, chainRoute } <span class="k">from</span> <span class="s">'@effector/router'</span>
 <span class="k">import</span> { sample } <span class="k">from</span> <span class="s">'effector'</span>
 
-<span class="c">// A route is a unit, not a URL string</span>
-<span class="k">const</span> <span class="v">postRoute</span> = <span class="f">createRoute</span>({ path: <span class="s">'/posts/:id'</span> })
-
-<span class="c">// Navigation is an event, fired from your model</span>
-<span class="f">sample</span>({
-  clock: <span class="v">postCardClicked</span>,
-  fn: (post) => ({ params: { id: post.id } }),
-  target: <span class="v">postRoute</span>.<span class="f">open</span>,
+<span class="c">// Hold navigation until the guard resolves</span>
+<span class="k">const</span> <span class="v">guard</span> = <span class="f">beforeNavigate</span>({
+  controls,
+  to: <span class="v">dashboardRoute</span>,
+  filter: <span class="v">$unauthorized</span>,
 })
 
-<span class="c">// Data loads before render — in the model</span>
 <span class="f">sample</span>({
-  clock: <span class="v">postRoute</span>.<span class="v">opened</span>,
-  fn: ({ params }) => params.id,
-  target: <span class="v">fetchPostFx</span>,
+  clock: <span class="v">guard</span>.<span class="v">started</span>,
+  target: <span class="f">redirect</span>({ to: <span class="v">loginRoute</span> }),
+})
+
+<span class="c">// Open the route only after data is ready</span>
+<span class="k">const</span> <span class="v">readyDashboard</span> = <span class="f">chainRoute</span>({
+  route: <span class="v">dashboardRoute</span>,
+  beforeOpen: <span class="v">loadDashboardFx</span>,
 })</code></pre>
   </div>
 </template>
@@ -70,7 +71,7 @@
   padding: 18px 20px;
   overflow-x: auto;
   font-family: var(--vp-font-family-mono);
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.65;
   color: var(--vp-c-text-1);
 }
