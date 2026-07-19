@@ -70,6 +70,43 @@ const paths = [
         </div>
       </div>
 
+      <!-- Why not react-router / tanstack -->
+      <div class="he-diff">
+        <p class="he-eyebrow he-eyebrow--center">HOW IT DIFFERS</p>
+        <h2 class="he-title he-title--center">A different model, on purpose</h2>
+        <p class="he-lead he-lead--center">
+          Most routers treat a route <em>as</em> a URL, and navigation as a
+          side effect of rendering. Here a route is an Effector unit — so
+          navigation is state you can observe, combine and test without a DOM.
+        </p>
+        <div class="he-diff__grid">
+          <div class="he-diff__col he-diff__col--muted">
+            <p class="he-diff__head">Most routers</p>
+            <ul class="he-diff__list">
+              <li>A route <strong>is</strong> a URL string</li>
+              <li>Navigation lives inside components</li>
+              <li>Params typed by hand, checked at runtime</li>
+              <li>Modals and wizards aren't routes</li>
+              <li>SSR needs a dedicated integration</li>
+            </ul>
+          </div>
+          <div class="he-diff__col he-diff__col--brand">
+            <p class="he-diff__head">@effector/router</p>
+            <ul class="he-diff__list">
+              <li>A route <strong>is</strong> a unit of state and events</li>
+              <li>Navigation is driven from your model with <code>sample</code></li>
+              <li>Params inferred from the path, checked by the compiler</li>
+              <li>Pathless routes model modals, steps and native screens</li>
+              <li>Isomorphism comes from Effector — fork a scope, serialize</li>
+            </ul>
+          </div>
+        </div>
+        <p class="he-diff__note">
+          Not a replacement for react-router or TanStack Router — a different
+          answer for apps already modelling logic in Effector.
+        </p>
+      </div>
+
       <!-- Choose your path -->
       <div class="he-adventure">
         <p class="he-eyebrow he-eyebrow--center">CHOOSE YOUR PATH</p>
@@ -159,6 +196,90 @@ const paths = [
   border-radius: 4px;
 }
 
+.he-lead--center {
+  text-align: center;
+  max-width: 620px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Differentiation */
+.he-diff {
+  margin-top: 80px;
+}
+
+.he-diff__grid {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.he-diff__col {
+  padding: 24px 26px;
+  border-radius: 12px;
+  border: 1px solid var(--vp-c-divider);
+}
+
+.he-diff__col--muted {
+  background: var(--vp-c-bg-soft);
+}
+
+.he-diff__col--brand {
+  background: var(--vp-c-brand-soft);
+  border-color: var(--vp-c-brand-1);
+}
+
+.he-diff__head {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 0 0 16px;
+}
+
+.he-diff__col--muted .he-diff__head {
+  color: var(--vp-c-text-2);
+}
+
+.he-diff__col--brand .he-diff__head {
+  color: var(--vp-c-brand-1);
+}
+
+.he-diff__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.he-diff__list li {
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--vp-c-text-2);
+}
+
+.he-diff__col--brand .he-diff__list li {
+  color: var(--vp-c-text-1);
+}
+
+.he-diff__list code {
+  font-size: 13px;
+  background: var(--vp-c-bg-soft);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.he-diff__note {
+  margin: 24px auto 0;
+  max-width: 560px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--vp-c-text-3);
+}
+
 /* Split layout */
 .he-split {
   display: grid;
@@ -243,6 +364,9 @@ const paths = [
   .he-split {
     grid-template-columns: 1fr;
     gap: 32px;
+  }
+  .he-diff__grid {
+    grid-template-columns: 1fr;
   }
   .he-cards {
     grid-template-columns: repeat(2, 1fr);
