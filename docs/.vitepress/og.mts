@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import type { HeadConfig, PageData, SiteConfig } from 'vitepress';
 import satori from 'satori';
 import { Resvg } from '@resvg/resvg-js';
 
@@ -47,6 +48,36 @@ const fonts = [
 
 const WIDTH = 1200;
 const HEIGHT = 630;
+
+/**
+ * Pull the first prose paragraph out of a page so link previews show what the
+ * page is actually about instead of repeating the site description.
+ */
+function firstParagraph(relativePath: string): string | undefined {
+  let raw: string;
+  try {
+    raw = fs.readFileSync(path.resolve(dir, '..', relativePath), 'utf-8');
+  } catch {
+    return undefined;
+  }
+
+  const body = raw
+    .replace(/^---\n[\s\S]*?\n---\n/, '')
+    .replace(/```[\s\S]*?```/g, '');
+
+  for (const block of body.split(/\n\s*\n/)) {
+    const text = block.trim();
+    if (!text || /^[#>\-*|:]/.test(text)) continue;
+    const plain = text
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+      .replace(/[`*_]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (plain.length < 40) continue;
+    return plain.length > 180 ? `${plain.slice(0, 177).trimEnd()}…` : plain;
+  }
+  return undefined;
+}
 
 /** Turn a page's source path into a stable, filesystem-safe image slug. */
 export function pathToSlug(relativePath: string): string {
@@ -378,4 +409,122 @@ export async function renderCard(input: CardInput): Promise<Buffer> {
   return new Resvg(svg, { fitTo: { mode: 'width', value: WIDTH } })
     .render()
     .asPng();
+}
+
+export interface OgImagesOptions {
+  /** Absolute site origin, e.g. `https://router.effector.dev`. */
+  site: string;
+  /** Brand name, used in titles and `og:site_name`. */
+  siteTitle: string;
+  /** Fallback description for pages that have none of their own. */
+  siteDescription: string;
+  /** Rendered as a pill on the landing card. */
+  version: string;
+}
+
+/** The config fragments a caller spreads into `defineConfig`. */
+export interface OgImagesPlugin {
+  head: HeadConfig[];
+  transformPageData: (pageData: PageData) => void;
+  buildEnd: (siteConfig: SiteConfig) => Promise<void>;
+}
+
+/**
+ * VitePress "plugin" for per-page Open Graph cards. VitePress has no formal
+ * plugin API, so this returns the config fragments to wire in:
+ *
+ *   const og = createOgImages({ site, siteTitle, siteDescription, version });
+ *   defineConfig({
+ *     head: [...yourHead, ...og.head],
+ *     transformPageData: og.transformPageData,
+ *     buildEnd: og.buildEnd,
+ *   });
+ *
+ * `transformPageData` runs per page during build: it adds the meta tags and
+ * records what each card should say. `buildEnd` then renders every recorded
+ * card into `dist/og/<slug>.png` — all inside `vitepress build`, no extra step.
+ */
+export function createOgImages(options: OgImagesOptions): OgImagesPlugin {
+  const { site, siteTitle, siteDescription, version } = options;
+  // Collected in transformPageData, consumed in buildEnd. Keyed by the same
+  // slug the og:image URL uses, so tag and file always agree.
+  const cards = new Map<string, CardInput>();
+
+  return {
+    head: [
+      ['meta', { property: 'og:site_name', content: siteTitle }],
+      ['meta', { property: 'og:image:width', content: `${WIDTH}` }],
+      ['meta', { property: 'og:image:height', content: `${HEIGHT}` }],
+      ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ],
+
+    transformPageData(pageData) {
+      const isHome = pageData.frontmatter.layout === 'home';
+      const pageTitle = isHome
+        ? 'A route is a unit of logic'
+        : (pageData.frontmatter.title ?? pageData.title);
+      const title = isHome
+        ? `${siteTitle} — a route is a unit of logic`
+        : `${pageTitle} · ${siteTitle}`;
+      const description =
+        pageData.frontmatter.description ??
+        (isHome ? undefined : firstParagraph(pageData.relativePath)) ??
+        siteDescription;
+      const url = `${site}/${pageData.relativePath
+        .replace(/index\.md$/, '')
+        .replace(/\.md$/, '')}`;
+
+      const slug = pathToSlug(pageData.relativePath);
+      const image = `${site}/og/${slug}.png`;
+      // On a section's overview page the title already is the section name, so
+      // the corner label would just repeat it — drop it there.
+      const section = isHome ? undefined : sectionLabel(pageData.relativePath);
+      cards.set(slug, {
+        title: pageTitle,
+        // The home meta description repeats the title for SEO keywords; on the
+        // card the shorter hero tagline reads better under the same title.
+        description: isHome
+          ? (pageData.frontmatter.hero?.tagline ?? description)
+          : description,
+        section: section === pageTitle ? undefined : section,
+        chips: isHome
+          ? ['Type-safe', 'Framework-agnostic', 'Observable']
+          : undefined,
+        home: isHome,
+        version: isHome ? version : undefined,
+        headline: isHome ? 'A route is a\nunit of logic' : undefined,
+      });
+
+      pageData.frontmatter.head ??= [];
+      pageData.frontmatter.head.push(
+        ['link', { rel: 'canonical', href: url }],
+        [
+          'meta',
+          { property: 'og:type', content: isHome ? 'website' : 'article' },
+        ],
+        ['meta', { property: 'og:title', content: title }],
+        ['meta', { property: 'og:description', content: description }],
+        ['meta', { property: 'og:url', content: url }],
+        ['meta', { property: 'og:image', content: image }],
+        ['meta', { property: 'og:image:alt', content: title }],
+        ['meta', { name: 'twitter:title', content: title }],
+        ['meta', { name: 'twitter:description', content: description }],
+        ['meta', { name: 'twitter:image', content: image }],
+      );
+    },
+
+    async buildEnd({ outDir }) {
+      const ogDir = path.join(outDir, 'og');
+      fs.mkdirSync(ogDir, { recursive: true });
+      await Promise.all(
+        [...cards].map(async ([slug, card]) => {
+          fs.writeFileSync(
+            path.join(ogDir, `${slug}.png`),
+            await renderCard(card),
+          );
+        }),
+      );
+      console.log(`generated ${cards.size} og images`);
+    },
+  };
 }

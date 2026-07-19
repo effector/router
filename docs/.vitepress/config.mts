@@ -3,7 +3,7 @@ import { defineConfig } from 'vitepress';
 import path from 'path';
 import fs from 'fs';
 
-import { pathToSlug, sectionLabel, renderCard, type CardInput } from './og.mjs';
+import { createOgImages } from './og.mjs';
 
 const { version } = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, '../../packages/core/package.json'), {
@@ -16,124 +16,21 @@ const siteTitle = '@effector/router';
 const siteDescription =
   'A route is a unit of logic. Model navigation as state and events with Effector — routes without URLs, type-safe params, transition policy, SSR by design.';
 
-/**
- * Card content collected per page in `transformPageData` (which runs for every
- * page during build) and consumed in `buildEnd` to render the images. Keyed by
- * the same slug the `og:image` URL uses, so tag and file always agree.
- */
-const cards = new Map<string, CardInput>();
-
-/**
- * Pull the first prose paragraph out of a page so link previews show what the
- * page is actually about instead of repeating the site description.
- */
-function firstParagraph(relativePath: string): string | undefined {
-  let raw: string;
-  try {
-    raw = fs.readFileSync(path.resolve(__dirname, '..', relativePath), 'utf-8');
-  } catch {
-    return undefined;
-  }
-
-  const body = raw
-    .replace(/^---\n[\s\S]*?\n---\n/, '')
-    .replace(/```[\s\S]*?```/g, '');
-
-  for (const block of body.split(/\n\s*\n/)) {
-    const text = block.trim();
-    if (!text || /^[#>\-*|:]/.test(text)) continue;
-    const plain = text
-      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
-      .replace(/[`*_]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-    if (plain.length < 40) continue;
-    return plain.length > 180 ? `${plain.slice(0, 177).trimEnd()}…` : plain;
-  }
-  return undefined;
-}
+// Per-page Open Graph cards. Generates og:image/meta tags and renders the PNGs
+// during `vitepress build`; see docs/.vitepress/og.mts.
+const og = createOgImages({ site, siteTitle, siteDescription, version });
 
 export default defineConfig({
   title: 'effector router',
   description: siteDescription,
   base: '/',
-  // Tags shared by every page. Anything that varies per page (title,
-  // description, url, image) is added in `transformPageData` below.
   head: [
     ['link', { rel: 'icon', href: '/favicon.ico' }],
     ['meta', { name: 'theme-color', content: '#ff7518' }],
-    ['meta', { property: 'og:site_name', content: siteTitle }],
-    ['meta', { property: 'og:image:width', content: '1200' }],
-    ['meta', { property: 'og:image:height', content: '630' }],
-    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
+    ...og.head,
   ],
-  transformPageData(pageData) {
-    const isHome = pageData.frontmatter.layout === 'home';
-    const pageTitle = isHome
-      ? 'A route is a unit of logic'
-      : (pageData.frontmatter.title ?? pageData.title);
-    const title = isHome
-      ? `${siteTitle} — a route is a unit of logic`
-      : `${pageTitle} · ${siteTitle}`;
-    const description =
-      pageData.frontmatter.description ??
-      (isHome ? undefined : firstParagraph(pageData.relativePath)) ??
-      siteDescription;
-    const url = `${site}/${pageData.relativePath
-      .replace(/index\.md$/, '')
-      .replace(/\.md$/, '')}`;
-
-    const slug = pathToSlug(pageData.relativePath);
-    const image = `${site}/og/${slug}.png`;
-    // On a section's overview page the title already is the section name, so
-    // the corner label would just repeat it — drop it there.
-    const section = isHome ? undefined : sectionLabel(pageData.relativePath);
-    cards.set(slug, {
-      title: pageTitle,
-      // The home meta description repeats the title for SEO keywords; on the
-      // card the shorter hero tagline reads better under the same title.
-      description: isHome
-        ? (pageData.frontmatter.hero?.tagline ?? description)
-        : description,
-      section: section === pageTitle ? undefined : section,
-      chips: isHome
-        ? ['Type-safe', 'Framework-agnostic', 'Observable']
-        : undefined,
-      home: isHome,
-      version: isHome ? version : undefined,
-      headline: isHome ? 'A route is a\nunit of logic' : undefined,
-    });
-
-    pageData.frontmatter.head ??= [];
-    pageData.frontmatter.head.push(
-      ['link', { rel: 'canonical', href: url }],
-      [
-        'meta',
-        { property: 'og:type', content: isHome ? 'website' : 'article' },
-      ],
-      ['meta', { property: 'og:title', content: title }],
-      ['meta', { property: 'og:description', content: description }],
-      ['meta', { property: 'og:url', content: url }],
-      ['meta', { property: 'og:image', content: image }],
-      ['meta', { property: 'og:image:alt', content: title }],
-      ['meta', { name: 'twitter:title', content: title }],
-      ['meta', { name: 'twitter:description', content: description }],
-      ['meta', { name: 'twitter:image', content: image }],
-    );
-  },
-  async buildEnd({ outDir }) {
-    const ogDir = path.join(outDir, 'og');
-    fs.mkdirSync(ogDir, { recursive: true });
-    await Promise.all(
-      [...cards].map(async ([slug, card]) => {
-        fs.writeFileSync(
-          path.join(ogDir, `${slug}.png`),
-          await renderCard(card),
-        );
-      }),
-    );
-    console.log(`generated ${cards.size} og images`);
-  },
+  transformPageData: og.transformPageData,
+  buildEnd: og.buildEnd,
   themeConfig: {
     logo: './logo.svg',
     nav: [
