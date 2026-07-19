@@ -5,7 +5,7 @@ layout: home
 hero:
   name: '@effector/router'
   text: 'A route is a unit of logic'
-  tagline: 'Type-safe, framework-agnostic routing built on Effector. Model navigation as state and events — then render it with React, React Native, or nothing at all.'
+  tagline: 'Routing built on Effector. Model navigation as state and events — then render it anywhere.'
   actions:
     - theme: brand
       text: Get Started
