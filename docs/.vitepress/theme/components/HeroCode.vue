@@ -6,7 +6,7 @@
       <span class="hero-code__dot" />
       <span class="hero-code__dot" />
       <span class="hero-code__dot" />
-      <span class="hero-code__file">routing.ts</span>
+      <span class="hero-code__file">page.model.ts</span>
     </div>
     <pre class="hero-code__body"><code><span class="k">import</span> { beforeNavigate, chainRoute } <span class="k">from</span> <span class="s">'@effector/router'</span>
 <span class="k">import</span> { sample } <span class="k">from</span> <span class="s">'effector'</span>
