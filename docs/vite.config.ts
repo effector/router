@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import Unocss from 'unocss/vite';
-import { presetAttributify, presetIcons, presetUno } from 'unocss';
 
 export default defineConfig({
   optimizeDeps: {
@@ -11,17 +10,6 @@ export default defineConfig({
       overlay: false,
     },
   },
-  plugins: [
-    Unocss({
-      presets: [
-        presetUno({
-          dark: 'media',
-        }),
-        presetAttributify(),
-        presetIcons({
-          scale: 1.2,
-        }),
-      ],
-    }),
-  ],
+  // Presets live in uno.config.ts so UnoCSS auto-loads them.
+  plugins: [Unocss()],
 });
