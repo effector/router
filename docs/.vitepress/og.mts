@@ -369,7 +369,7 @@ function template({ title, description, section, chips }: CardInput): Node {
             // satori honours lineClamp only with an explicit block + overflow.
             display: 'block',
             overflow: 'hidden',
-            lineClamp: 4,
+            lineClamp: 3,
           },
           description,
         ),
