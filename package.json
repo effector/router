@@ -41,7 +41,7 @@
     "@types/react": "19.2.14",
     "@typescript-eslint/parser": "8.56.1",
     "@vitejs/plugin-react": "^4.3.4",
-    "@vitejs/plugin-vue": "^5.2.4",
+    "@vitejs/plugin-vue": "^6.0.8",
     "@vue/test-utils": "^2.4.6",
     "effector": "^23.4.4",
     "effector-react": "^23.3.0",

@@ -88,8 +88,8 @@ importers:
         specifier: ^4.3.4
         version: 4.7.0(vite@7.3.2(@types/node@25.3.3)(jiti@2.6.1)(terser@5.46.0)(yaml@2.8.2))
       '@vitejs/plugin-vue':
-        specifier: ^5.2.4
-        version: 5.2.4(vite@7.3.2(@types/node@25.3.3)(jiti@2.6.1)(terser@5.46.0)(yaml@2.8.2))(vue@3.5.29(typescript@5.8.2))
+        specifier: ^6.0.8
+        version: 6.0.8(vite@7.3.2(@types/node@25.3.3)(jiti@2.6.1)(terser@5.46.0)(yaml@2.8.2))(vue@3.5.29(typescript@5.8.2))
       '@vue/test-utils':
         specifier: ^2.4.6
         version: 2.4.11(@vue/compiler-dom@3.5.29)(@vue/server-renderer@3.5.29(vue@3.5.29(typescript@5.8.2)))(vue@3.5.29(typescript@5.8.2))
@@ -617,6 +617,11 @@ packages:
 
   '@babel/parser@7.29.0':
     resolution: {integrity: sha512-IyDgFV5GeDUVX4YdF/3CPULtVGSXXMLh1xVIgdCgxApktqnQV0r7/8Nqthg+8YLGaAtdyIlo2qIdZrbCv4+7ww==}
+    engines: {node: '>=6.0.0'}
+    hasBin: true
+
+  '@babel/parser@7.29.7':
+    resolution: {integrity: sha512-hnORnjP/1P/zFEndoeX+n+t1RwWRJiJpM/jO7FW32Kn9r5+sJB2JWOdYo4L6k78j15eCwY3Gm/7364B1EMwtNg==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -1997,6 +2002,9 @@ packages:
   '@rolldown/pluginutils@1.0.0-beta.27':
     resolution: {integrity: sha512-+d0F4MKMCbeVUJwG96uQ4SgAznZNSq93I3V+9NHA4OpvqG8mRCpGdKmK8l/dl02h2CCDHwW2FqilnTyDcAnqjA==}
 
+  '@rolldown/pluginutils@1.0.1':
+    resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
+
   '@rollup/pluginutils@5.3.0':
     resolution: {integrity: sha512-5EdhGZtnu3V88ces7s53hhfK5KSASnJZv8Lulpc04cWO3REESroJXg73DFsOmgbU2BhwV0E20bu2IDZb3VKW4Q==}
     engines: {node: '>=14.0.0'}
@@ -2490,6 +2498,13 @@ packages:
     engines: {node: ^18.0.0 || >=20.0.0}
     peerDependencies:
       vite: ^5.0.0 || ^6.0.0
+      vue: ^3.2.25
+
+  '@vitejs/plugin-vue@6.0.8':
+    resolution: {integrity: sha512-0ZjgOg7oO6farnNGup7yvoM/YXZV84OZxHAwtflItNa/6zzQyVb5LNxyea3FEKEX2XlagIKzrlH7wwxkKgtiew==}
+    engines: {node: ^20.19.0 || >=22.12.0}
+    peerDependencies:
+      vite: ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
       vue: ^3.2.25
 
   '@vitest/expect@4.1.9':
@@ -3954,6 +3969,11 @@ packages:
 
   nanoid@3.3.15:
     resolution: {integrity: sha512-y7Wygv/7mEOvxTuEQDB8StXdMRBWf1kR/tlhAzBRUFkB2jfcLOAxO/SHmOO2zgz1pVgK29/kyupn059/bCHdjA==}
+    engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
+    hasBin: true
+
+  nanoid@3.3.16:
+    resolution: {integrity: sha512-bzlKTyNJ7+LdGIIwy8ijFpIqEQIvafahV7eYykJ8Cvh42EdJeODoJ6gUJXpQJvej1BddH8OqTXZNE/KfbWAu8Q==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
@@ -5443,6 +5463,10 @@ snapshots:
   '@babel/parser@7.29.0':
     dependencies:
       '@babel/types': 7.29.0
+
+  '@babel/parser@7.29.7':
+    dependencies:
+      '@babel/types': 7.29.7
 
   '@babel/parser@8.0.0':
     dependencies:
@@ -6945,6 +6969,8 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.0-beta.27': {}
 
+  '@rolldown/pluginutils@1.0.1': {}
+
   '@rollup/pluginutils@5.3.0(rollup@4.60.2)':
     dependencies:
       '@types/estree': 1.0.8
@@ -7495,8 +7521,9 @@ snapshots:
       vite: 5.4.21(@types/node@25.3.3)(terser@5.46.0)
       vue: 3.5.29(typescript@5.8.2)
 
-  '@vitejs/plugin-vue@5.2.4(vite@7.3.2(@types/node@25.3.3)(jiti@2.6.1)(terser@5.46.0)(yaml@2.8.2))(vue@3.5.29(typescript@5.8.2))':
+  '@vitejs/plugin-vue@6.0.8(vite@7.3.2(@types/node@25.3.3)(jiti@2.6.1)(terser@5.46.0)(yaml@2.8.2))(vue@3.5.29(typescript@5.8.2))':
     dependencies:
+      '@rolldown/pluginutils': 1.0.1
       vite: 7.3.2(@types/node@25.3.3)(jiti@2.6.1)(terser@5.46.0)(yaml@2.8.2)
       vue: 3.5.29(typescript@5.8.2)
 
@@ -7555,7 +7582,7 @@ snapshots:
 
   '@vue/compiler-core@3.5.29':
     dependencies:
-      '@babel/parser': 7.29.0
+      '@babel/parser': 7.29.7
       '@vue/shared': 3.5.29
       entities: 7.0.1
       estree-walker: 2.0.2
@@ -9152,6 +9179,8 @@ snapshots:
 
   nanoid@3.3.15: {}
 
+  nanoid@3.3.16: {}
+
   natural-compare@1.4.0: {}
 
   negotiator@1.0.0: {}
@@ -9351,7 +9380,7 @@ snapshots:
 
   postcss@8.5.13:
     dependencies:
-      nanoid: 3.3.15
+      nanoid: 3.3.16
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
