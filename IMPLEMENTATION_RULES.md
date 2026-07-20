@@ -83,7 +83,7 @@ pnpm typecheck
 pnpm build
 pnpm test
 pnpm lint
-pnpm :docs docs:build
+pnpm :docs build
 pnpm changeset status --since=origin/main
 ```
 

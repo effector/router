@@ -33,7 +33,7 @@ jobs:
 
       - name: Build
         working-directory: ./docs
-        run: pnpm run docs:build
+        run: pnpm run build
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
