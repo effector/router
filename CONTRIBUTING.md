@@ -127,8 +127,8 @@ pnpm :core exec vitest   # watch mode while developing a package
 Tests run on [Vitest](https://vitest.dev). Working on the docs site:
 
 ```bash
-pnpm :docs docs:dev      # local dev server for router.effector.dev
-pnpm :docs docs:build    # production build of the docs
+pnpm :docs dev      # local dev server for router.effector.dev
+pnpm :docs build    # production build of the docs
 ```
 
 Documentation examples that describe the public API live in

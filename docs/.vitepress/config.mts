@@ -3,6 +3,8 @@ import { defineConfig } from 'vitepress';
 import path from 'path';
 import fs from 'fs';
 
+import { createOgImages } from './og.mjs';
+
 const { version } = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, '../../packages/core/package.json'), {
     encoding: 'utf-8',
@@ -10,40 +12,13 @@ const { version } = JSON.parse(
 );
 
 const site = 'https://router.effector.dev';
-const ogImage = `${site}/og.png`;
 const siteTitle = '@effector/router';
 const siteDescription =
   'A route is a unit of logic. Model navigation as state and events with Effector — routes without URLs, type-safe params, transition policy, SSR by design.';
 
-/**
- * Pull the first prose paragraph out of a page so link previews show what the
- * page is actually about instead of repeating the site description.
- */
-function firstParagraph(relativePath: string): string | undefined {
-  let raw: string;
-  try {
-    raw = fs.readFileSync(path.resolve(__dirname, '..', relativePath), 'utf-8');
-  } catch {
-    return undefined;
-  }
-
-  const body = raw
-    .replace(/^---\n[\s\S]*?\n---\n/, '')
-    .replace(/```[\s\S]*?```/g, '');
-
-  for (const block of body.split(/\n\s*\n/)) {
-    const text = block.trim();
-    if (!text || /^[#>\-*|:]/.test(text)) continue;
-    const plain = text
-      .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
-      .replace(/[`*_]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-    if (plain.length < 40) continue;
-    return plain.length > 180 ? `${plain.slice(0, 177).trimEnd()}…` : plain;
-  }
-  return undefined;
-}
+// Per-page Open Graph cards. Generates og:image/meta tags and renders the PNGs
+// during `vitepress build`; see docs/.vitepress/og.mts.
+const og = createOgImages({ site, siteTitle, siteDescription, version });
 
 export default defineConfig({
   title: 'effector router',
@@ -52,44 +27,10 @@ export default defineConfig({
   head: [
     ['link', { rel: 'icon', href: '/favicon.ico' }],
     ['meta', { name: 'theme-color', content: '#ff7518' }],
-    ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:site_name', content: siteTitle }],
-    ['meta', { property: 'og:image', content: ogImage }],
-    ['meta', { property: 'og:image:width', content: '1200' }],
-    ['meta', { property: 'og:image:height', content: '630' }],
-    [
-      'meta',
-      {
-        property: 'og:image:alt',
-        content: '@effector/router — a route is a unit of logic',
-      },
-    ],
-    ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-    ['meta', { name: 'twitter:image', content: ogImage }],
+    ...og.head,
   ],
-  transformPageData(pageData) {
-    const isHome = pageData.frontmatter.layout === 'home';
-    const title = isHome
-      ? `${siteTitle} — a route is a unit of logic`
-      : `${pageData.frontmatter.title ?? pageData.title} · ${siteTitle}`;
-    const description =
-      pageData.frontmatter.description ??
-      (isHome ? undefined : firstParagraph(pageData.relativePath)) ??
-      siteDescription;
-    const url = `${site}/${pageData.relativePath
-      .replace(/index\.md$/, '')
-      .replace(/\.md$/, '')}`;
-
-    pageData.frontmatter.head ??= [];
-    pageData.frontmatter.head.push(
-      ['link', { rel: 'canonical', href: url }],
-      ['meta', { property: 'og:title', content: title }],
-      ['meta', { property: 'og:description', content: description }],
-      ['meta', { property: 'og:url', content: url }],
-      ['meta', { name: 'twitter:title', content: title }],
-      ['meta', { name: 'twitter:description', content: description }],
-    );
-  },
+  transformPageData: og.transformPageData,
+  buildEnd: og.buildEnd,
   themeConfig: {
     logo: './logo.svg',
     nav: [
