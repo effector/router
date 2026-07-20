@@ -81,14 +81,12 @@ function firstParagraph(relativePath: string): string | undefined {
 }
 
 /**
- * What the card shows: the first sentence of the summary, clamped at a word
- * boundary so even a long single sentence fits under the large card font. The
- * full paragraph still goes into the meta description.
+ * What the card shows: the first sentence of the summary. Overflow is trimmed
+ * visually by a line clamp on the card, not here; the full paragraph still goes
+ * into the meta description.
  */
-function cardSummary(text: string): string {
-  const sentence = text.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? text;
-  if (sentence.length <= 96) return sentence;
-  return `${sentence.slice(0, 96).replace(/\s+\S*$/, '')}…`;
+function firstSentence(text: string): string {
+  return text.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? text;
 }
 
 /** Turn a page's source path into a stable, filesystem-safe image slug. */
@@ -366,6 +364,12 @@ function template({ title, description, section, chips }: CardInput): Node {
             fontSize: 54,
             lineHeight: 1.35,
             color: '#b8b8bd',
+            // Show only the lines that fit; satori adds an ellipsis and hides
+            // the rest so a long summary never pushes the footer off-card.
+            // satori honours lineClamp only with an explicit block + overflow.
+            display: 'block',
+            overflow: 'hidden',
+            lineClamp: 4,
           },
           description,
         ),
@@ -510,7 +514,7 @@ export function createOgImages(options: OgImagesOptions): OgImagesPlugin {
         title: pageTitle,
         // The hero tagline reads better on the card than the keyword-stuffed
         // meta description; only the home page has one.
-        description: cardSummary(hero?.tagline ?? description),
+        description: firstSentence(hero?.tagline ?? description),
         section: section === pageTitle ? undefined : section,
         chips: og.chips,
         headline: og.headline,
