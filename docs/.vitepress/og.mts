@@ -352,7 +352,7 @@ function template({ title, description, section, chips }: CardInput): Node {
           {
             marginTop: 26,
             maxWidth: 1000,
-            fontSize: 32,
+            fontSize: 48,
             lineHeight: 1.4,
             color: '#b8b8bd',
           },
