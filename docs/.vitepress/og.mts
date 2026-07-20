@@ -80,6 +80,17 @@ function firstParagraph(relativePath: string): string | undefined {
   return undefined;
 }
 
+/**
+ * What the card shows: the first sentence of the summary, clamped at a word
+ * boundary so even a long single sentence fits under the large card font. The
+ * full paragraph still goes into the meta description.
+ */
+function cardSummary(text: string): string {
+  const sentence = text.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? text;
+  if (sentence.length <= 96) return sentence;
+  return `${sentence.slice(0, 96).replace(/\s+\S*$/, '')}…`;
+}
+
 /** Turn a page's source path into a stable, filesystem-safe image slug. */
 export function pathToSlug(relativePath: string): string {
   const trimmed = relativePath
@@ -350,10 +361,10 @@ function template({ title, description, section, chips }: CardInput): Node {
         h(
           'div',
           {
-            marginTop: 26,
+            marginTop: 28,
             maxWidth: 1000,
-            fontSize: 48,
-            lineHeight: 1.4,
+            fontSize: 54,
+            lineHeight: 1.35,
             color: '#b8b8bd',
           },
           description,
@@ -499,7 +510,7 @@ export function createOgImages(options: OgImagesOptions): OgImagesPlugin {
         title: pageTitle,
         // The hero tagline reads better on the card than the keyword-stuffed
         // meta description; only the home page has one.
-        description: hero?.tagline ?? description,
+        description: cardSummary(hero?.tagline ?? description),
         section: section === pageTitle ? undefined : section,
         chips: og.chips,
         headline: og.headline,
