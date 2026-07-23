@@ -1,22 +1,25 @@
 # group
 
-Create a virtual route that opens when any of the passed routes is opened, and closes when all passed routes are closed.
+Create a pathless route that opens when any of the passed routes is opened, and
+closes when all passed routes are closed.
 
 ## API
 
 ```typescript
-function group(routes: Route<any>[]): VirtualRoute;
+function group(routes: Route<any>[]): PathlessRoute;
 ```
 
 ### Parameters
 
-| Parameter | Type           | Description                       |
-| --------- | -------------- | --------------------------------- |
-| `routes`  | `Route<any>[]` | Array of routes to group together |
+| Parameter | Type           | Description                      |
+| --------- | -------------- | -------------------------------- |
+| `routes`  | `Route<any>[]` | Path or pathless routes to group |
 
 ### Returns
 
-`VirtualRoute` - A virtual route that tracks the combined state of all passed routes.
+`PathlessRoute` - A route that tracks the combined state of all passed routes.
+The deprecated `createVirtualRoute` alias remains accepted for compatibility,
+but new route declarations should use `createRoute()`.
 
 ## Usage
 
@@ -25,8 +28,8 @@ function group(routes: Route<any>[]): VirtualRoute;
 ```ts
 import { group, createRoute } from '@effector/router';
 
-const signInRoute = createRoute({ path: '/auth/sign-in' });
-const signUpRoute = createRoute({ path: '/auth/sign-up' });
+const signInRoute = createRoute();
+const signUpRoute = createRoute();
 const authorizationRoute = group([signInRoute, signUpRoute]);
 
 signInRoute.open(); // authorizationRoute.$isOpened → true
@@ -34,6 +37,8 @@ signUpRoute.open(); // authorizationRoute.$isOpened → true
 signInRoute.close(); // authorizationRoute.$isOpened → true (signUpRoute still open)
 signUpRoute.close(); // authorizationRoute.$isOpened → false (all closed)
 ```
+
+Regular routes do not expose a public `close()` method. Their open state follows router navigation, as shown in the examples below. Use virtual routes when the grouped states must be opened and closed manually.
 
 ### Guard Multiple Routes
 
@@ -92,12 +97,16 @@ The `group` function creates a virtual route that:
 
 This is useful for:
 
-- Protecting multiple routes with the same guard
 - Showing UI indicators for route sections
 - Tracking navigation state across related routes
+
+`group` is a derived virtual route, not a route-selection object for transition
+policy. Pass a path-route array to `beforeNavigate({ to: [...] })` when several
+routes share the same pre-commit rule.
 
 ## See Also
 
 - [createVirtualRoute](/core/create-virtual-route) - Create custom virtual routes
 - [createRoute](/core/create-route) - Create regular routes
 - [chainRoute](/core/chain-route) - Create sequential route chains
+- [beforeNavigate](/core/before-navigate) - Hold transitions to route arrays

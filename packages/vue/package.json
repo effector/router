@@ -1,0 +1,65 @@
+{
+  "name": "@effector/router-vue",
+  "version": "0.1.0",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "private": false,
+  "description": "Vue 3 bindings for effector router",
+  "keywords": [
+    "effector",
+    "argon",
+    "atomic",
+    "router",
+    "effector/router",
+    "vue",
+    "vue3"
+  ],
+  "contributors": [
+    "Sergey Sova <mail@sergeysova.com>",
+    "Anton Kosykh",
+    "Zero Bias <ribkatt@gmail.com>",
+    "movpushmov"
+  ],
+  "homepage": "https://router.effector.dev/vue",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/effector/router.git",
+    "directory": "packages/vue"
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run"
+  },
+  "bugs": {
+    "url": "https://github.com/effector/router/issues"
+  },
+  "dependencies": {
+    "@effector/router": "workspace:^",
+    "query-string": "catalog:"
+  },
+  "peerDependencies": {
+    "effector": "catalog:peer",
+    "effector-vue": ">=23",
+    "vue": "^3.5.0"
+  }
+}

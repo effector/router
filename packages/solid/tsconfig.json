@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "types": ["vite/client", "vitest/globals"]
+  },
+  "include": ["lib", "tests", "vite.config.ts"],
+  "exclude": ["dist", "node_modules"]
+}

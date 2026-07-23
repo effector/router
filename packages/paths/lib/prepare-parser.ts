@@ -7,7 +7,9 @@ export function prepareParser<T>(tokens: Token[]): Parser<T> {
       .map((part) => part.trim())
       .filter((part) => part !== '');
 
-    let params: any = null;
+    let params: any = tokens.some((token) => token.type === 'parameter')
+      ? {}
+      : null;
 
     function setKey(key: string, value: any) {
       if (!params) {
@@ -33,17 +35,32 @@ export function prepareParser<T>(tokens: Token[]): Parser<T> {
           continue;
         }
         case 'parameter': {
-          const { arrayProps, genericProps, required } = token.payload;
+          const { arrayProps, genericProps, prefix, required } = token.payload;
 
           if (arrayProps) {
             const array: any[] = [];
             let rawToken;
+            let first = true;
 
-            while (true) {
+            while (array.length < (arrayProps.max ?? Infinity)) {
               rawToken = rawTokens.shift();
 
               if (!rawToken) {
                 break;
+              }
+
+              if (first) {
+                first = false;
+
+                if (!rawToken.startsWith(prefix)) {
+                  return null;
+                }
+
+                rawToken = rawToken.slice(prefix.length);
+
+                if (!rawToken) {
+                  break;
+                }
               }
 
               switch (genericProps?.type) {
@@ -69,10 +86,14 @@ export function prepareParser<T>(tokens: Token[]): Parser<T> {
                   break;
                 }
               }
+            }
 
-              if (array.length >= (arrayProps.max ?? Infinity)) {
-                break;
-              }
+            if (array.length === 0 && prefix && first) {
+              return null;
+            }
+
+            if (array.length === 0 && !required) {
+              break;
             }
 
             if (array.length < (arrayProps.min ?? 0)) {
@@ -87,15 +108,31 @@ export function prepareParser<T>(tokens: Token[]): Parser<T> {
             break;
           }
 
-          const rawToken = rawTokens.shift();
+          const prefixedRawToken = rawTokens.shift();
+
+          if (!prefixedRawToken) {
+            if (prefix) {
+              return null;
+            }
+
+            if (required) {
+              return null;
+            }
+
+            continue;
+          }
+
+          if (!prefixedRawToken.startsWith(prefix)) {
+            return null;
+          }
+
+          const rawToken = prefixedRawToken.slice(prefix.length);
 
           if (required && !rawToken) {
             return null;
           }
 
           if (!rawToken) {
-            setKey(token.name, undefined);
-
             continue;
           }
 

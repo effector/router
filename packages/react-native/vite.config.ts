@@ -5,6 +5,10 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   mode: 'production',
+  test: {
+    globals: true,
+    environment: 'node',
+  },
   build: {
     lib: {
       entry: resolve(__dirname, 'lib/index.ts'),
@@ -16,6 +20,7 @@ export default defineConfig({
         'effector',
         'effector-react',
         '@effector/router',
+        '@effector/router-paths',
         '@effector/router-react',
         '@react-navigation/native',
         '@react-navigation/bottom-tabs',
@@ -44,6 +49,7 @@ export default defineConfig({
       entryRoot: resolve(__dirname, 'lib'),
       exclude: [
         resolve(__dirname, 'tests'),
+        resolve(__dirname, '../../docs'),
         resolve(__dirname, '../effector/router-paths'),
         resolve(__dirname, '../effector/router-core'),
         resolve(__dirname, '../effector/router-react'),

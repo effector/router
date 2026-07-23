@@ -85,7 +85,8 @@ const DashboardScreen = createRouteView({
 
 ## Multiple Levels
 
-Outlets can be nested multiple levels deep:
+Outlets can be nested multiple levels deep. Each selected child provides its
+own `children` to the next `Outlet`, so there is no depth limit:
 
 ```tsx
 // Level 1: App Layout

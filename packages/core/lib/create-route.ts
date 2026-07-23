@@ -1,6 +1,4 @@
 import {
-  attach,
-  combine,
   createEffect,
   createEvent,
   createStore,
@@ -8,32 +6,150 @@ import {
   type Effect,
 } from 'effector';
 import type {
-  AsyncBundleImport,
   InternalRoute,
   PathlessRoute,
   PathRoute,
   Route,
   RouteOpenedPayload,
+  RouteOpenPayload,
+  RouteUpdatedPayload,
 } from './types';
 
-import { ParseUrlParams, ValidatePath } from '@effector/router-paths';
+import {
+  getParamNames,
+  ParseUrlParams,
+  ValidatePath,
+} from '@effector/router-paths';
 import { createAction } from 'effector-action';
+import { createAttemptCoordinator } from './transition-attempt';
 
-type WithBaseRouteConfig<T = void> = T & {
-  parent?: Route<any>;
+type ParentRoute = Route<any> | undefined;
+
+type ParentRouteParams<Parent extends ParentRoute> =
+  Parent extends Route<infer Params> ? Params : void;
+
+type MergeRouteParams<
+  ParentParams extends object | void,
+  Params extends object | void,
+> = ParentParams extends void
+  ? Params
+  : Params extends void
+    ? ParentParams
+    : ParentParams & Params;
+
+type HasDuplicateParams<Parent extends ParentRoute, Path extends string> =
+  Extract<
+    keyof ParentRouteParams<Parent>,
+    keyof ParseUrlParams<Path>
+  > extends never
+    ? false
+    : true;
+
+type WithBaseRouteConfig<
+  T = object,
+  Parent extends ParentRoute = undefined,
+> = T & {
+  parent?: Parent;
+  /** @deprecated Use `chainRoute` for post-commit preparation. */
   beforeOpen?: Effect<void, any, any>[];
 };
 
-export type CreateRouteConfig<Path> =
+function isSameParamValue(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) {
+    return true;
+  }
+
+  if (!Array.isArray(left) || !Array.isArray(right)) {
+    return false;
+  }
+
+  return (
+    left.length === right.length &&
+    left.every((value, index) => Object.is(value, right[index]))
+  );
+}
+
+function isSameParams(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) {
+    return true;
+  }
+
+  if (
+    !left ||
+    !right ||
+    typeof left !== 'object' ||
+    typeof right !== 'object'
+  ) {
+    return false;
+  }
+
+  const leftEntries = Object.entries(left);
+  const rightEntries = Object.entries(right);
+
+  return (
+    leftEntries.length === rightEntries.length &&
+    leftEntries.every(
+      ([key, value]) =>
+        key in right &&
+        isSameParamValue(value, (right as Record<string, unknown>)[key]),
+    )
+  );
+}
+
+function getPayloadParams<Params>(
+  payload: unknown,
+  defaultParams: Params,
+): Params {
+  if (
+    !payload ||
+    typeof payload !== 'object' ||
+    !('params' in payload) ||
+    !payload.params
+  ) {
+    return defaultParams;
+  }
+
+  return { ...payload.params } as Params;
+}
+
+/** Normalize equivalent empty payloads at the route lifecycle boundary. */
+function normalizeOpenPayload<Params>(
+  payload: unknown,
+): RouteOpenedPayload<Params> {
+  if (!payload || typeof payload !== 'object') {
+    return {} as RouteOpenedPayload<Params>;
+  }
+
+  const normalized = { ...(payload as Record<string, unknown>) };
+  const params = normalized.params;
+
+  if (
+    params &&
+    typeof params === 'object' &&
+    !Array.isArray(params) &&
+    Object.keys(params).length === 0
+  ) {
+    delete normalized.params;
+  }
+
+  return normalized as RouteOpenedPayload<Params>;
+}
+
+export type CreateRouteConfig<Path, Parent extends ParentRoute = undefined> =
   ValidatePath<Path> extends ['invalid', infer Template]
-    ? WithBaseRouteConfig<{
-        path: Template;
-      }>
-    : WithBaseRouteConfig<{
-        path: Path;
-        parent?: Route<any>;
-        beforeOpen?: Effect<void, any, any>[];
-      }>;
+    ? WithBaseRouteConfig<
+        {
+          path: Template;
+        },
+        Parent
+      >
+    : WithBaseRouteConfig<
+        {
+          path: Path;
+          beforeOpen?: Effect<void, any, any>[];
+        },
+        Parent
+      >;
 /**
  * @description Creates route
  * @param config Route config
@@ -59,6 +175,14 @@ export type CreateRouteConfig<Path> =
  * posts.open(); // profile.$isOpened -> true, posts.$isOpened -> true
  * ```
  */
+export function createRoute<T extends string, Parent extends Route<any>>(
+  config: WithBaseRouteConfig<
+    { path: T } & (HasDuplicateParams<Parent, T> extends true
+      ? { path: never }
+      : {}),
+    Parent
+  > & { parent: Parent },
+): PathRoute<MergeRouteParams<ParentRouteParams<Parent>, ParseUrlParams<T>>>;
 export function createRoute<
   T extends string,
   Params extends object | void = ParseUrlParams<T>,
@@ -71,99 +195,50 @@ export function createRoute<Params>(
     | WithBaseRouteConfig
     | CreateRouteConfig<any> = {} as WithBaseRouteConfig,
 ): PathRoute<any> | PathlessRoute<any> {
-  let asyncImport: AsyncBundleImport;
-
   const beforeOpen = config.beforeOpen ?? [];
 
-  type OpenPayload = RouteOpenedPayload<Params>;
-
-  const waitForAsyncBundleFx = createEffect(() => asyncImport?.());
-
-  const beforeOpenFx = createEffect(async () => {
-    for (const fx of beforeOpen) {
-      await fx();
-    }
-  });
-
-  // Serializes the params/query of an `open` call so the location update it
-  // triggers can be recognized as this route's own echo.
-  const keyOf = (payload: OpenPayload) =>
-    JSON.stringify({
-      params: (payload as { params?: unknown } | undefined)?.params ?? {},
-      query: (payload as { query?: unknown } | undefined)?.query ?? {},
-    });
-
-  // Holds the key of an in-flight imperative `open`, so the navigation echo it
-  // produces opens the route without running `beforeOpen` a second time.
-  const $selfOpenKey = createStore<string | null>(null);
-
-  const openFx = createEffect<OpenPayload, OpenPayload>(async (payload) => {
-    await waitForAsyncBundleFx();
-    await beforeOpenFx();
-
-    const parent = config.parent as InternalRoute | undefined;
-
-    if (parent) {
-      await parent.internal.openFx({
-        ...(payload ?? { params: {} }),
-        navigate: false,
-      });
-    }
-
-    return payload;
-  });
+  // Opening a path route is a navigation intent. Preparation starts only
+  // after the adapter confirms the resulting location. The input is the public
+  // `RouteOpenPayload` (which also admits `{ params: {} }`); the effect
+  // normalizes it to the resolved `OpenPayload` for the rest of the lifecycle.
+  const openFx = createEffect<RouteOpenPayload<Params>, OpenPayload>(
+    (payload) => normalizeOpenPayload<Params>(payload),
+  );
 
   const forceOpenParentFx = createEffect<OpenPayload, OpenPayload>(
     async (payload) => {
+      const normalizedPayload = normalizeOpenPayload<Params>(payload);
       const parent = config.parent as InternalRoute | undefined;
 
       if (parent) {
         await parent.internal.forceOpenParentFx({
-          ...(payload ?? { params: {} }),
+          ...normalizedPayload,
           navigate: false,
+          parent: true,
         });
       }
 
-      return payload;
+      return normalizedPayload;
     },
   );
 
-  const navigatedFx = attach({
-    source: $selfOpenKey,
-    effect: async (selfKey, payload: OpenPayload) => {
-      await waitForAsyncBundleFx();
+  type OpenPayload = RouteOpenedPayload<Params>;
 
-      const isSelfEcho = selfKey !== null && selfKey === keyOf(payload);
-
-      // External navigation runs the guards here; the echo of this route's own
-      // `open` already ran them, so it just settles the route open.
-      if (!isSelfEcho) {
-        await beforeOpenFx();
-
-        const parent = config.parent as InternalRoute | undefined;
-
-        if (parent) {
-          await parent.internal.openFx({
-            ...(payload ?? { params: {} }),
-            navigate: false,
-          });
-        }
-      }
-
-      return payload;
-    },
+  const lifecycle = createAttemptCoordinator<OpenPayload>({
+    concurrency: 'takeLatest',
   });
 
-  const $params = createStore<Params>({} as Params);
+  const $params = createStore<Params>({} as Params, {
+    updateFilter: (next, current) => !isSameParams(next, current),
+  });
 
   const $isOpened = createStore(false);
-  const $isPending = combine(
-    openFx.pending,
-    navigatedFx.pending,
-    (openPending, navigatedPending) => openPending || navigatedPending,
-  );
+  const $isPending = lifecycle.$current.map(Boolean);
 
-  const open = createEvent<OpenPayload>();
+  // The public contract accepts every normalized-empty form
+  // (`open()`, `open({})`, `open({ params: {} })`); `normalizeOpenPayload`
+  // collapses them before the lifecycle sees an `OpenPayload`.
+  const open = createEvent<RouteOpenPayload<Params>>();
   const close = createEvent();
 
   const opened = createEvent<OpenPayload>();
@@ -171,51 +246,138 @@ export function createRoute<Params>(
   const openedOnClient = createEvent<OpenPayload>();
 
   const navigated = createEvent<OpenPayload>();
+  const updated = createEvent<RouteUpdatedPayload<Params>>();
 
   const closed = createEvent();
 
-  const defaultParams = {} as Params;
+  const beforeOpenFx = createEffect(async () => {
+    for (const fx of beforeOpen) {
+      await fx();
+    }
+  });
 
-  // Mark the route's own imperative open so its navigation echo is recognized,
-  // and clear the mark once that echo settles (or the open is rejected).
-  $selfOpenKey.on(open, (_, payload) => keyOf(payload));
-  $selfOpenKey.reset(navigatedFx.finally, openFx.fail);
+  const prepareFx = createEffect(
+    async (attempt: { id: number; payload: OpenPayload }) => {
+      await beforeOpenFx();
+
+      return attempt;
+    },
+  );
+
+  const activateFx = createEffect(
+    async (attempt: { id: number; payload: OpenPayload }) => {
+      await forceOpenParentFx({ navigate: false, ...attempt.payload });
+
+      return attempt;
+    },
+  );
+
+  const defaultParams = {} as Params;
+  const ownParamNames =
+    'path' in config ? getParamNames(config.path) : undefined;
+
+  function getOwnParams(payload: unknown): Params {
+    const params = getPayloadParams(payload, defaultParams);
+
+    const isParentActivation =
+      Boolean(payload) &&
+      typeof payload === 'object' &&
+      (payload as Record<string, unknown>).parent === true;
+
+    if ('parent' in config && config.parent && !isParentActivation) {
+      return params;
+    }
+
+    if (!ownParamNames) {
+      return params;
+    }
+
+    const ownParams = Object.fromEntries(
+      ownParamNames
+        .filter(
+          (name) => params && typeof params === 'object' && name in params,
+        )
+        .map((name) => [name, (params as Record<string, unknown>)[name]]),
+    );
+
+    return ownParams as Params;
+  }
 
   sample({
     clock: open,
     target: openFx,
   });
 
+  if (!('path' in config)) {
+    sample({
+      clock: openFx.doneData,
+      target: navigated,
+    });
+  }
+
   sample({
     clock: navigated,
-    fn: (payload) => ({ navigate: false, ...payload }),
-    target: navigatedFx,
+    target: lifecycle.request,
   });
 
   sample({
-    clock: navigatedFx.done,
-    fn: ({ params }) => params,
-    target: forceOpenParentFx,
+    clock: lifecycle.started,
+    target: prepareFx,
+  });
+
+  const prepared = sample({
+    clock: prepareFx.doneData,
+    source: lifecycle.$current,
+    filter: (current, result) => current?.id === result.id,
+    fn: (_, result) => result,
+  });
+
+  sample({
+    clock: prepared,
+    target: activateFx,
   });
 
   createAction({
     clock: forceOpenParentFx.doneData,
     target: { $params },
-    fn: (target, payload) => {
-      if (!payload) {
-        return target.$params(defaultParams);
-      }
-
-      return target.$params(
-        'params' in payload ? { ...payload.params } : defaultParams,
-      );
-    },
+    fn: (target, payload) => target.$params(getOwnParams(payload)),
   });
 
   sample({
-    clock: navigatedFx.failData,
+    clock: $params.updates,
+    source: $isOpened,
+    filter: Boolean,
+    fn: (_, params) =>
+      (params === undefined
+        ? undefined
+        : { params }) as RouteOpenedPayload<Params>,
+    target: updated,
+  });
+
+  const preparationFailed = sample({
+    clock: prepareFx.fail,
+    source: lifecycle.$current,
+    filter: (current, { params }) => current?.id === params.id,
+    fn: (_, { params }) => params.id,
+  });
+
+  sample({
+    clock: preparationFailed,
+    target: lifecycle.cancel,
+  });
+
+  sample({
+    clock: preparationFailed,
     fn: () => defaultParams,
     target: $params,
+  });
+
+  sample({
+    clock: preparationFailed,
+    source: $isOpened,
+    filter: Boolean,
+    fn: () => undefined,
+    target: closed,
   });
 
   createAction({
@@ -223,29 +385,29 @@ export function createRoute<Params>(
     target: {
       openedOnServer,
       openedOnClient,
+      opened,
     },
     fn: (target, payload) => {
       // Strip internal navigate flag before exposing through the public opened event,
       // so samplings like `sample({ clock: route.opened, target: otherRoute.open })`
       // don't accidentally suppress navigation in the target route.
-      const { navigate: _, ...openedPayload } = (payload ?? {}) as Record<
-        string,
-        unknown
-      >;
+      const openedPayload = { ...((payload ?? {}) as Record<string, unknown>) };
+      delete openedPayload.navigate;
+      delete openedPayload.parent;
       const eventPayload = openedPayload as OpenPayload;
 
+      // Emit the environment-specific event first, then the unified `opened`,
+      // preserving the previous ordering. Firing `opened` here (instead of a
+      // second `sample`) avoids effector's tuple/conditional clock inference on
+      // the unreduced `OpenPayload`.
       if (typeof window === 'undefined') {
-        return target.openedOnServer(eventPayload);
+        target.openedOnServer(eventPayload);
+      } else {
+        target.openedOnClient(eventPayload);
       }
 
-      return target.openedOnClient(eventPayload);
+      target.opened(eventPayload);
     },
-  });
-
-  // @ts-expect-error TS is very stupid
-  sample({
-    clock: [openedOnClient, openedOnServer],
-    target: opened,
   });
 
   sample({
@@ -254,21 +416,38 @@ export function createRoute<Params>(
   });
 
   sample({
+    clock: close,
+    source: lifecycle.$current,
+    filter: Boolean,
+    fn: (attempt) => attempt.id,
+    target: lifecycle.cancel,
+  });
+
+  sample({
+    clock: activateFx.doneData,
+    source: lifecycle.$current,
+    filter: (current, result) => current?.id === result.id,
+    fn: (_, result) => result.id,
+    target: lifecycle.complete,
+  });
+
+  sample({
     clock: [opened.map(() => true), closed.map(() => false)],
     target: $isOpened,
   });
 
-  return {
+  const route = {
     $params,
     $isOpened,
     $isPending,
 
-    // @ts-expect-error :((
     open,
     closed,
     opened,
     openedOnClient,
     openedOnServer,
+    updated,
+    close,
 
     ...config,
 
@@ -277,8 +456,6 @@ export function createRoute<Params>(
       close,
       openFx,
       forceOpenParentFx,
-
-      setAsyncImport: (value: AsyncBundleImport) => (asyncImport = value),
     },
 
     '@@unitShape': () => ({
@@ -286,8 +463,17 @@ export function createRoute<Params>(
       isPending: $isPending,
       isOpened: $isOpened,
 
-      // @ts-expect-error :((
       onOpen: open,
     }),
   };
+
+  // Effector units are invariant in their payload, and this factory's declared
+  // return type is the `<any>` route instantiation while the object above keeps
+  // the still-generic `Params` (plus the internal wiring that public routes do
+  // not expose). Those cannot be reconciled structurally, so the accepted public
+  // contract is asserted once here — deliberately in place of the scattered
+  // `@ts-expect-error` directives that IMPLEMENTATION_RULES forbids in
+  // production source. `open` is already typed with the public `RouteOpenPayload`
+  // and `normalizeOpenPayload` keeps every empty form sound at runtime.
+  return route as unknown as PathRoute<any> | PathlessRoute<any>;
 }

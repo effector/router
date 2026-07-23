@@ -178,7 +178,8 @@ function AnimatedRoutesRenderer({ routes }) {
 The hook automatically works with Effector scope when used inside `Provider`:
 
 ```tsx
-import { Provider, fork } from 'effector-react';
+import { fork } from 'effector';
+import { Provider } from 'effector-react';
 
 function App() {
   const scope = fork();
@@ -207,3 +208,6 @@ The hook re-renders when:
 - [Outlet](./outlet) - Render nested routes (uses this hook)
 - [createRouteView](./create-route-view) - Create route views
 - [RouterProvider](./router-provider) - Provide router to React tree
+  Selection is declarative: active parents are removed when an active child is
+  present, and the last declared remaining view wins. The hook does not track
+  open order.

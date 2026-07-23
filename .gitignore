@@ -11,6 +11,9 @@ node_modules
 dist
 cache
 dist-ssr
+docs/.vitepress/.temp
+docs/.vitepress/cache
+examples/solid-router/test-results/
 *.local
 .husky
 

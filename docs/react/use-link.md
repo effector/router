@@ -281,9 +281,7 @@ The hook is fully type-safe with route parameters:
 import { createRoute } from '@effector/router';
 import { useLink } from '@effector/router-react';
 
-const userRoute = createRoute<{ userId: string; tab?: string }>({
-  path: '/user/:userId',
-});
+const userRoute = createRoute({ path: '/user/:userId' });
 
 function UserLink() {
   // ✅ Type-safe
@@ -292,7 +290,7 @@ function UserLink() {
   // ❌ TypeScript error: missing required param
   const broken = useLink(userRoute, {});
 
-  // ✅ Optional params work
+  // ❌ TypeScript error: param is not declared in the path template
   const withTab = useLink(userRoute, { userId: '123', tab: 'posts' });
 }
 ```

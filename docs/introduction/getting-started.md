@@ -45,6 +45,29 @@ yarn add @effector/router-react
 
 :::
 
+## Vue bindings
+
+::: code-group
+
+```bash [pnpm]
+pnpm add @effector/router-vue effector-vue vue
+```
+
+```bash [npm]
+npm install @effector/router-vue effector-vue vue
+```
+
+```bash [yarn]
+yarn add @effector/router-vue effector-vue vue
+```
+
+:::
+
+::: tip
+`@effector/router-vue` supports only the latest Vue 3 (`^3.5`). See the
+[Vue guide](/vue/) for the full API.
+:::
+
 ## Writing first router
 
 As an example, we will write a simple router with `feed` and `profile` routes.
@@ -114,6 +137,7 @@ router need to be initialzed with `setHistory` event, which requires memory or b
 ```ts
 import { createRoot } from 'react-dom/client';
 import { allSettled, fork } from 'effector';
+import { historyAdapter } from '@effector/router';
 import { createBrowserHistory } from 'history';
 import { Provider } from 'effector-react';
 import { router } from './shared/routing';
@@ -126,7 +150,7 @@ async function render() {
 
   await allSettled(router.setHistory, {
     scope,
-    params: createBrowserHistory(),
+    params: historyAdapter(createBrowserHistory()),
   });
 
   root.render(

@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@3.1.3/schema.json",
-  "changelog": ["@changesets/changelog-github", { "repo": "effector/router" }],
+  "changelog": ["./changelog.cjs", { "repo": "effector/router" }],
   "commit": false,
   "fixed": [],
   "linked": [],

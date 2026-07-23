@@ -1,6 +1,8 @@
 # withLayout
 
 Utility function to wrap multiple route views with a shared layout component.
+Views returned by one call share a private group identity; switching between
+them replaces only the page child and keeps the layout instance mounted.
 
 ## Import
 
@@ -89,7 +91,7 @@ withLayout(MyLayout, routes);
 
 ### `views` (required)
 
-Array of route views created with `createRouteView` or `createLazyRouteView`:
+Array of route views created with [`createRouteView`] or [`createLazyRouteView`]:
 
 ```tsx
 withLayout(MainLayout, [
@@ -152,7 +154,7 @@ const RoutesView = createRoutesView({
 
 ## Alternative: Layout in Route View
 
-You can also specify layout directly in `createRouteView`:
+You can also specify layout directly in [`createRouteView`]:
 
 ```tsx
 // Using withLayout
@@ -185,3 +187,6 @@ createRouteView({
 - [createRouteView](./create-route-view) - Create route views (with layout prop)
 - [createLazyRouteView](./create-lazy-route-view) - Lazy-loaded route views
 - [createRoutesView](./create-routes-view) - Render active routes
+
+[`createLazyRouteView`]: /react/create-lazy-route-view
+[`createRouteView`]: /react/create-route-view

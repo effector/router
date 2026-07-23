@@ -47,4 +47,28 @@ describe('convert paths', () => {
   test('path with nullable ranges', () => {
     expect(convertPath('/files/:id{1,2}?', 'express')).toMatch('/files{/*id}');
   });
+
+  test('converts modifiers for arbitrary parameter names', () => {
+    expect(convertPath('/files/:path+', 'express')).toBe('/files/*path');
+    expect(convertPath('/api/:version?/*path?', 'express')).toBe(
+      '/api{/:version}/{/*path}',
+    );
+  });
+
+  test('converts parameters embedded in a segment', () => {
+    expect(convertPath('/@:user+', 'express')).toBe('/@*user');
+    expect(convertPath('/name-:user?', 'express')).toBe('/name-{:user}');
+  });
+
+  test('handles adversarial malformed segments as literals', () => {
+    const missingGenericEnd = '*0<'.repeat(10_000);
+    const missingRangeEnd = '{{'.repeat(10_000);
+
+    expect(convertPath(`/${missingGenericEnd}`, 'express')).toBe(
+      `/${missingGenericEnd}`,
+    );
+    expect(convertPath(`/${missingRangeEnd}`, 'express')).toBe(
+      `/${missingRangeEnd}`,
+    );
+  });
 });

@@ -22,25 +22,27 @@ function createRoute<Params extends object | void = void>(
 | ------------ | ------------ | ------------------------------------------- |
 | `path`       | `string`     | Optional. URL path template with parameters |
 | `parent`     | `Route<any>` | Optional. Parent route for nesting          |
-| `beforeOpen` | `Effect[]`   | Optional. Effects to run before opening     |
+| `beforeOpen` | `Effect[]`   | Deprecated post-commit preparation Effects  |
 
 ### Returns
 
-Returns either `PathRoute<T>` or `PathlessRoute<T>` depending on whether `path` is provided.
+Returns either `PathRoute<T>` or `PathlessRoute<T>` depending on whether `path` is provided. Both forms expose the same lifecycle units; `createVirtualRoute` remains a deprecated compatibility factory.
 
-| Property         | Type                                   | Description                                 |
-| ---------------- | -------------------------------------- | ------------------------------------------- |
-| `$params`        | `Store<T>`                             | Route parameters                            |
-| `$isOpened`      | `Store<boolean>`                       | Whether route (or its children) are opened  |
-| `$isPending`     | `Store<boolean>`                       | Whether beforeOpen effects are running      |
-| `open`           | `EventCallable<RouteOpenedPayload<T>>` | Open the route and its parents              |
-| `opened`         | `Event<RouteOpenedPayload<T>>`         | Fires when route opens (client or server)   |
-| `openedOnServer` | `Event<RouteOpenedPayload<T>>`         | Fires when opened on server (SSR)           |
-| `openedOnClient` | `Event<RouteOpenedPayload<T>>`         | Fires when opened on client                 |
-| `closed`         | `Event<void>`                          | Fires when route closes                     |
-| `path`           | `string`                               | _PathRoute only_: The route's path template |
-| `parent`         | `Route<any>`                           | Optional. The parent route                  |
-| `beforeOpen`     | `Effect[]`                             | Optional. Before-open effects               |
+| Property         | Type                                   | Description                                  |
+| ---------------- | -------------------------------------- | -------------------------------------------- |
+| `$params`        | `Store<T>`                             | Route parameters                             |
+| `$isOpened`      | `Store<boolean>`                       | Whether route (or its children) are opened   |
+| `$isPending`     | `Store<boolean>`                       | Deprecated route preparation is running      |
+| `open`           | `EventCallable<RouteOpenedPayload<T>>` | Open the route and its parents               |
+| `opened`         | `Event<RouteOpenedPayload<T>>`         | Fires when route opens (client or server)    |
+| `openedOnServer` | `Event<RouteOpenedPayload<T>>`         | Fires when opened on server (SSR)            |
+| `openedOnClient` | `Event<RouteOpenedPayload<T>>`         | Fires when opened on client                  |
+| `updated`        | `Event<RouteUpdatedPayload<T>>`         | Fires when an open route receives new params |
+| `close`          | `EventCallable<void>`                  | Closes the route                             |
+| `closed`         | `Event<void>`                          | Fires when route closes                      |
+| `path`           | `string`                               | _PathRoute only_: The route's path template  |
+| `parent`         | `Route<any>`                           | Optional. The parent route                   |
+| `beforeOpen`     | `Effect[]`                             | Deprecated post-commit preparation Effects   |
 
 ## Usage
 
@@ -65,6 +67,28 @@ searchRoute.open({ query: { q: 'hello' } });
 ```
 
 ### Pathless Routes
+
+Calling `createRoute()` without a `path` creates a self-contained virtual
+route. It can be opened directly, does not require router registration, and
+never writes to history.
+
+For routes without required params, `route.open()`, `route.open({})`, and
+`route.open({ params: {} })` are equivalent and produce one canonical empty
+payload. Parameterized routes use only the params supplied by the current open;
+missing values are never merged from previous route state.
+
+When a route has a parent, the child receives the intersection of parent and
+child params. The parent route keeps only the params declared by its own path.
+Duplicate names are rejected during path validation.
+
+The first activation emits `opened`, not `updated`. Later value changes emit one
+`updated` payload; equal params, query-only changes, and closing the route do
+not emit it. Param comparison ignores object key order but preserves array order
+and the difference between `null` and an absent key.
+
+The route contract is shared by path and pathless routes, including nested
+parent chains and Fork/SSR usage. The deprecated `createVirtualRoute` alias is
+covered by the same compatibility matrix and remains history-independent.
 
 Routes without paths for dialogs, modals, or other non-URL navigation:
 
@@ -142,6 +166,33 @@ blogRoute.open({
 
 See [@effector/router-paths](https://github.com/effector/router/tree/main/packages/router-paths#supported-types) for all supported parameter types and modifiers.
 
+### Observe Navigation and Applied Parameters
+
+Use `opened` to react after a route opens on either the client or server. At that point `$params` contains the parameters applied to the route:
+
+```ts
+import { sample } from 'effector';
+
+const userRoute = createRoute({ path: '/user/:id' });
+
+sample({
+  clock: userRoute.opened,
+  source: userRoute.$params,
+  fn: (params, openPayload) => ({ params, openPayload }),
+  target: routeOpenedFx,
+});
+```
+
+Subscribe to `$params` directly when every parameter update matters, including updates while the route remains open:
+
+```ts
+userRoute.$params.watch((params) => {
+  console.log('Applied user id:', params.id);
+});
+```
+
+For platform-specific SSR handling, use `openedOnServer` or `openedOnClient` instead of the combined `opened` event.
+
 ### Nested Routes (Parent)
 
 Create route hierarchies where child routes inherit their parent's path and lifecycle:
@@ -190,57 +241,32 @@ sample({
 childRoute.open();
 ```
 
-#### Parent beforeOpen Effects
+### Deprecated `beforeOpen`
+
+`createRoute({ beforeOpen })` is kept for compatibility. It runs exactly once
+after the history adapter confirms the new location. It is therefore not a
+transition guard: the URL has already changed when the Effect starts. If it
+fails, the route does not emit `opened`, while the Effect exposes its normal
+`fail`/`failData` events. A route that was already open is closed so stale
+params cannot remain active for the new URL.
+
+For new code, derive readiness with `chainRoute`:
 
 ```ts
-import { createEffect } from 'effector';
-
-const checkAuthFx = createEffect(async () => {
-  return await verifyAuth();
-});
-
-const dashboardRoute = createRoute({
-  path: '/dashboard',
-  beforeOpen: [checkAuthFx],
-});
-
-const settingsRoute = createRoute({
-  path: '/settings',
-  parent: dashboardRoute, // Inherits checkAuthFx
-});
-
-// checkAuthFx runs before opening
-settingsRoute.open();
-```
-
-### Before Open Effects
-
-Run effects before a route opens:
-
-```ts
-import { createRoute } from '@effector/router';
-import { createEffect, sample } from 'effector';
-
-const loadUserFx = createEffect(async () => {
-  return await fetchUser();
-});
-
-const profileRoute = createRoute({
-  path: '/profile',
-  beforeOpen: [loadUserFx],
-});
-
-// loadUserFx executes, then route opens
-profileRoute.open();
-
-// Track loading state
-sample({
-  clock: profileRoute.$isPending,
-  fn: (isPending) => console.log('Loading:', isPending),
+const readyProfileRoute = chainRoute({
+  route: profileRoute,
+  beforeOpen: loadUserFx,
 });
 ```
+
+Use `readyProfileRoute.$isPending` for model preparation. To hold history before
+commit, use `beforeNavigate` instead.
 
 ### Open with Query Parameters
+
+Omitting `query` preserves the current URL query when a path route opens. A
+provided object replaces it, and `query: {}` clears it. The same semantics are
+used by redirects and links.
 
 ```ts
 const searchRoute = createRoute({ path: '/search' });
@@ -295,28 +321,20 @@ const route = createRoute({ path: '/user/:id<number>' });
 const route = createRoute({ path: '/user/:id' });
 ```
 
-### Use Parent for Shared Logic
+### Compose Shared Policy Outside Route Creation
 
-Extract common path prefixes and guards into parent routes:
+Use `parent` for path hierarchy. Compose authorization or confirmation from a
+shared controls instance:
 
 ```ts
-// ✅ Good: Shared auth guard
-const adminRoute = createRoute({
-  path: '/admin',
-  beforeOpen: [checkAdminAuthFx],
-});
-
+const adminRoute = createRoute({ path: '/admin' });
 const usersRoute = createRoute({ path: '/users', parent: adminRoute });
 const settingsRoute = createRoute({ path: '/settings', parent: adminRoute });
 
-// ❌ Bad: Duplicate guards
-const usersRoute = createRoute({
-  path: '/admin/users',
-  beforeOpen: [checkAdminAuthFx],
-});
-const settingsRoute = createRoute({
-  path: '/admin/settings',
-  beforeOpen: [checkAdminAuthFx],
+beforeNavigate({
+  controls,
+  to: [adminRoute, usersRoute, settingsRoute],
+  filter: $unauthorized,
 });
 ```
 
@@ -324,5 +342,6 @@ const settingsRoute = createRoute({
 
 - [createRouter](/core/create-router) - Create router with routes
 - [createVirtualRoute](/core/create-virtual-route) - Create virtual routes
-- [chainRoute](/core/chain-route) - Wrap routes with guards
+- [beforeNavigate](/core/before-navigate) - Hold transitions before history
+- [chainRoute](/core/chain-route) - Derive post-commit readiness
 - [@effector/router-paths](https://github.com/effector/router/tree/main/packages/router-paths) - Path parameter syntax

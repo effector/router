@@ -1,30 +1,28 @@
 import { sample } from 'effector';
-import { createVirtualRoute } from './create-virtual-route';
-import type { Route, VirtualRoute } from './types';
+import { createRoute } from './create-route';
+import type { LegacyVirtualRoute, Route } from './types';
 import { not, or } from 'patronum';
 
 /**
  * @description Create virtual route which opens when some passed routes is opened. Closes if all passed routes are closed.
  * @link https://router.effector.dev/core/group.html
- * @returns VirtualRoute
+ * @returns PathlessRoute
  * @example ```ts
  * import { group, createRoute } from '@effector/router';
- * import { createEvent, createEffect } from 'effector';
  *
- * const signInRoute = createRoute({ path: '/auth/sign-in' });
- * const signUpRoute = createRoute({ path: '/auth/sign-up' });
+ * const signInRoute = createRoute();
+ * const signUpRoute = createRoute();
  * const authorizationRoute = group([signInRoute, signUpRoute]);
  *
  * signInRoute.open(); // authorizationRoute.$isOpened —> true
  * signUpRoute.open(); // authorizationRoute.$isOpened —> true
- * signInRoute.close(); // authorizationRoute.$isOpened —> true
- * signUpRoute.close(); // authorizationRoute.$isOpened —> false
+ * signInRoute.close(); // authorizationRoute.$isOpened —> true (signUpRoute is still open)
+ * signUpRoute.close(); // authorizationRoute.$isOpened —> false (all routes are closed)
  * ```
  */
-export function group(routes: (Route<any> | VirtualRoute<any, any>)[]) {
-  const virtual = createVirtualRoute({
-    $isPending: or(...routes.map((route) => route.$isPending)),
-  });
+export function group(routes: (Route<any> | LegacyVirtualRoute<any, any>)[]) {
+  const route = createRoute();
+  const $isPending = or(...routes.map((item) => item.$isPending));
 
   const $hasOpenedRoutes = or(...routes.map((route) => route.$isOpened));
 
@@ -32,15 +30,15 @@ export function group(routes: (Route<any> | VirtualRoute<any, any>)[]) {
     clock: routes.map((route) => route.$isOpened),
     filter: $hasOpenedRoutes,
     fn: () => undefined,
-    target: virtual.open,
+    target: route.open,
   });
 
   sample({
     clock: routes.map((route) => route.$isOpened),
     filter: not($hasOpenedRoutes),
     fn: () => undefined,
-    target: virtual.close,
+    target: route.close,
   });
 
-  return virtual;
+  return { ...route, $isPending };
 }

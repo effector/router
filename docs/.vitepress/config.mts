@@ -3,17 +3,34 @@ import { defineConfig } from 'vitepress';
 import path from 'path';
 import fs from 'fs';
 
+import { createOgImages } from './og.mjs';
+
 const { version } = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, '../../packages/core/package.json'), {
     encoding: 'utf-8',
   }),
 );
 
+const site = 'https://router.effector.dev';
+const siteTitle = '@effector/router';
+const siteDescription =
+  'A route is a unit of logic. Model navigation as state and events with Effector — routes without URLs, type-safe params, transition policy, SSR by design.';
+
+// Per-page Open Graph cards. Generates og:image/meta tags and renders the PNGs
+// during `vitepress build`; see docs/.vitepress/og.mts.
+const og = createOgImages({ site, siteTitle, siteDescription, version });
+
 export default defineConfig({
   title: 'effector router',
-  description: 'effector router documentation',
+  description: siteDescription,
   base: '/',
-  head: [['link', { rel: 'icon', href: '/favicon.ico' }]],
+  head: [
+    ['link', { rel: 'icon', href: '/favicon.ico' }],
+    ['meta', { name: 'theme-color', content: '#ff7518' }],
+    ...og.head,
+  ],
+  transformPageData: og.transformPageData,
+  buildEnd: og.buildEnd,
   themeConfig: {
     logo: './logo.svg',
     nav: [
@@ -30,7 +47,7 @@ export default defineConfig({
               },
               {
                 text: 'Releases Notes',
-                link: 'https://github.com/effector/router/blob/main/CHANGELOG.md',
+                link: 'https://github.com/effector/router/releases',
               },
             ],
           },
@@ -43,6 +60,7 @@ export default defineConfig({
         text: 'Introduction',
         items: [
           { text: 'Getting started', link: '/introduction/getting-started' },
+          { text: 'Web Link matrix', link: '/link-matrix' },
         ],
       },
       {
@@ -57,6 +75,12 @@ export default defineConfig({
             link: '/core/create-router-controls',
           },
           { text: 'Adapters', link: '/core/adapters' },
+          {
+            text: 'Navigation lifecycle',
+            link: '/core/navigation-lifecycle',
+          },
+          { text: 'beforeNavigate', link: '/core/before-navigate' },
+          { text: 'redirect', link: '/core/redirect' },
           { text: 'trackQuery', link: '/core/track-query' },
           { text: 'chainRoute', link: '/core/chain-route' },
           { text: 'group', link: '/core/group' },
@@ -90,6 +114,27 @@ export default defineConfig({
         ],
       },
       {
+        text: 'Vue β',
+        collapsed: false,
+        items: [
+          { text: 'Overview', link: '/vue/' },
+          { text: 'RouterProvider', link: '/vue/router-provider' },
+          { text: 'createRouteView', link: '/vue/create-route-view' },
+          {
+            text: 'createLazyRouteView',
+            link: '/vue/create-lazy-route-view',
+          },
+          { text: 'createRoutesView', link: '/vue/create-routes-view' },
+          { text: 'Link', link: '/vue/link' },
+          { text: 'Outlet', link: '/vue/outlet' },
+          { text: 'useRouter', link: '/vue/use-router' },
+          { text: 'useLink', link: '/vue/use-link' },
+          { text: 'useIsOpened', link: '/vue/use-is-opened' },
+          { text: 'useOpenedViews', link: '/vue/use-opened-views' },
+          { text: 'withLayout', link: '/vue/with-layout' },
+        ],
+      },
+      {
         text: 'React Native β',
         collapsed: false,
         items: [
@@ -102,6 +147,27 @@ export default defineConfig({
             text: 'Bottom Tabs Navigator',
             link: '/react-native/bottom-tabs-navigator',
           },
+        ],
+      },
+      {
+        text: 'Solid β',
+        collapsed: false,
+        items: [
+          { text: 'Overview', link: '/solid/' },
+          { text: 'RouterProvider', link: '/solid/router-provider' },
+          { text: 'createRouteView', link: '/solid/create-route-view' },
+          {
+            text: 'createLazyRouteView',
+            link: '/solid/create-lazy-route-view',
+          },
+          { text: 'createRoutesView', link: '/solid/create-routes-view' },
+          { text: 'Link', link: '/solid/link' },
+          { text: 'Outlet', link: '/solid/outlet' },
+          { text: 'useRouter', link: '/solid/use-router' },
+          { text: 'useLink', link: '/solid/use-link' },
+          { text: 'useIsOpened', link: '/solid/use-is-opened' },
+          { text: 'useOpenedViews', link: '/solid/use-opened-views' },
+          { text: 'withLayout', link: '/solid/with-layout' },
         ],
       },
     ],

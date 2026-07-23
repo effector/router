@@ -1,4 +1,4 @@
-import type { Route } from '@effector/router';
+import { stringifyQuery, type QueryInput, type Route } from '@effector/router';
 import type { InternalRoute } from '@effector/router';
 import { useRouterContext } from './use-router';
 import { useUnit } from 'effector-react';
@@ -6,8 +6,11 @@ import { useUnit } from 'effector-react';
 export function useLink<T extends object | void = void>(
   to: Route<T>,
   params: T,
+  query?: QueryInput,
 ) {
   const { knownRoutes } = useRouterContext();
+  const router = useRouterContext();
+  const currentQuery = useUnit(router.$query);
   const target = knownRoutes.find(
     ({ route }) => route === (to as unknown as InternalRoute<any>),
   );
@@ -22,7 +25,16 @@ export function useLink<T extends object | void = void>(
   }
 
   return {
-    path: target.build(params ?? undefined),
+    path: createHref(
+      target.build(params ?? undefined),
+      query === undefined ? currentQuery : query,
+    ),
     onOpen,
   };
+}
+
+function createHref(path: string, query?: QueryInput): string {
+  const search = query ? stringifyQuery(query) : '';
+
+  return search ? `${path}?${search}` : path;
 }

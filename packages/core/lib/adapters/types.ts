@@ -18,6 +18,16 @@ export type To = string | Partial<RouterLocation>;
 
 type ListenCallback = (location: RouterLocation) => void;
 
+export type RouterAction = 'POP' | 'PUSH' | 'REPLACE';
+
+export interface RouterTransition {
+  action: RouterAction;
+  location: RouterLocation;
+  retry: () => void;
+}
+
+type BlockCallback = (transition: RouterTransition) => void;
+
 export interface RouterAdapter {
   location: RouterLocation;
 
@@ -28,4 +38,10 @@ export interface RouterAdapter {
   goForward: () => void;
 
   listen: (callback: ListenCallback) => Subscription;
+
+  /**
+   * Optional native transition interception. Without it, router commands can
+   * still be held, but browser POP transitions cannot.
+   */
+  block?: (callback: BlockCallback) => Subscription;
 }
