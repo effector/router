@@ -16,7 +16,9 @@
   "scripts": {
     "dev": "vitepress dev",
     "build": "vitepress build",
-    "preview": "vitepress preview"
+    "preview": "vitepress preview",
+    "typecheck": "tsc -p snippets/tsconfig.json && tsc -p snippets/tsconfig.solid.json && tsc -p snippets/tsconfig.expected.json",
+    "check-links": "node ../scripts/check-doc-links.mjs"
   },
   "dependencies": {
     "vue": "catalog:"

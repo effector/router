@@ -105,15 +105,18 @@ router/
 
 Run these from the repository root:
 
-| Command                 | What it does                                                      |
-| ----------------------- | ----------------------------------------------------------------- |
-| `pnpm build`            | Build every package in `packages/*`.                              |
-| `pnpm test`             | Run the test suites for every package.                            |
-| `pnpm typecheck`        | Type-check the whole workspace with `tsc --noEmit`.               |
-| `pnpm docs:typecheck`   | Type-check the public documentation snippets and expected errors. |
-| `pnpm docs:check-links` | Check Markdown/JSDoc links, sidebar entries, and API pages.       |
-| `pnpm lint`             | Lint the codebase with ESLint.                                    |
-| `pnpm changeset`        | Create a changeset describing your change.                        |
+| Command          | What it does                                         |
+| ---------------- | ----------------------------------------------------- |
+| `pnpm build`     | Build every package in `packages/*`.                   |
+| `pnpm test`      | Run the test suites for every package.                 |
+| `pnpm typecheck` | Type-check the whole workspace with `tsc --noEmit`.    |
+| `pnpm lint`      | Lint the codebase with ESLint.                         |
+| `pnpm changeset` | Create a changeset describing your change.             |
+
+Docs-specific checks run through the `:docs` workspace shortcut (see below):
+`pnpm :docs typecheck` type-checks the public documentation snippets and
+expected errors; `pnpm :docs check-links` checks Markdown/JSDoc links, sidebar
+entries, and API pages.
 
 To work on a single package, use the workspace shortcuts (`:core`, `:paths`, `:react`, `:react-native`,
 `:docs`), for example:
@@ -132,7 +135,7 @@ pnpm :docs build    # production build of the docs
 ```
 
 Documentation examples that describe the public API live in
-[`docs/snippets`](docs/snippets). Run `pnpm docs:typecheck` after changing an
+[`docs/snippets`](docs/snippets). Run `pnpm :docs typecheck` after changing an
 example. The command checks positive snippets for core, paths, React, Solid,
 Vue, and React Native separately from the negative fixture, which uses
 `@ts-expect-error` to lock the documented restrictions for route parameters,

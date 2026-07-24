@@ -1,10 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import process from 'node:process';
+import { fileURLToPath } from 'node:url';
 
 import { resolveRewrittenSource } from '../docs/.vitepress/rewrites.mjs';
 
-const root = process.cwd();
+// Resolved from this file's location, not `process.cwd()`, so the check runs
+// the same whether it's invoked from the repo root or via `pnpm :docs
+// check-links` (cwd `docs/`).
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const docsRoot = path.join(root, 'docs');
 const errors = [];
 

@@ -21,8 +21,8 @@ pnpm build                # build every package in packages/*
 pnpm test                 # run every package's test suite (vitest, --silent)
 pnpm typecheck            # tsc -p tsconfig.check.json — whole-workspace type gate
 pnpm lint                 # eslint
-pnpm docs:typecheck       # typecheck docs/snippets (core, react, vue, solid, + negative fixture)
-pnpm docs:check-links     # verify markdown/JSDoc links and sidebar entries
+pnpm :docs typecheck      # typecheck docs/snippets (core, react, vue, solid, + negative fixture)
+pnpm :docs check-links    # verify markdown/JSDoc links and sidebar entries
 pnpm changeset            # record a changeset for a change (required for release-affecting PRs)
 pnpm changeset --empty    # record a no-release changeset (tests/CI/internal refactors/docs-only)
 ```
@@ -64,7 +64,7 @@ and is excluded from the root `eslint.config.mts` and from `tsconfig.check.json`
   `@react-navigation`; the app owns the navigation ref.
 - `docs/` — VitePress site, Diataxis-organized: `introduction/`, `quick-starts/`, `tutorials/`,
   `how-to/`, `explanation/`, `reference/`, `core/`. `docs/snippets/` holds typechecked example code
-  (`pnpm docs:typecheck`); `docs/quick-starts/` fixtures are imported directly by package test
+  (`pnpm :docs typecheck`); `docs/quick-starts/` fixtures are imported directly by package test
   suites, so documented setup and tested setup must stay identical (see CONTRIBUTING.md).
 - `examples/solid-router` — standalone Solid example app.
 

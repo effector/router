@@ -12,5 +12,5 @@ shapes:
 The package smoke tests import them directly. Renderer fixtures open an initial
 route and perform one navigation; the React Native fixture is rendered by the
 mocked native integration harness in `packages/react-native/tests/integration.test.tsx`.
-Run `pnpm docs:typecheck` for the type contract and the package test commands
+Run `pnpm :docs typecheck` for the type contract and the package test commands
 for runtime smoke coverage.
