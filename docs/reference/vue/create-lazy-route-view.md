@@ -4,6 +4,15 @@ Creates a lazy route view. Accepts `route` (effector/router route), `view` (a
 dynamic `import()` of the component), optional `fallback` (rendered while the
 bundle loads) and optional `layout`.
 
+## TypeScript
+
+`CreateLazyRouteViewProps<T>` is the exported input type and `RouteView` is the
+returned view descriptor. It has the same `route`, optional `layout`, and
+optional `children` fields as `CreateRouteViewProps<T>`, plus:
+
+- `view` — a function returning `Promise<{ default: Component }>`
+- `fallback?` — the component rendered while the async component loads
+
 ### Example
 
 ```ts

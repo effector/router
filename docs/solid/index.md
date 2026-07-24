@@ -145,7 +145,7 @@ The Solid binding mirrors the React one:
 - [`createRoutesView`] — render the currently opened route, with an `otherwise` fallback.
 - [`Link`], [`useLink`] — declarative and imperative navigation.
 - [`withLayout`] — share a layout across routes.
-- [`Outlet`], [`useRouter`], [`useIsOpened`], [`useOpenedViews`] — composition helpers.
+- [`Outlet`], [`useRouter`], [`useRouterContext`], [`useIsOpened`], [`useOpenedViews`] — composition helpers.
 
 ## Next Steps
 
@@ -162,4 +162,5 @@ The Solid binding mirrors the React one:
 [`useLink`]: /solid/use-link
 [`useOpenedViews`]: /solid/use-opened-views
 [`useRouter`]: /solid/use-router
+[`useRouterContext`]: /solid/use-router
 [`withLayout`]: /solid/with-layout

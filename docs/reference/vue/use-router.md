@@ -45,10 +45,15 @@ console.log(path.value, query.value, activeRoutes.value);
 </template>
 ```
 
-Use `useRouterContext()` if you need the raw router instance, including its
-stores and methods that are not part of the unit shape:
+## Raw router: `useRouterContext`
+
+`useRouterContext()` returns the raw router instance from `RouterProvider`. Use
+it when you need stores or methods that are not part of `useRouter()`'s bound
+unit shape.
 
 ```ts
+import { useRouterContext } from '@effector/router-vue';
+
 const router = useRouterContext();
 router.setHistory(adapter);
 ```

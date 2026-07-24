@@ -7,12 +7,7 @@ Creates a post-commit readiness route from an already activated route.
 ## API
 
 ```ts
-function chainRoute<T>({
-  route: Route<T>,
-  beforeOpen: CallableUnit | CallableUnit[],
-  openOn?: Unit | Unit[],
-  cancelOn?: Unit | Unit[],
-}): ChainRoute<T>
+function chainRoute<T>(props: ChainRouteProps<T>): ChainRoute<T>;
 ```
 
 `beforeOpen` accepts existing callable Effector events and effects. Units run in
@@ -20,7 +15,8 @@ array order; Effects are awaited. No router-specific task primitive is needed.
 The returned `ChainRoute<T>` is a pathless route with an additional
 `cancelled` event and uses the same `createRoute()` lifecycle.
 The deprecated `createVirtualRoute` result remains accepted as an input for
-compatibility.
+compatibility. `ChainRouteProps<T>` and `ChainRoute<T>` are exported public
+types.
 
 ## Effect shorthand
 

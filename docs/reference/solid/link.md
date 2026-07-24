@@ -21,6 +21,10 @@ function Link<Params extends object | void = void>(
 
 All other Solid anchor attributes are forwarded.
 
+## `LinkProps`
+
+`LinkProps<Params>` is the exported public props type accepted by `Link`. It combines Solid anchor attributes (except `href`) with the router open payload, `to`, optional `children`, and `activeClass`. `params` is optional for routes without required parameters and required otherwise; the table above documents the router-specific props.
+
 ```tsx
 import { Link } from '@effector/router-solid';
 

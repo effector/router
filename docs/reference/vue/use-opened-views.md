@@ -3,6 +3,13 @@
 Low-level composable that reactively resolves which of the passed views should be
 rendered for the current router state. Returns a `ComputedRef<RouteView[]>`.
 
+## `RouteView`
+
+`RouteView` is an exported descriptor type produced by `createRouteView` and
+`createLazyRouteView`. It contains a route or nested router target, the Vue
+component to render, and optional `children: RouteView[]` for nested outlets.
+Pass these descriptors to `useOpenedViews`, `createRoutesView`, or `withLayout`.
+
 The returned array preserves declaration order and applies route priority in two
 stages:
 

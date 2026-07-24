@@ -6,16 +6,15 @@ events for confirmation, cancellation, or redirect.
 ## API
 
 ```ts
-const transition = beforeNavigate({
-  controls: RouterControls,
-  from?: PathRoute | readonly PathRoute[],
-  to?: PathRoute | readonly PathRoute[],
-  filter?: Store<boolean> | ((navigation: NavigatePayload) => boolean),
-})
+function beforeNavigate(
+  config: BeforeNavigateConfig,
+): BeforeNavigateResult;
 ```
 
-The result contains `started: Event<void>`, `proceed: EventCallable<void>`, and
-`cancel: EventCallable<void>`.
+`BeforeNavigateConfig` is the exported configuration type. Its `controls`,
+`from`, `to`, and `filter` fields select the navigation transitions to hold.
+`BeforeNavigateResult` is the exported result type with `started: Event<void>`,
+`proceed: EventCallable<void>`, and `cancel: EventCallable<void>`.
 
 `filter: true` means the transition is held. Pre-compose complex state with
 `Store.map` or `combine`. If both `from` and `to` are supplied, both must match.

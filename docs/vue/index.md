@@ -46,6 +46,10 @@ Provide the router to your Vue tree:
 </template>
 ```
 
+Inside the provider, use [`useRouter`](/vue/use-router) for reactive router
+units. Use [`useRouterContext`](/vue/use-router) when you need the raw router
+instance.
+
 ### Scope
 
 Reactivity and Effector `Scope` are handled by `effector-vue`. Register its scope

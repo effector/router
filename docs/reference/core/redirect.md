@@ -3,11 +3,13 @@
 Creates a clock-less Effector target for semantic route redirects.
 
 ```ts
-function redirect<T>({
-  to: PathRoute<T>,
-  replace?: boolean,
-}): EventCallable<RouteOpenedPayload<T>>
+function redirect<T>(
+  config: RedirectConfig<T>,
+): EventCallable<RouteOpenPayload<T>>
 ```
+
+`RedirectConfig<T>` is the exported configuration type. It accepts a path route
+in `to` and an optional `replace` flag.
 
 ## Static redirect
 

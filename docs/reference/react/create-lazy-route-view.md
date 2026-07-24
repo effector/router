@@ -126,9 +126,25 @@ const ProfileScreen = createLazyRouteView({
 });
 ```
 
+## `CreateLazyRouteViewProps`
+
+`CreateLazyRouteViewProps<T>` is the public configuration type accepted by `createLazyRouteView`.
+
+```ts
+import type { CreateLazyRouteViewProps } from '@effector/router-react';
+```
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `route` | `Route<T>` | Route that controls whether the lazy view is active. Router targets are not supported for lazy views. |
+| `view` | `() => Promise<{ default: ComponentType }>` | Dynamic importer whose module has a default React component export. |
+| `fallback` | `ComponentType` | Optional component rendered by `Suspense` while the module loads. |
+| `layout` | `ComponentType<{ children: ReactNode }>` | Optional layout that wraps the lazy view. |
+| `children` | `RouteView[]` | Optional direct child views rendered through [`Outlet`]. |
+
 ## Return Value
 
-Returns a `RouteView` object that renders the lazy-loaded component wrapped in React Suspense.
+Returns a [`RouteView`](/react/create-route-view#routeview) object that renders the lazy-loaded component wrapped in React Suspense.
 
 ## Code Splitting
 

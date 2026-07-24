@@ -151,12 +151,14 @@ function App() {
 
 ## See Also
 
-- [useRouterContext](#userouter-context) - Access router without Effector binding
+- [useRouterContext](#useroutercontext) - Access router without Effector binding
 - [RouterProvider](./router-provider) - Provide router to React tree
 - [Link](./link) - Navigation component
 - [createRouter](/core/create-router) - Create router instance
 
 ## useRouterContext
+
+`useRouterContext` is a public hook that returns the raw router from `RouterProvider`. Unlike `useRouter`, it leaves router stores unbound so you can select and bind them with `useUnit`.
 
 Alternative hook that returns the raw router with stores (not values):
 

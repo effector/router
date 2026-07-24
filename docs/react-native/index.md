@@ -39,10 +39,28 @@ npm install @effector/router @effector/router-react-native \
 npm install react-native-screens react-native-safe-area-context
 ```
 
-`@effector/router-react-native` re-exports platform-neutral React bindings such
-as `RouterProvider`, route views, layouts, and route hooks. Browser-only `Link`,
-`useLink`, and `LinkProps` remain in `@effector/router-react`. Import the shared
-router API from `@effector/router`.
+`@effector/router-react-native` re-exports platform-neutral React bindings.
+Browser-only `Link`, `useLink`, and `LinkProps` remain in
+`@effector/router-react`. Import the shared router API from `@effector/router`.
+
+## Re-exported React bindings
+
+The following APIs are re-exported from `@effector/router-react`. Their behavior
+is the same; each page links to the complete React API reference:
+
+- [RouterProvider](/react-native/router-provider)
+- [Outlet](/react-native/outlet)
+- [createRouteView](/react-native/create-route-view)
+- [createRoutesView](/react-native/create-routes-view)
+- [createLazyRouteView](/react-native/create-lazy-route-view)
+- [useRouter](/react-native/use-router)
+- [useRouterContext](/react-native/use-router-context)
+- [useIsOpened](/react-native/use-is-opened)
+- [useOpenedViews](/react-native/use-opened-views)
+- [withLayout](/react-native/with-layout)
+
+The package also re-exports the `CreateLazyRouteViewProps`,
+`CreateRouteViewProps`, and `RouteView` types.
 
 ## Quick Example
 

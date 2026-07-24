@@ -18,6 +18,10 @@ function createLazyRouteView<T extends object | void = void>(
 | `layout`   | `Component<{ children: JSX.Element }>`  | Optional wrapper component                 |
 | `children` | `RouteView[]`                           | Optional direct child views for [`Outlet`] |
 
+## `CreateLazyRouteViewProps`
+
+`CreateLazyRouteViewProps<T>` is the exported public input type for `createLazyRouteView`. Its fields are the properties in the table above; `T` is the route parameter type. Its `view` loader must resolve to a module whose default export is a Solid component.
+
 ## Usage
 
 ```tsx

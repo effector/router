@@ -181,13 +181,38 @@ const ProfileScreen = createRouteView({
 });
 ```
 
+## `CreateRouteViewProps`
+
+`CreateRouteViewProps<T>` is the public configuration type accepted by `createRouteView`.
+
+```ts
+import type { CreateRouteViewProps } from '@effector/router-react';
+```
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `route` | `Route<T>` or `Router` | The route or nested router that controls whether the view is active. |
+| `view` | `ComponentType` | Component rendered for the active view. |
+| `layout` | `ComponentType<{ children: ReactNode }>` | Optional layout that wraps the view. |
+| `children` | `RouteView[]` | Optional direct child views rendered through [`Outlet`]. |
+
 ## Return Value
 
-Returns a `RouteView` object with:
+Returns a [`RouteView`](#routeview) object.
 
-- `route` - The route or router instance
-- `view` - The wrapped React component
-- `children` (optional) - Nested route views
+## `RouteView`
+
+`RouteView` is the public description of a route-bound view. Both `createRouteView` and [`createLazyRouteView`] return this type, and `createRoutesView`, `withLayout`, and `useOpenedViews` accept or return collections of it.
+
+```ts
+import type { RouteView } from '@effector/router-react';
+```
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `route` | Route-like target or `Router` | Target that determines whether the view is active. |
+| `view` | `React.FC` | Component rendered when selected. |
+| `children` | `RouteView[]` | Optional direct child views for [`Outlet`]. |
 
 ## Type Safety
 

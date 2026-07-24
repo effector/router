@@ -138,6 +138,31 @@ measurement work like they do for a native anchor. Route parameters remain
 conditionally required by `LinkProps`: a route with `:id` requires
 `params={ {id: ...} }`, while a path without parameters accepts omitted params.
 
+## `LinkProps`
+
+`LinkProps` is the public generic prop type used by `Link`. Import it when wrapping `Link` or declaring props for a component that forwards navigation and anchor attributes.
+
+```ts
+import type { LinkProps } from '@effector/router-react';
+```
+
+`LinkProps<Params>` combines standard `<a>` attributes (except `href`) with these router props:
+
+| Property | Type | Description |
+| --- | --- | --- |
+| `to` | `Route<Params>` | Target route. |
+| `params` | `Params` | Route parameters. Required when the route has required params; otherwise optional. |
+| `query` | `Query` | Query to use for navigation. Omit it to preserve the current query; pass `{}` to clear it. |
+| `replace` | `boolean` | Replace the current history entry instead of pushing a new one. |
+
+```tsx
+import { Link, type LinkProps } from '@effector/router-react';
+
+function NavLink<Params extends object | void>(props: LinkProps<Params>) {
+  return <Link {...props} className="nav-link" />;
+}
+```
+
 ## Behavior
 
 ### Click Handling

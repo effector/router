@@ -1,7 +1,8 @@
 # createRoutesView
 
 Creates the routes view — the entry point for all routes. Works only inside
-`<RouterProvider>`.
+`<RouterProvider>`. Its `routes` option accepts `RouteView[]` descriptors
+returned by `createRouteView` or `createLazyRouteView`.
 
 The binding matrix covers path and virtual routes, parent/child suppression,
 nested `Router` targets, declarative sibling priority, persistent layouts, and

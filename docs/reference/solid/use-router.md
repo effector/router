@@ -28,9 +28,11 @@ function NavigationStatus() {
 
 ## useRouterContext
 
-`useRouterContext()` returns the raw `Router` instance:
+`useRouterContext` is a public export for code that needs the raw `Router` instance rather than the accessor-based unit shape returned by `useRouter()`:
 
 ```ts
+import { useRouterContext } from '@effector/router-solid';
+
 const router = useRouterContext();
 router.setHistory(adapter);
 ```

@@ -76,7 +76,11 @@ function App() {
 ### Navigation
 
 - [Link](/react/link) - Navigation link component
-- [useRouter](/react/use-router) - Access router in components
+
+### Router Access
+
+- [useRouter](/react/use-router) - Access the router with store values bound for React rendering
+- [useRouterContext](/react/use-router#useroutercontext) - Access the raw router and bind selected stores with `useUnit`
 
 ### Utilities
 

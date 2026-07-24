@@ -7,12 +7,14 @@ enters; when they're removed, invalid, or no selected route is open, it exits.
 ## API
 
 ```typescript
-trackQuery<T extends ZodType>(config: {
-  controls: RouterControls;
-  routes?: Route[];
-  parameters: T;
-}): QueryTracker<T>
+trackQuery<T extends ZodType>(
+  config: TrackQueryConfig<T>,
+): QueryTracker<T>
 ```
+
+`TrackQueryConfig<T>` is the exported configuration type for `trackQuery`.
+`QueryTrackerConfig<T>` is the exported type for its route and schema selection
+without `controls`.
 
 ### Config
 
@@ -47,8 +49,9 @@ states are `{ status: 'inactive' }`, `{ status: 'pending' }`, and
 do not replay a state that already existed. For late creation, sample `$state`
 with the consumer's own lifecycle event.
 
-`enter` accepts only keys declared by the schema and URL-compatible values:
-`string`, `null`, or ordered arrays of those values. Convert numbers, dates,
+`enter` accepts `QueryParametersInput<T>`: only keys declared by the schema and
+URL-compatible values (`string`, `null`, or ordered arrays of those values).
+Convert numbers, dates,
 booleans, and other domain values before calling `enter`. `entered` publishes
 the schema's parsed output, so a schema transform may expose domain values to
 listeners without widening the URL input contract.

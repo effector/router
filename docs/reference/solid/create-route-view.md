@@ -17,6 +17,14 @@ function createRouteView<T extends object | void = void>(
 | `layout`   | `Component<{ children: JSX.Element }>` | Optional wrapper component                 |
 | `children` | `RouteView[]`                          | Optional direct child views for [`Outlet`] |
 
+## `CreateRouteViewProps`
+
+`CreateRouteViewProps<T>` is the exported public input type for `createRouteView`. Its fields are the properties in the table above; `T` is the route parameter type.
+
+## `RouteView`
+
+`RouteView` is the exported public type returned by `createRouteView` and accepted by `createRoutesView`, `useOpenedViews`, `withLayout`, and the `children` property. A route view contains its route or nested router target, the Solid component to render, and optional child route views. Create these values with `createRouteView` or `createLazyRouteView` rather than constructing layout metadata yourself.
+
 ## Usage
 
 ```tsx
