@@ -162,6 +162,19 @@ type To = string | Partial<RouterLocation>;
 - A **string** is a full path, following the [`history`](https://github.com/remix-run/history) convention: `pathname[?search][#hash]` (e.g. `'/user/1?tab=info'`). It is equivalent to the matching object form `{ pathname: '/user/1', search: '?tab=info' }`.
 - An **object** is a `Partial<RouterLocation>`; omitted fields retain their current values. Pass an empty string explicitly to clear `search` or `hash`.
 
+```ts
+// current location: /user/1?tab=info#comments
+
+adapter.push({ search: '?tab=settings' });
+// -> pathname: '/user/1' (kept), search: '?tab=settings', hash: '#comments' (kept)
+
+adapter.push({ pathname: '/user/2' });
+// -> pathname: '/user/2', search: '?tab=info' (kept), hash: '#comments' (kept)
+
+adapter.push({ hash: '' });
+// -> pathname: '/user/1' (kept), search: '?tab=info' (kept), hash: '' (cleared)
+```
+
 By default `queryAdapter` stores the **entire** target path — pathname, search and hash together — URL-encoded into a single `location.search` value, while leaving the host `pathname` and `hash` untouched:
 
 ```ts

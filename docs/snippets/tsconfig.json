@@ -18,6 +18,7 @@
     "./react.tsx",
     "./vue.ts",
     "./react-native.tsx",
+    "./tutorials/build-your-first-router.tsx",
     "../quick-starts/core.ts",
     "../quick-starts/react.tsx",
     "../quick-starts/vue.ts",
