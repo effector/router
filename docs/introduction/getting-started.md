@@ -23,7 +23,7 @@ yarn add @effector/router history
 :::
 
 ::: tip
-In SSR project you must add @effector/router in "factories"
+In an SSR project you must add @effector/router in "factories"
 list in [effector babel plugin](https://effector.dev/en/api/effector/babel-plugin/#configuration-factories)
 :::
 
@@ -73,17 +73,15 @@ yarn add @effector/router-vue effector-vue vue
 As an example, we will write a simple router with `feed` and `profile` routes.
 
 ```ts
+// shared/routing.ts
 import { createRoute, createRouter } from '@effector/router';
-import { fork } from 'effector';
 
-const scope = fork();
-
-const routes = {
+export const routes = {
   feed: createRoute({ path: '/' }),
   profile: createRoute({ path: '/profile' }),
 };
 
-const router = createRouter({
+export const router = createRouter({
   routes: [routes.feed, routes.profile],
 });
 ```
@@ -91,6 +89,7 @@ const router = createRouter({
 ```tsx
 // profile.tsx
 import { createRouteView } from '@effector/router-react';
+import { routes } from './shared/routing';
 
 const Profile = () => {
   return <>...</>;
@@ -105,6 +104,7 @@ export const ProfileScreen = createRouteView({
 ```tsx
 // feed.tsx
 import { createRouteView } from '@effector/router-react';
+import { routes } from './shared/routing';
 
 const Feed = () => {
   return <>...</>;
@@ -164,3 +164,9 @@ render();
 ```
 
 :::
+
+## Next steps
+
+For a complete, step-by-step walkthrough with expected results at each step,
+see the [Build your first router](/tutorials/build-your-first-router)
+tutorial.

@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 
+import { resolveRewrittenSource } from '../docs/.vitepress/rewrites.mjs';
+
 const root = process.cwd();
 const docsRoot = path.join(root, 'docs');
 const errors = [];
@@ -18,23 +20,37 @@ function markdownFiles(directory) {
   });
 }
 
+// A public URL may be served by a file that physically lives elsewhere, via
+// VitePress `rewrites` (see docs/.vitepress/rewrites.mjs). Try the direct
+// on-disk path first, then fall back to the rewritten source.
 function publicPathToFile(value) {
   const clean = value.split(/[?#]/, 1)[0] || '/';
   const withoutHtml = clean.endsWith('.html')
     ? clean.slice(0, -'.html'.length)
     : clean;
   const relative = withoutHtml.replace(/^\//, '');
-  const candidates = [];
+  const relativeCandidates = [];
 
-  if (!relative) candidates.push(path.join(docsRoot, 'index.md'));
+  if (!relative) relativeCandidates.push('index.md');
   else if (relative.endsWith('/')) {
-    candidates.push(path.join(docsRoot, relative, 'index.md'));
+    relativeCandidates.push(`${relative}index.md`);
   } else {
-    candidates.push(path.join(docsRoot, `${relative}.md`));
-    candidates.push(path.join(docsRoot, relative, 'index.md'));
+    relativeCandidates.push(`${relative}.md`);
+    relativeCandidates.push(`${relative}/index.md`);
   }
 
-  return candidates.find((candidate) => fs.existsSync(candidate));
+  for (const rel of relativeCandidates) {
+    const direct = path.join(docsRoot, rel);
+    if (fs.existsSync(direct)) return direct;
+
+    const rewritten = resolveRewrittenSource(rel);
+    if (rewritten) {
+      const rewrittenPath = path.join(docsRoot, rewritten);
+      if (fs.existsSync(rewrittenPath)) return rewrittenPath;
+    }
+  }
+
+  return undefined;
 }
 
 function checkLink(source, rawLink, kind) {
@@ -109,14 +125,7 @@ const sidebarFiles = new Set(
     .filter(Boolean)
     .map((file) => path.normalize(file)),
 );
-for (const section of [
-  'core',
-  'paths',
-  'react',
-  'solid',
-  'vue',
-  'react-native',
-]) {
+for (const section of ['tutorials', 'reference', 'explanation', 'how-to']) {
   for (const file of markdownFiles(path.join(docsRoot, section))) {
     if (path.basename(file) === 'index.md') continue;
     if (!sidebarFiles.has(path.normalize(file))) {

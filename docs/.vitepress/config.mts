@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 
 import { createOgImages } from './og.mjs';
+import { rewrites } from './rewrites.mjs';
 
 const { version } = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, '../../packages/core/package.json'), {
@@ -20,6 +21,70 @@ const siteDescription =
 // during `vitepress build`; see docs/.vitepress/og.mts.
 const og = createOgImages({ site, siteTitle, siteDescription, version });
 
+const coreItems = [
+  { text: 'createRoute', link: '/core/create-route' },
+  { text: 'createRouter', link: '/core/create-router' },
+  { text: 'createRouterControls', link: '/core/create-router-controls' },
+  { text: 'Adapters', link: '/core/adapters' },
+  { text: 'Navigation lifecycle', link: '/core/navigation-lifecycle' },
+  { text: 'beforeNavigate', link: '/core/before-navigate' },
+  { text: 'redirect', link: '/core/redirect' },
+  { text: 'trackQuery', link: '/core/track-query' },
+  { text: 'chainRoute', link: '/core/chain-route' },
+  { text: 'group', link: '/core/group' },
+  { text: 'createVirtualRoute', link: '/core/create-virtual-route' },
+];
+
+const reactItems = [
+  { text: 'RouterProvider', link: '/react/router-provider' },
+  { text: 'createRouteView', link: '/react/create-route-view' },
+  { text: 'createLazyRouteView', link: '/react/create-lazy-route-view' },
+  { text: 'createRoutesView', link: '/react/create-routes-view' },
+  { text: 'Link', link: '/react/link' },
+  { text: 'Outlet', link: '/react/outlet' },
+  { text: 'useRouter', link: '/react/use-router' },
+  { text: 'useLink', link: '/react/use-link' },
+  { text: 'useIsOpened', link: '/react/use-is-opened' },
+  { text: 'useOpenedViews', link: '/react/use-opened-views' },
+  { text: 'withLayout', link: '/react/with-layout' },
+];
+
+const vueItems = [
+  { text: 'RouterProvider', link: '/vue/router-provider' },
+  { text: 'createRouteView', link: '/vue/create-route-view' },
+  { text: 'createLazyRouteView', link: '/vue/create-lazy-route-view' },
+  { text: 'createRoutesView', link: '/vue/create-routes-view' },
+  { text: 'Link', link: '/vue/link' },
+  { text: 'Outlet', link: '/vue/outlet' },
+  { text: 'useRouter', link: '/vue/use-router' },
+  { text: 'useLink', link: '/vue/use-link' },
+  { text: 'useIsOpened', link: '/vue/use-is-opened' },
+  { text: 'useOpenedViews', link: '/vue/use-opened-views' },
+  { text: 'withLayout', link: '/vue/with-layout' },
+];
+
+const solidItems = [
+  { text: 'RouterProvider', link: '/solid/router-provider' },
+  { text: 'createRouteView', link: '/solid/create-route-view' },
+  { text: 'createLazyRouteView', link: '/solid/create-lazy-route-view' },
+  { text: 'createRoutesView', link: '/solid/create-routes-view' },
+  { text: 'Link', link: '/solid/link' },
+  { text: 'Outlet', link: '/solid/outlet' },
+  { text: 'useRouter', link: '/solid/use-router' },
+  { text: 'useLink', link: '/solid/use-link' },
+  { text: 'useIsOpened', link: '/solid/use-is-opened' },
+  { text: 'useOpenedViews', link: '/solid/use-opened-views' },
+  { text: 'withLayout', link: '/solid/with-layout' },
+];
+
+const reactNativeItems = [
+  { text: 'Stack Navigator', link: '/react-native/stack-navigator' },
+  {
+    text: 'Bottom Tabs Navigator',
+    link: '/react-native/bottom-tabs-navigator',
+  },
+];
+
 export default defineConfig({
   title: 'effector router',
   description: siteDescription,
@@ -31,11 +96,14 @@ export default defineConfig({
   ],
   transformPageData: og.transformPageData,
   buildEnd: og.buildEnd,
+  rewrites,
   themeConfig: {
     logo: './logo.svg',
     nav: [
       { text: 'Home', link: '/' },
-      { text: 'Introduction', link: '/introduction/getting-started' },
+      { text: 'Tutorials', link: '/tutorials/build-your-first-router' },
+      { text: 'Reference', link: '/reference/' },
+      { text: 'Explanation', link: '/explanation/navigation-lifecycle' },
       {
         text: `v${version}`,
         items: [
@@ -55,122 +123,97 @@ export default defineConfig({
       },
     ],
 
-    sidebar: [
-      {
-        text: 'Introduction',
-        items: [
-          { text: 'Getting started', link: '/introduction/getting-started' },
-          { text: 'Web Link matrix', link: '/link-matrix' },
-        ],
-      },
-      {
-        text: 'Core',
-        collapsed: false,
-        items: [
-          { text: 'Overview', link: '/core/' },
-          { text: 'createRoute', link: '/core/create-route' },
-          { text: 'createRouter', link: '/core/create-router' },
-          {
-            text: 'createRouterControls',
-            link: '/core/create-router-controls',
-          },
-          { text: 'Adapters', link: '/core/adapters' },
-          {
-            text: 'Navigation lifecycle',
-            link: '/core/navigation-lifecycle',
-          },
-          { text: 'beforeNavigate', link: '/core/before-navigate' },
-          { text: 'redirect', link: '/core/redirect' },
-          { text: 'trackQuery', link: '/core/track-query' },
-          { text: 'chainRoute', link: '/core/chain-route' },
-          { text: 'group', link: '/core/group' },
-          { text: 'createVirtualRoute', link: '/core/create-virtual-route' },
-        ],
-      },
-      {
-        text: 'Paths',
-        collapsed: false,
-        items: [{ text: 'Overview', link: '/paths/' }],
-      },
-      {
-        text: 'React',
-        collapsed: false,
-        items: [
-          { text: 'Overview', link: '/react/' },
-          { text: 'RouterProvider', link: '/react/router-provider' },
-          { text: 'createRouteView', link: '/react/create-route-view' },
-          {
-            text: 'createLazyRouteView',
-            link: '/react/create-lazy-route-view',
-          },
-          { text: 'createRoutesView', link: '/react/create-routes-view' },
-          { text: 'Link', link: '/react/link' },
-          { text: 'Outlet', link: '/react/outlet' },
-          { text: 'useRouter', link: '/react/use-router' },
-          { text: 'useLink', link: '/react/use-link' },
-          { text: 'useIsOpened', link: '/react/use-is-opened' },
-          { text: 'useOpenedViews', link: '/react/use-opened-views' },
-          { text: 'withLayout', link: '/react/with-layout' },
-        ],
-      },
-      {
-        text: 'Vue β',
-        collapsed: false,
-        items: [
-          { text: 'Overview', link: '/vue/' },
-          { text: 'RouterProvider', link: '/vue/router-provider' },
-          { text: 'createRouteView', link: '/vue/create-route-view' },
-          {
-            text: 'createLazyRouteView',
-            link: '/vue/create-lazy-route-view',
-          },
-          { text: 'createRoutesView', link: '/vue/create-routes-view' },
-          { text: 'Link', link: '/vue/link' },
-          { text: 'Outlet', link: '/vue/outlet' },
-          { text: 'useRouter', link: '/vue/use-router' },
-          { text: 'useLink', link: '/vue/use-link' },
-          { text: 'useIsOpened', link: '/vue/use-is-opened' },
-          { text: 'useOpenedViews', link: '/vue/use-opened-views' },
-          { text: 'withLayout', link: '/vue/with-layout' },
-        ],
-      },
-      {
-        text: 'React Native β',
-        collapsed: false,
-        items: [
-          { text: 'Overview', link: '/react-native/' },
-          {
-            text: 'Stack Navigator',
-            link: '/react-native/stack-navigator',
-          },
-          {
-            text: 'Bottom Tabs Navigator',
-            link: '/react-native/bottom-tabs-navigator',
-          },
-        ],
-      },
-      {
-        text: 'Solid β',
-        collapsed: false,
-        items: [
-          { text: 'Overview', link: '/solid/' },
-          { text: 'RouterProvider', link: '/solid/router-provider' },
-          { text: 'createRouteView', link: '/solid/create-route-view' },
-          {
-            text: 'createLazyRouteView',
-            link: '/solid/create-lazy-route-view',
-          },
-          { text: 'createRoutesView', link: '/solid/create-routes-view' },
-          { text: 'Link', link: '/solid/link' },
-          { text: 'Outlet', link: '/solid/outlet' },
-          { text: 'useRouter', link: '/solid/use-router' },
-          { text: 'useLink', link: '/solid/use-link' },
-          { text: 'useIsOpened', link: '/solid/use-is-opened' },
-          { text: 'useOpenedViews', link: '/solid/use-opened-views' },
-          { text: 'withLayout', link: '/solid/with-layout' },
-        ],
-      },
-    ],
+    sidebar: {
+      '/tutorials/': [
+        {
+          text: 'Tutorials',
+          items: [
+            {
+              text: 'Getting started (install)',
+              link: '/introduction/getting-started',
+            },
+            {
+              text: 'Build your first router',
+              link: '/tutorials/build-your-first-router',
+            },
+          ],
+        },
+      ],
+      '/how-to/': [
+        {
+          text: 'How-to guides',
+          items: [{ text: 'Overview', link: '/how-to/' }],
+        },
+      ],
+      '/explanation/': [
+        {
+          text: 'Explanation',
+          items: [
+            {
+              text: 'Navigation lifecycle',
+              link: '/explanation/navigation-lifecycle',
+            },
+          ],
+        },
+      ],
+      '/reference/': [
+        {
+          text: 'Reference',
+          items: [
+            { text: 'Overview', link: '/reference/' },
+            { text: 'Paths', link: '/reference/paths' },
+            { text: 'Web Link matrix', link: '/reference/link-matrix' },
+          ],
+        },
+        { text: 'Core', collapsed: true, items: coreItems },
+        { text: 'React', collapsed: true, items: reactItems },
+        { text: 'Vue β', collapsed: true, items: vueItems },
+        { text: 'Solid β', collapsed: true, items: solidItems },
+        { text: 'React Native β', collapsed: true, items: reactNativeItems },
+      ],
+      '/core/': [
+        {
+          text: 'Core',
+          items: [{ text: 'Overview', link: '/core/' }, ...coreItems],
+        },
+      ],
+      '/paths/': [
+        {
+          text: 'Paths',
+          items: [
+            { text: 'Overview', link: '/paths/' },
+            { text: 'Full reference', link: '/reference/paths' },
+          ],
+        },
+      ],
+      '/react/': [
+        {
+          text: 'React',
+          items: [{ text: 'Overview', link: '/react/' }, ...reactItems],
+        },
+      ],
+      '/vue/': [
+        {
+          text: 'Vue β',
+          items: [{ text: 'Overview', link: '/vue/' }, ...vueItems],
+        },
+      ],
+      '/solid/': [
+        {
+          text: 'Solid β',
+          items: [{ text: 'Overview', link: '/solid/' }, ...solidItems],
+        },
+      ],
+      '/react-native/': [
+        {
+          text: 'React Native β',
+          items: [
+            { text: 'Overview', link: '/react-native/' },
+            ...reactNativeItems,
+          ],
+        },
+      ],
+    },
 
     footer: {
       message: 'Released under the MIT License.',
