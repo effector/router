@@ -1,5 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils';
-import { nextTick, type Plugin } from 'vue';
+import type { Plugin } from 'vue';
 import { allSettled, fork } from 'effector';
 import { createRequire } from 'node:module';
 import { expect, test } from 'vitest';
