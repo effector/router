@@ -31,9 +31,7 @@ import {
 import { isEqualQuery } from './query-codec';
 
 type InputRoute =
-  | PathRoute<any>
-  | { path: string; route: PathlessRoute<any> }
-  | Router;
+  PathRoute<any> | { path: string; route: PathlessRoute<any> } | Router;
 
 interface RouterConfig {
   base?: string;
@@ -311,8 +309,7 @@ export function createRouter(config: RouterConfig): Router {
 
       for (const { route } of matches) {
         let ancestor = (route as InternalRoute<any>).parent as
-          | InternalRoute<any>
-          | undefined;
+          InternalRoute<any> | undefined;
 
         while (ancestor) {
           activeRoutes.add(ancestor);
@@ -397,8 +394,7 @@ export function createRouter(config: RouterConfig): Router {
         }
 
         const internalPayload = payload as
-          | Record<PropertyKey, unknown>
-          | undefined;
+          Record<PropertyKey, unknown> | undefined;
 
         if (internalPayload?.[navigationKind] === 'redirect') {
           navigateParams[navigationKind] = 'redirect';

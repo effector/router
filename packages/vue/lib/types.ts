@@ -42,8 +42,6 @@ type BaseLinkProps<Params extends object | void = void> = {
   OpenPayloadBase;
 
 export type LinkProps<Params extends object | void = void> = Params extends
-  | Record<string, never>
-  | void
-  | undefined
+  Record<string, never> | void | undefined
   ? BaseLinkProps<Params> & { params?: Params }
   : BaseLinkProps<Params> & { params: Params };

@@ -16,8 +16,7 @@ import { createRoute } from './create-route';
 import { createAttemptCoordinator } from './transition-attempt';
 
 type BeforeOpenUnit<T extends object | void = void> =
-  | ((payload: RouteOpenedPayload<T>) => unknown)
-  | ((payload: void) => unknown);
+  ((payload: RouteOpenedPayload<T>) => unknown) | ((payload: void) => unknown);
 
 export interface ChainRouteProps<T extends object | void = void> {
   route: Route<T> | LegacyVirtualRoute<RouteOpenedPayload<T>, T>;

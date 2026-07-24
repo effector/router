@@ -66,8 +66,7 @@ export type ChainRoute<T extends object | void = void> = PathlessRoute<T> & {
 };
 
 export type Route<T extends object | void = void> =
-  | PathRoute<T>
-  | PathlessRoute<T>;
+  PathRoute<T> | PathlessRoute<T>;
 
 export type QueryTrackerConfig<ParametersConfig extends ZodType> = {
   readonly routes?: readonly Route<any>[];
@@ -107,9 +106,8 @@ export type RouteOpenedPayload<T> = T extends void
 export type RouteUpdatedPayload<T> = RouteOpenedPayload<T>;
 
 export type RouteOpenPayload<T> = T extends void
-  ?
-      | RouteOpenedPayload<T>
-      | (OpenPayloadBase & { params: Record<string, never> })
+  ? | RouteOpenedPayload<T>
+    | (OpenPayloadBase & { params: Record<string, never> })
   : RouteOpenedPayload<T>;
 
 export type NavigatePayload = {
@@ -162,9 +160,7 @@ export interface Router {
 
   registerRoute: (
     route:
-      | PathRoute<any>
-      | { path: string; route: PathlessRoute<any> }
-      | Router,
+      PathRoute<any> | { path: string; route: PathlessRoute<any> } | Router,
   ) => void;
 
   '@@unitShape': () => {
@@ -217,8 +213,7 @@ export interface InternalPathRoute<
 }
 
 export type InternalRoute<T extends object | void = any> =
-  | InternalPathRoute<T>
-  | InternalPathlessRoute<T>;
+  InternalPathRoute<T> | InternalPathlessRoute<T>;
 
 /** @deprecated Internal compatibility shape for the old two-argument virtual route. */
 export interface LegacyVirtualRoute<T, TransformerResult> {

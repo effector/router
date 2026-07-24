@@ -192,8 +192,7 @@ export function createRoute<Params extends object | void = void>(
 ): PathlessRoute<Params>;
 export function createRoute<Params>(
   config:
-    | WithBaseRouteConfig
-    | CreateRouteConfig<any> = {} as WithBaseRouteConfig,
+    WithBaseRouteConfig | CreateRouteConfig<any> = {} as WithBaseRouteConfig,
 ): PathRoute<any> | PathlessRoute<any> {
   const beforeOpen = config.beforeOpen ?? [];
 
