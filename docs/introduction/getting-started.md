@@ -115,7 +115,7 @@ export const FeedScreen = createRouteView({ route: routes.feed, view: Feed });
 
 ```tsx
 // app.tsx
-import { createRoutesView } from '@effector/router-react';
+import { RouterProvider, createRoutesView } from '@effector/router-react';
 import { FeedScreen, ProfileScreen } from './screens';
 import { router } from './shared/routing';
 
@@ -132,7 +132,7 @@ export function App() {
 
 ::: warning
 
-router need to be initialzed with `setHistory` event, which requires memory or browser history from `history` package.
+The router must be initialized with the `setHistory` event, which requires memory or browser history from the `history` package.
 
 ```ts
 import { createRoot } from 'react-dom/client';
