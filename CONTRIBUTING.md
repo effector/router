@@ -240,6 +240,10 @@ Releases are automated with Changesets and published to npm via GitHub Actions:
 Documentation deploys separately: pushes to `main` that touch `docs/**` or `packages/core/package.json`
 trigger the `Deploy docs` workflow, which publishes to GitHub Pages.
 
+Pull requests (opened from a branch in this repository, not a fork) that touch the same paths get a
+live preview: the `Docs preview` workflow builds the docs site and deploys it to Cloudflare Pages,
+then comments the preview URL on the PR.
+
 You don't need to run any release steps yourself — just include a changeset with your change.
 
 ## License
