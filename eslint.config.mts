@@ -40,6 +40,7 @@ export default defineConfig([
           allowDefaultProject: [
             '.changeset/*.cjs',
             'docs/.vitepress/*.mts',
+            'docs/.vitepress/*.mjs',
             'docs/.vitepress/theme/index.ts',
             'scripts/*.mjs',
           ],

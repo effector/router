@@ -79,7 +79,10 @@ const solidItems = [
 
 const reactNativeItems = [
   { text: 'Stack Navigator', link: '/react-native/stack-navigator' },
-  { text: 'Bottom Tabs Navigator', link: '/react-native/bottom-tabs-navigator' },
+  {
+    text: 'Bottom Tabs Navigator',
+    link: '/react-native/bottom-tabs-navigator',
+  },
 ];
 
 export default defineConfig({
@@ -125,8 +128,14 @@ export default defineConfig({
         {
           text: 'Tutorials',
           items: [
-            { text: 'Getting started (install)', link: '/introduction/getting-started' },
-            { text: 'Build your first router', link: '/tutorials/build-your-first-router' },
+            {
+              text: 'Getting started (install)',
+              link: '/introduction/getting-started',
+            },
+            {
+              text: 'Build your first router',
+              link: '/tutorials/build-your-first-router',
+            },
           ],
         },
       ],
@@ -140,7 +149,10 @@ export default defineConfig({
         {
           text: 'Explanation',
           items: [
-            { text: 'Navigation lifecycle', link: '/explanation/navigation-lifecycle' },
+            {
+              text: 'Navigation lifecycle',
+              link: '/explanation/navigation-lifecycle',
+            },
           ],
         },
       ],
