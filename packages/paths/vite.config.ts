@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import { resolve } from 'path';
 import dts from 'vite-plugin-dts';
@@ -16,7 +17,7 @@ export default defineConfig({
   plugins: [
     babel({ filter: /.[jt]sx?/ }),
     dts({
-      outDir: resolve(__dirname, 'dist'),
+      outDirs: resolve(__dirname, 'dist'),
       entryRoot: resolve(__dirname, 'lib'),
       exclude: [
         resolve(__dirname, '../../docs'),
@@ -26,7 +27,7 @@ export default defineConfig({
       ],
       staticImport: true,
       insertTypesEntry: true,
-      rollupTypes: true,
+      bundleTypes: true,
     }),
   ],
   test: {},

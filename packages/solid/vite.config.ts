@@ -38,7 +38,7 @@ export default defineConfig({
     // breaks under vitest, so keep it disabled.
     solid({ hot: false }),
     dts({
-      outDir: resolve(__dirname, 'dist'),
+      outDirs: resolve(__dirname, 'dist'),
       entryRoot: resolve(__dirname, 'lib'),
       exclude: [
         resolve(__dirname, 'tests'),
@@ -50,7 +50,7 @@ export default defineConfig({
       ],
       staticImport: true,
       insertTypesEntry: true,
-      rollupTypes: true,
+      bundleTypes: true,
     }),
   ],
   resolve: {

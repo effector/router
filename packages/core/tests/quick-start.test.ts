@@ -3,7 +3,7 @@ import { expect, test } from 'vitest';
 import { createCoreQuickStart } from '../../../docs/quick-starts/core';
 
 test('core quick start opens its initial route and navigates once', async () => {
-  const { home, profile, router } = createCoreQuickStart();
+  const { home, profile } = createCoreQuickStart();
   const scope = fork();
   await allSettled(home.open, { scope, params: {} });
   expect(scope.getState(home.$isOpened)).toBe(true);
