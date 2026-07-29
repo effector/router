@@ -103,6 +103,13 @@ Fallbacks are wrapped by the same `layout` as the view, and by the
 [`withLayout`] group of the view, so the layout stays mounted while the
 fallback swaps to the page.
 
+Swapping a fallback for the view replaces one component with another, so that
+branch remounts — everything above it, including the layout and any parent view,
+stays put. When a subtree must survive the swap, render the skeleton from
+`route.$isPending` inside a single component instead; the
+[nested loading guide](/how-to/nested-loading-skeletons#variations) collects that
+and the other shapes.
+
 ::: tip
 A view listed in `createRoutesView` that declares `closed` renders that
 component for _every_ state in which nothing else is opened, including an

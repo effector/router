@@ -249,10 +249,15 @@ mechanism:
 - the `otherwise` of `createRoutesView` renders only when no view claims the
   slot, which is why the not-found screen no longer flashes mid-navigation.
 
-## Fill the slot when nothing is selected
+## Variations
 
-`/registry` on its own leaves the innermost `Outlet` with nothing to render.
-`closed` lets the child view own that slot too:
+The parts — `view`, `loading`, `closed`, `children`, `chainRoute`, `$isPending` —
+are separate on purpose. A few adjacent goals and the shape each one takes.
+
+### Fill the slot when nothing is selected
+
+`/registry` alone leaves the innermost `Outlet` empty. `closed` gives that slot
+an owner:
 
 ```tsx
 createRouteView({
@@ -263,15 +268,109 @@ createRouteView({
 });
 ```
 
-## Split a level into its own chunk
+### Keep the frame, replace only the inner part
 
-Swap the level for [`createLazyRouteView`] and keep the same `loading` — it
-covers the chunk request as well as the pending route, so the skeleton stays put
-across both waits:
+Chrome in the parent `view`, skeleton on the level that actually waits. The
+parent is never re-rendered by the child's swap:
 
 ```tsx
-import { createLazyRouteView } from '@effector/router-react';
+createRouteView({
+  route: registryReady,
+  view: RegistryPage, // renders <Outlet />
+  children: [
+    createRouteView({
+      route: inspectionReady,
+      view: InspectionPage,
+      loading: InspectionSkeleton,
+    }),
+  ],
+});
+```
 
+### Swap without remounting the subtree
+
+`loading` replaces one component with another, so that branch remounts. To keep
+component state across the wait, drive the skeleton from `$isPending` inside a
+single component instead:
+
+```tsx
+function RegistryPage() {
+  const pending = useUnit(inspectionReady.$isPending);
+
+  return (
+    <section>
+      <h1>Registry</h1>
+      {pending ? <InspectionSkeleton /> : <Outlet />}
+    </section>
+  );
+}
+```
+
+### Show the ready child inside the parent skeleton
+
+Levels prepare in parallel, so a child can be ready before its parent. An
+`<Outlet />` inside `loading` streams in whatever is already there:
+
+```tsx
+createRouteView({
+  route: authenticated,
+  view: AppShell,
+  loading: () => (
+    <div>
+      Signing in…
+      <Outlet />
+    </div>
+  ),
+  children: [registryView],
+});
+```
+
+### Keep the current page instead of showing a skeleton
+
+`chainRoute` prepares _after_ the URL commits, so the previous route is already
+closed by then. To keep the old page on screen while the next one loads, hold
+the transition before it commits with [`beforeNavigate`]:
+
+```tsx
+const holding = beforeNavigate({
+  controls,
+  to: inspectionRoute,
+  filter: () => true,
+});
+
+sample({ clock: holding.started, target: loadInspectionFx });
+sample({ clock: loadInspectionFx.done, target: holding.proceed });
+```
+
+Report the wait in the chrome that stays visible:
+
+```tsx
+sample({ clock: loadInspectionFx.pending, target: topProgress.toggled });
+```
+
+### Send the visitor elsewhere instead of loading
+
+The same hold with a different ending — nothing reaches history:
+
+```tsx
+const guard = beforeNavigate({
+  controls,
+  to: adminRoute,
+  filter: $unauthorized,
+});
+
+sample({
+  clock: guard.started,
+  target: redirect({ to: signInRoute, replace: true }),
+});
+```
+
+### Split a level into its own chunk
+
+Swap the level for [`createLazyRouteView`] and keep the same `loading` — it
+covers the chunk request as well as the pending route:
+
+```tsx
 createLazyRouteView({
   route: inspectionReady,
   view: () => import('./inspection-page'),
@@ -279,11 +378,16 @@ createLazyRouteView({
 });
 ```
 
-## Keep one layout across a whole section
+### Keep one layout across a whole section
 
-When several pages share a shell, [`withLayout`] groups them: the layout
-instance survives while views from the same group swap, including while one of
-them is showing a fallback.
+[`withLayout`] groups pages that share a shell: the layout instance survives
+while views from the same group swap, including while one shows a fallback.
+
+```tsx
+createRoutesView({
+  routes: withLayout(AppLayout, [registryView, settingsView]),
+});
+```
 
 ## Related
 
@@ -293,6 +397,7 @@ them is showing a fallback.
 - [Navigation lifecycle](/explanation/navigation-lifecycle) — where preparation
   sits relative to the URL commit
 
+[`beforeNavigate`]: /core/before-navigate
 [`chainRoute`]: /core/chain-route
 [`createLazyRouteView`]: /react/create-lazy-route-view
 [`Outlet`]: /react/outlet

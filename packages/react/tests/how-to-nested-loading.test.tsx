@@ -1,9 +1,17 @@
 import { act, render } from '@testing-library/react';
-import { allSettled, fork } from 'effector';
+import { allSettled, createEffect, createEvent, fork, sample } from 'effector';
 import { Provider } from 'effector-react';
 import { createMemoryHistory } from 'history';
-import { historyAdapter } from '@effector/router';
+import {
+  beforeNavigate,
+  chainRoute,
+  createRoute,
+  createRouter,
+  createRouterControls,
+  historyAdapter,
+} from '@effector/router';
 import { expect, test } from 'vitest';
+import { createRouteView, createRoutesView, Outlet } from '../lib';
 import {
   checkSessionFx,
   inspectionRoute,
@@ -126,4 +134,105 @@ test('how-to: the inner outlet shows its closed placeholder', async () => {
   expect(queryByText('Bridge deck')).toBeTruthy();
   expect(queryByText('Pick an inspection')).toBeTruthy();
   expect(queryByText('Loading inspection…')).toBeNull();
+});
+
+test('how-to variation: a parent skeleton can stream its ready child', async () => {
+  const parent = createRoute();
+  const child = createRoute();
+  const prepare = createEvent();
+  const ready = createEvent();
+  const parentReady = chainRoute({
+    route: parent,
+    beforeOpen: prepare,
+    openOn: ready,
+  });
+  const scope = fork();
+  const RoutesView = createRoutesView({
+    routes: [
+      createRouteView({
+        route: parentReady,
+        view: () => (
+          <div>
+            shell
+            <Outlet />
+          </div>
+        ),
+        loading: () => (
+          <div>
+            signing in…
+            <Outlet />
+          </div>
+        ),
+        children: [createRouteView({ route: child, view: () => <p>child</p> })],
+      }),
+    ],
+  });
+
+  const { container } = render(
+    <Provider value={scope}>
+      <RoutesView />
+    </Provider>,
+  );
+
+  await act(() => allSettled(child.open, { scope, params: undefined }));
+  await act(() => allSettled(parent.open, { scope, params: undefined }));
+
+  expect(container.textContent).toBe('signing in…child');
+
+  await act(() => allSettled(ready, { scope, params: undefined }));
+
+  expect(container.textContent).toBe('shellchild');
+});
+
+test('how-to variation: beforeNavigate keeps the current page while data loads', async () => {
+  const controls = createRouterControls();
+  const listRoute = createRoute({ path: '/list' });
+  const itemRoute = createRoute({ path: '/item' });
+  const localRouter = createRouter({
+    routes: [listRoute, itemRoute],
+    controls,
+  });
+  const item = deferred<Inspection>();
+  const loadItemFx = createEffect(() => item.promise);
+  const holding = beforeNavigate({
+    controls,
+    to: itemRoute,
+    filter: () => true,
+  });
+
+  sample({ clock: holding.started, target: loadItemFx });
+  sample({ clock: loadItemFx.done, target: holding.proceed });
+
+  const scope = fork();
+  const RoutesView = createRoutesView({
+    routes: [
+      createRouteView({ route: listRoute, view: () => <p>list</p> }),
+      createRouteView({ route: itemRoute, view: () => <p>item</p> }),
+    ],
+    otherwise: () => <p>not found</p>,
+  });
+
+  await allSettled(localRouter.setHistory, {
+    scope,
+    params: historyAdapter(createMemoryHistory({ initialEntries: ['/list'] })),
+  });
+
+  const { container } = render(
+    <Provider value={scope}>
+      <RoutesView />
+    </Provider>,
+  );
+
+  expect(container.textContent).toBe('list');
+
+  const navigation = allSettled(itemRoute.open, { scope, params: undefined });
+
+  // The transition is held before the URL commits, so the current page stays.
+  await settle();
+  expect(container.textContent).toBe('list');
+
+  item.resolve({ id: '42', title: 'Deck joints', status: 'open' });
+  await act(() => navigation);
+
+  expect(container.textContent).toBe('item');
 });
