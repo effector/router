@@ -18,8 +18,6 @@ For a cold visit to `/registry/42`:
 | list ready, item loads    | app shell + registry + item skeleton   |
 | item ready                | app shell + registry + inspection page |
 
-The not-found screen never flashes in between.
-
 The guide assumes a router already rendering React views — see
 [Build your first router](/tutorials/build-your-first-router) if you don't have
 one yet. Every snippet below is one file,
