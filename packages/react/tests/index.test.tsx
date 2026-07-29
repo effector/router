@@ -725,6 +725,167 @@ describe('react bindings', () => {
     });
   });
 
+  describe('layout groups across navigation', () => {
+    function countingLayout(name: string, counters: Record<string, number>) {
+      return ({ children }: { children: ReactNode }) => {
+        useEffect(() => {
+          counters[name] = (counters[name] ?? 0) + 1;
+        }, []);
+
+        return (
+          <div>
+            [{name}]{children}
+          </div>
+        );
+      };
+    }
+
+    test('keeps a grouped layout mounted while pages inside the group switch', async () => {
+      const counters: Record<string, number> = {};
+      const registry = createRoute({ path: '/registry' });
+      const settings = createRoute({ path: '/settings' });
+      const profile = createRoute({ path: '/profile' });
+      const publications = createRoute({ path: '/publications' });
+      const localRouter = createRouter({
+        routes: [registry, settings, profile, publications],
+      });
+      const AppLayout = countingLayout('app', counters);
+      const UserLayout = countingLayout('user', counters);
+      // `loading` covers the frame in which the previous route is already
+      // closed and the next one is still pending. Without it the routes view
+      // falls through to `otherwise` there and the layout unmounts with it.
+      const RoutesView = createRoutesView({
+        routes: [
+          ...withLayout(AppLayout, [
+            createRouteView({
+              route: registry,
+              view: () => <p>registry</p>,
+              loading: () => <p>registry…</p>,
+            }),
+            createRouteView({
+              route: settings,
+              view: () => <p>settings</p>,
+              loading: () => <p>settings…</p>,
+            }),
+          ]),
+          ...withLayout(UserLayout, [
+            createRouteView({
+              route: profile,
+              view: () => <p>profile</p>,
+              loading: () => <p>profile…</p>,
+            }),
+            createRouteView({
+              route: publications,
+              view: () => <p>publications</p>,
+              loading: () => <p>publications…</p>,
+            }),
+          ]),
+        ],
+        otherwise: () => <p>not found</p>,
+      });
+      const scope = fork();
+
+      await allSettled(localRouter.setHistory, {
+        scope,
+        params: historyAdapter(
+          createMemoryHistory({ initialEntries: ['/registry'] }),
+        ),
+      });
+
+      const { container } = render(
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>,
+      );
+
+      expect(container.textContent).toBe('[app]registry');
+      expect(counters).toEqual({ app: 1 });
+
+      await act(() => allSettled(settings.open, { scope, params: undefined }));
+
+      expect(container.textContent).toBe('[app]settings');
+      expect(counters).toEqual({ app: 1 });
+
+      // A different group is a different layout: this one is expected to swap.
+      await act(() => allSettled(profile.open, { scope, params: undefined }));
+
+      expect(container.textContent).toBe('[user]profile');
+      expect(counters).toEqual({ app: 1, user: 1 });
+
+      await act(() =>
+        allSettled(publications.open, { scope, params: undefined }),
+      );
+
+      expect(container.textContent).toBe('[user]publications');
+      expect(counters).toEqual({ app: 1, user: 1 });
+
+      await act(() => allSettled(registry.open, { scope, params: undefined }));
+
+      expect(container.textContent).toBe('[app]registry');
+      expect(counters).toEqual({ app: 2, user: 1 });
+    });
+
+    test('covers the transition gap with the target loading component', async () => {
+      const frames: string[] = [];
+      const registry = createRoute({ path: '/registry' });
+      const settings = createRoute({ path: '/settings' });
+      const localRouter = createRouter({ routes: [registry, settings] });
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route: registry,
+            view: () => {
+              frames.push('registry');
+
+              return <p>registry</p>;
+            },
+          }),
+          createRouteView({
+            route: settings,
+            view: () => {
+              frames.push('settings');
+
+              return <p>settings</p>;
+            },
+            loading: () => {
+              frames.push('settings-loading');
+
+              return <p>settings…</p>;
+            },
+          }),
+        ],
+        otherwise: () => {
+          frames.push('otherwise');
+
+          return <p>not found</p>;
+        },
+      });
+      const scope = fork();
+
+      await allSettled(localRouter.setHistory, {
+        scope,
+        params: historyAdapter(
+          createMemoryHistory({ initialEntries: ['/registry'] }),
+        ),
+      });
+
+      render(
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>,
+      );
+
+      frames.length = 0;
+
+      await act(() => allSettled(settings.open, { scope, params: undefined }));
+
+      // The previous route closes before the next one opens; the target is
+      // pending in between, so its `loading` owns that frame and the not-found
+      // screen never appears.
+      expect(frames).toEqual(['settings-loading', 'settings']);
+    });
+  });
+
   describe('closed and loading', () => {
     test('renders the closed component while the route is closed', async () => {
       const route = createRoute();
