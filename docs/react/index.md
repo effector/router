@@ -170,7 +170,7 @@ import { createLazyRouteView } from '@effector/router-react';
 const ProfileScreen = createLazyRouteView({
   route: profileRoute,
   view: () => import('./screens/ProfileScreen'),
-  fallback: () => <div>Loading...</div>,
+  loading: () => <div>Loading...</div>,
 });
 ```
 

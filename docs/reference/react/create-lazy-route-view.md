@@ -17,7 +17,7 @@ import { profileRoute } from './routes';
 export const ProfileScreen = createLazyRouteView({
   route: profileRoute,
   view: () => import('./components/ProfileComponent'),
-  fallback: () => <div>Loading...</div>,
+  loading: () => <div>Loading...</div>,
 });
 ```
 
@@ -41,7 +41,7 @@ export const ProfileScreen = createLazyRouteView({
   route: profileRoute,
   view: () => import('./components/ProfileComponent'),
   layout: MainLayout,
-  fallback: () => <div>Loading...</div>,
+  loading: () => <div>Loading...</div>,
 });
 ```
 
@@ -73,15 +73,17 @@ const ProfileScreen = createLazyRouteView({
 });
 ```
 
-### `fallback` (optional)
+### `loading` (optional)
 
-Component to display while the view is loading. Defaults to empty fragment:
+The single "still working" component of a lazy view. It renders while the route
+is pending — `beforeOpen` effects, a [`chainRoute`] preparation — and while the
+chunk loads. Defaults to an empty fragment:
 
 ```tsx
 const ProfileScreen = createLazyRouteView({
-  route: profileRoute,
+  route: profileReady,
   view: () => import('./ProfileComponent'),
-  fallback: () => (
+  loading: () => (
     <div className="loading">
       <Spinner />
       <p>Loading profile...</p>
@@ -90,22 +92,15 @@ const ProfileScreen = createLazyRouteView({
 });
 ```
 
-### `loading` (optional)
+Covering both waits with one component is what keeps the routes view
+`otherwise` — usually the not-found screen — from flashing between the two.
 
-Component rendered while the route is pending **and** — unless `fallback` is
-declared — while the chunk loads. It is the single "still working" component of
-a lazy view:
+### `fallback` (deprecated)
 
-```tsx
-const ProfileScreen = createLazyRouteView({
-  route: profileReady,
-  view: () => import('./ProfileComponent'),
-  loading: ProfileSkeleton,
-});
-```
-
-Declare `fallback` next to it when the chunk wait deserves its own component;
-`fallback` then stays chunk-only and `loading` keeps covering the pending route.
+The former chunk-only component. It is an alias of `loading` now: used when
+`loading` is absent, and rendering for the pending route as well. Rename it to
+`loading`; the type is marked `@deprecated`, so editors point at the
+replacement.
 
 ### `otherwise` (optional)
 
@@ -158,15 +153,15 @@ const ProfileScreen = createLazyRouteView({
 import type { CreateLazyRouteViewProps } from '@effector/router-react';
 ```
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `route` | `Route<T>` | Route that controls whether the lazy view is active. Router targets are not supported for lazy views. |
-| `view` | `() => Promise<{ default: ComponentType }>` | Dynamic importer whose module has a default React component export. |
-| `fallback` | `ComponentType` | Optional component rendered by `Suspense` while the module loads. |
-| `loading` | `ComponentType` | Optional component rendered while the route is pending, and by `Suspense` when `fallback` is omitted. |
-| `otherwise` | `ComponentType` | Optional component rendered while the route is not opened. |
-| `layout` | `ComponentType<{ children: ReactNode }>` | Optional layout that wraps the lazy view and its fallbacks. |
-| `children` | `RouteView[]` | Optional direct child views rendered through [`Outlet`]. |
+| Property    | Type                                        | Description                                                                                           |
+| ----------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `route`     | `Route<T>`                                  | Route that controls whether the lazy view is active. Router targets are not supported for lazy views. |
+| `view`      | `() => Promise<{ default: ComponentType }>` | Dynamic importer whose module has a default React component export.                                   |
+| `loading`   | `ComponentType`                             | Optional component rendered while the route is pending and while the chunk loads.                     |
+| `fallback`  | `ComponentType`                             | **Deprecated** — alias of `loading`, used when `loading` is absent.                                   |
+| `otherwise` | `ComponentType`                             | Optional component rendered while the route is not opened.                                            |
+| `layout`    | `ComponentType<{ children: ReactNode }>`    | Optional layout that wraps the lazy view and its fallbacks.                                           |
+| `children`  | `RouteView[]`                               | Optional direct child views rendered through [`Outlet`].                                              |
 
 ## Return Value
 
@@ -187,9 +182,9 @@ Lazy route views enable automatic code splitting - the component code is only lo
 The importer starts when the route view renders, not when `route.open()` is
 called. React `Suspense` can therefore commit the configured fallback while the
 chunk is loading. Route or chained `$isPending` represents model preparation;
-chunk loading is observed by the Suspense boundary. `loading` spans both: it is
-the pending-route fallback and, when `fallback` is omitted, the Suspense
-fallback as well.
+chunk loading is observed by the Suspense boundary. `loading` spans both, so the
+view keeps one visible state from the first navigation intent until the page is
+on screen.
 
 ## Preloading
 
@@ -204,7 +199,7 @@ const preloadProfileFx = createEffect(importProfile);
 export const ProfileScreen = createLazyRouteView({
   route: profileRoute,
   view: importProfile,
-  fallback: () => <ProfileSkeleton />,
+  loading: () => <ProfileSkeleton />,
 });
 
 sample({ clock: profileLinkHovered, target: preloadProfileFx });
@@ -218,3 +213,5 @@ navigation intent instead of preloading a chunk.
 - [createRouteView](./create-route-view) - Non-lazy route views
 - [createRoutesView](./create-routes-view) - Render active routes
 - [withLayout](./with-layout) - Apply layouts to multiple routes
+
+[`chainRoute`]: /core/chain-route

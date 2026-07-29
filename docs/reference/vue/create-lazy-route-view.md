@@ -1,8 +1,8 @@
 # createLazyRouteView
 
 Creates a lazy route view. Accepts `route` (effector/router route), `view` (a
-dynamic `import()` of the component), optional `fallback` (rendered while the
-bundle loads) and optional `layout`.
+dynamic `import()` of the component), optional `loading` (rendered while the
+route is pending and while the bundle loads) and optional `layout`.
 
 ## TypeScript
 
@@ -12,7 +12,7 @@ returned view descriptor. It has the same `route`, optional `layout`,
 `CreateRouteViewProps<T>`, plus:
 
 - `view` — a function returning `Promise<{ default: Component }>`
-- `fallback?` — the component rendered while the async component loads
+- `fallback?` — **deprecated** alias of `loading`, used when `loading` is absent
 
 ### Example
 
@@ -20,24 +20,25 @@ returned view descriptor. It has the same `route`, optional `layout`,
 import { createLazyRouteView } from '@effector/router-vue';
 import { routes } from '@shared/routing';
 import { MainLayout } from '@layouts';
-import Fallback from './Fallback.vue';
+import Skeleton from './Skeleton.vue';
 
 export const ProfileScreen = createLazyRouteView({
   route: routes.profile,
   view: () => import('./Profile.vue'),
-  fallback: Fallback,
+  loading: Skeleton,
   layout: MainLayout,
 });
 ```
 
 The importer starts when Vue renders the async component. Route opening does
-not wait for the chunk, and `fallback` is configured as the immediate loading
+not wait for the chunk, and `loading` is configured as the immediate loading
 component. Route/chained `$isPending` describes model preparation rather than
 the framework chunk request.
 
-`loading` spans both waits: it is the fallback of a pending route (see
-[route view fallbacks](/vue/create-route-view#fallbacks)) and, when `fallback`
-is omitted, the async loading component as well.
+`loading` spans both waits — the pending route (see
+[route view fallbacks](/vue/create-route-view#fallbacks)) and the chunk — so the
+routes view `otherwise`, usually the not-found screen, no longer flashes between
+them:
 
 ```ts
 export const ProfileScreen = createLazyRouteView({
@@ -46,6 +47,10 @@ export const ProfileScreen = createLazyRouteView({
   loading: ProfileSkeleton,
 });
 ```
+
+`fallback` is deprecated: it is an alias of `loading` now, used when `loading` is
+absent, and the type is marked `@deprecated` so editors point at the
+replacement.
 
 For preload, reuse the importer in an ordinary Effect instead of calling
 `route.open()` from a preparation hook:
@@ -59,6 +64,6 @@ const preloadProfileFx = createEffect(importProfile);
 export const ProfileScreen = createLazyRouteView({
   route: routes.profile,
   view: importProfile,
-  fallback: Fallback,
+  loading: Skeleton,
 });
 ```
