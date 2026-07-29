@@ -25,7 +25,7 @@ import {
  * export const ProfileScreen = createLazyRouteView({
  *   route: routes.profile,
  *   view: () => import('./profile'),
- *   fallback: () => ':(',
+ *   loading: () => ':(',
  *   layout: MainLayout,
  * });
  * ```
@@ -34,12 +34,11 @@ export function createLazyRouteView<T extends object | void = void>(
   props: CreateLazyRouteViewProps<T>,
 ): RouteView {
   const View = lazy(props.view);
-  // `loading` covers both waits, so it also feeds Suspense unless the
-  // chunk-only `fallback` is declared explicitly.
-  const {
-    layout: Layout,
-    fallback: Fallback = props.loading ?? (() => <></>),
-  } = props;
+  const { layout: Layout } = props;
+  // One component covers both waits — the pending route and the chunk request.
+  // The deprecated `fallback` is kept as its alias.
+  const loading = props.loading ?? props.fallback;
+  const Fallback = loading ?? (() => <></>);
 
   const view = Layout
     ? () => (
@@ -55,7 +54,7 @@ export function createLazyRouteView<T extends object | void = void>(
         </Suspense>
       );
 
-  const fallback = createRouteViewFallback(props);
+  const fallback = createRouteViewFallback({ ...props, loading });
 
   return {
     route: props.route,

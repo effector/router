@@ -34,6 +34,11 @@ export interface CreateLazyRouteViewProps<
   T extends object | void = void,
 > extends CreateBaseRouteViewProps<T> {
   view: () => Promise<{ default: Component }>;
+  /**
+   * @deprecated Use `loading` instead. It renders for both waits — the pending
+   * route and the chunk request — so the routes view fallback no longer
+   * flashes while the chunk loads.
+   */
   fallback?: Component;
 }
 

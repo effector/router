@@ -15,12 +15,12 @@ import {
  * import { createLazyRouteView } from '@effector/router-vue';
  * import { routes } from '@shared/routing';
  * import { MainLayout } from '@layouts';
- * import Fallback from './fallback.vue';
+ * import Skeleton from './skeleton.vue';
  *
  * export const ProfileScreen = createLazyRouteView({
  *   route: routes.profile,
  *   view: () => import('./profile.vue'),
- *   fallback: Fallback,
+ *   loading: Skeleton,
  *   layout: MainLayout,
  * });
  * ```
@@ -28,13 +28,14 @@ import {
 export function createLazyRouteView<T extends object | void = void>(
   props: CreateLazyRouteViewProps<T>,
 ): RouteView {
-  const { route, view, layout, fallback, children } = props;
+  const { route, view, layout, children } = props;
+  // One component covers both waits — the pending route and the chunk request.
+  // The deprecated `fallback` is kept as its alias.
+  const loading = props.loading ?? props.fallback;
 
   const AsyncView = defineAsyncComponent({
     loader: view,
-    // `loading` covers both waits, so it also fills the chunk gap unless the
-    // chunk-only `fallback` is declared explicitly.
-    loadingComponent: fallback ?? props.loading,
+    loadingComponent: loading,
     delay: 0,
   });
 
@@ -52,7 +53,7 @@ export function createLazyRouteView<T extends object | void = void>(
         },
       });
 
-  const routeFallback = createRouteViewFallback(props);
+  const routeFallback = createRouteViewFallback({ ...props, loading });
 
   return {
     route,
