@@ -127,6 +127,7 @@ export default defineConfig({
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Tutorials', link: '/tutorials/build-your-first-router' },
+      { text: 'How-to', link: '/how-to/' },
       { text: 'Reference', link: '/reference/' },
       { text: 'Explanation', link: '/explanation/navigation-lifecycle' },
       {
@@ -167,7 +168,13 @@ export default defineConfig({
       '/how-to/': [
         {
           text: 'How-to guides',
-          items: [{ text: 'Overview', link: '/how-to/' }],
+          items: [
+            { text: 'Overview', link: '/how-to/' },
+            {
+              text: 'Nested loading skeletons',
+              link: '/how-to/nested-loading-skeletons',
+            },
+          ],
         },
       ],
       '/explanation/': [

@@ -79,7 +79,8 @@ sample({
 
 In the React, Vue, and Solid bindings the same store backs the `loading`
 component of a route view, which renders a skeleton in the view's slot while the
-chain prepares — see [createRouteView](/react/create-route-view#with-fallbacks).
+chain prepares — see [createRouteView](/react/create-route-view#with-fallbacks)
+and the [nested loading guide](/how-to/nested-loading-skeletons).
 
 ## Repeated activation
 

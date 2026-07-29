@@ -332,6 +332,7 @@ const UserScreen = createRouteView({
 
 ## See Also
 
+- [Show skeletons while nested data loads](/how-to/nested-loading-skeletons) - The fallbacks in a full nested example
 - [createLazyRouteView](./create-lazy-route-view) - Lazy-loaded route views
 - [createRoutesView](./create-routes-view) - Render active routes
 - [Outlet](./outlet) - Render nested routes

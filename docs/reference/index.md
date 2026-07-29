@@ -6,8 +6,8 @@ title: Reference
 
 Exact signatures, types, and options for every public API. If you're looking
 for a task-oriented walkthrough instead, start with the
-[tutorial](/tutorials/build-your-first-router) or check back for how-to
-guides.
+[tutorial](/tutorials/build-your-first-router) or the
+[how-to guides](/how-to/).
 
 - [Core](/core/) - `@effector/router`: routes, router, adapters, lifecycle
 - [Paths](/reference/paths) - `@effector/router-paths`: pattern compiling

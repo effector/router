@@ -19,6 +19,7 @@
     "./vue.ts",
     "./react-native.tsx",
     "./tutorials/build-your-first-router.tsx",
+    "../how-to/nested-loading-skeletons.tsx",
     "../quick-starts/core.ts",
     "../quick-starts/react.tsx",
     "../quick-starts/vue.ts",
