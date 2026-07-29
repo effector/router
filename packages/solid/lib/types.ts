@@ -11,7 +11,7 @@ export const routeViewFallback = Symbol('effector-router-solid-fallback');
 /** @internal Components a view renders while its route is not opened. */
 export interface RouteViewFallback {
   loading?: Component;
-  otherwise?: Component;
+  closed?: Component;
 }
 type RouteViewWithLayout = RouteView & { layout?: LayoutComponent };
 type RouteViewTarget = Pick<Route<any>, '$isOpened'>;
@@ -20,7 +20,7 @@ interface CreateBaseRouteViewProps<T extends object | void = void> {
   route: Route<T> | RouteViewTarget | Router;
   layout?: LayoutComponent;
   children?: RouteViewWithLayout[];
-  otherwise?: Component;
+  closed?: Component;
   loading?: Component;
 }
 
@@ -60,8 +60,6 @@ type BaseLinkProps<Params extends object | void = void> = {
   OpenPayloadBase;
 
 export type LinkProps<Params extends object | void = void> = Params extends
-  | Record<string, never>
-  | void
-  | undefined
+  Record<string, never> | void | undefined
   ? BaseLinkProps<Params> & { params?: Params }
   : BaseLinkProps<Params> & { params: Params };

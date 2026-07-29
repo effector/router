@@ -627,8 +627,8 @@ describe('vue bindings', () => {
     expect(wrapper.find('[data-testid="message"]').text()).toBe('auth');
   });
 
-  describe('otherwise and loading', () => {
-    test('renders otherwise while the route is closed', async () => {
+  describe('closed and loading', () => {
+    test('renders the closed component while the route is closed', async () => {
       const route = createRoute();
       const scope = fork();
       const RoutesView = createRoutesView({
@@ -636,7 +636,7 @@ describe('vue bindings', () => {
           createRouteView({
             route,
             view: defineComponent({ render: () => h('p', 'profile') }),
-            otherwise: defineComponent({ render: () => h('p', 'closed') }),
+            closed: defineComponent({ render: () => h('p', 'closed') }),
           }),
         ],
       });
@@ -674,7 +674,7 @@ describe('vue bindings', () => {
             route: chained,
             view: defineComponent({ render: () => h('p', 'profile') }),
             loading: defineComponent({ render: () => h('p', 'skeleton') }),
-            otherwise: defineComponent({ render: () => h('p', 'closed') }),
+            closed: defineComponent({ render: () => h('p', 'closed') }),
           }),
         ],
       });
@@ -709,7 +709,7 @@ describe('vue bindings', () => {
           createRouteView({
             route: second,
             view: defineComponent({ render: () => h('p', 'second') }),
-            otherwise: defineComponent({
+            closed: defineComponent({
               render: () => h('p', 'second closed'),
             }),
           }),
@@ -790,7 +790,7 @@ describe('vue bindings', () => {
           createRouteView({
             route,
             view: defineComponent({ render: () => h('p', 'profile') }),
-            otherwise: defineComponent({ render: () => h('p', 'closed') }),
+            closed: defineComponent({ render: () => h('p', 'closed') }),
             layout: Layout,
           }),
         ],

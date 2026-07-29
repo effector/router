@@ -530,8 +530,8 @@ describe('solid bindings', () => {
     expect(container.textContent).toContain('child');
   });
 
-  describe('otherwise and loading', () => {
-    test('renders otherwise while the route is closed', async () => {
+  describe('closed and loading', () => {
+    test('renders the closed component while the route is closed', async () => {
       const route = createRoute();
       const scope = fork();
       const RoutesView = createRoutesView({
@@ -539,7 +539,7 @@ describe('solid bindings', () => {
           createRouteView({
             route,
             view: () => <p>profile</p>,
-            otherwise: () => <p>closed</p>,
+            closed: () => <p>closed</p>,
           }),
         ],
       });
@@ -574,7 +574,7 @@ describe('solid bindings', () => {
             route: chained,
             view: () => <p>profile</p>,
             loading: () => <p>skeleton</p>,
-            otherwise: () => <p>closed</p>,
+            closed: () => <p>closed</p>,
           }),
         ],
       });
@@ -603,7 +603,7 @@ describe('solid bindings', () => {
           createRouteView({
             route: second,
             view: () => <p>second</p>,
-            otherwise: () => <p>second closed</p>,
+            closed: () => <p>second closed</p>,
           }),
         ],
       });
@@ -680,7 +680,7 @@ describe('solid bindings', () => {
           createRouteView({
             route,
             view: () => <p>profile</p>,
-            otherwise: () => <p>closed</p>,
+            closed: () => <p>closed</p>,
             layout: Layout,
           }),
         ],

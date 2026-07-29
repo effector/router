@@ -113,8 +113,8 @@ equivalent change belongs in the other two.
 
 `resolve-route-view` is internal and owns view selection for both `create-routes-view` and
 `outlet`: an opened view (via `use-opened-views`) wins; otherwise the last declared fallback
-renders — `loading` of a pending route before `otherwise` of a closed one. It also wraps a view's
-`otherwise`/`loading` with that view's `layout` at creation time, while `withLayout` groups are
+renders — `loading` of a pending route before `closed` of a closed one. It also wraps a view's
+`closed`/`loading` with that view's `layout` at creation time, while `withLayout` groups are
 applied by the renderers. The fallback symbol must stay absent from a `RouteView` that declares
 neither, because `withLayout` copies own symbols onto its result.
 

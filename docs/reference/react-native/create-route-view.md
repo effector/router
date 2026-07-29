@@ -16,7 +16,7 @@ See [createRouteView in the React API](/react/create-route-view) for its configu
 
 ## Fallbacks in React Native
 
-The `otherwise` and `loading` components are resolved by
+The `closed` and `loading` components are resolved by
 [`createRoutesView`](/react-native/create-routes-view) and
 [`Outlet`](/react-native/outlet), so they work the same way when you render
 route views yourself.

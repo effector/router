@@ -659,8 +659,8 @@ describe('react bindings', () => {
     expect(layoutUnmounts).toBe(1);
   });
 
-  describe('otherwise and loading', () => {
-    test('renders otherwise while the route is closed', async () => {
+  describe('closed and loading', () => {
+    test('renders the closed component while the route is closed', async () => {
       const route = createRoute();
       const scope = fork();
       const RoutesView = createRoutesView({
@@ -668,7 +668,7 @@ describe('react bindings', () => {
           createRouteView({
             route,
             view: () => <p data-testid="message">profile</p>,
-            otherwise: () => <p data-testid="message">closed</p>,
+            closed: () => <p data-testid="message">closed</p>,
           }),
         ],
       });
@@ -706,7 +706,7 @@ describe('react bindings', () => {
             route: chained,
             view: () => <p data-testid="message">profile</p>,
             loading: () => <p data-testid="message">skeleton</p>,
-            otherwise: () => <p data-testid="message">closed</p>,
+            closed: () => <p data-testid="message">closed</p>,
           }),
         ],
       });
@@ -738,7 +738,7 @@ describe('react bindings', () => {
           createRouteView({
             route: second,
             view: () => <p>second</p>,
-            otherwise: () => <p>second closed</p>,
+            closed: () => <p>second closed</p>,
           }),
         ],
       });
@@ -760,7 +760,7 @@ describe('react bindings', () => {
       expect(container.textContent).toBe('second');
     });
 
-    test('prefers a pending loading view over a closed otherwise view', async () => {
+    test('prefers a pending loading view over a closed sibling view', async () => {
       const route = createRoute();
       const dataRequested = createEvent();
       const dataLoaded = createEvent();
@@ -781,7 +781,7 @@ describe('react bindings', () => {
           createRouteView({
             route: closed,
             view: () => <p>settings</p>,
-            otherwise: () => <p>settings closed</p>,
+            closed: () => <p>settings closed</p>,
           }),
         ],
       });
@@ -868,7 +868,7 @@ describe('react bindings', () => {
           createRouteView({
             route,
             view: () => <p>profile</p>,
-            otherwise: () => <p>closed</p>,
+            closed: () => <p>closed</p>,
             layout: Layout,
           }),
         ],
@@ -908,7 +908,7 @@ describe('react bindings', () => {
           createRouteView({
             route,
             view: () => <p>profile</p>,
-            otherwise: () => <p>closed</p>,
+            closed: () => <p>closed</p>,
           }),
         ]),
       });

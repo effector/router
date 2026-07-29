@@ -10,14 +10,14 @@ function createRouteView<T extends object | void = void>(
 ): RouteView;
 ```
 
-| Property    | Type                                   | Description                                     |
-| ----------- | -------------------------------------- | ----------------------------------------------- |
-| `route`     | `Route<T> \| Router`                   | Unit that controls whether the view opens       |
-| `view`      | `Component`                            | Component rendered for the opened unit          |
-| `layout`    | `Component<{ children: JSX.Element }>` | Optional wrapper component                      |
-| `otherwise` | `Component`                            | Optional component rendered while it is closed  |
-| `loading`   | `Component`                            | Optional component rendered while it is pending |
-| `children`  | `RouteView[]`                          | Optional direct child views for [`Outlet`]      |
+| Property   | Type                                   | Description                                     |
+| ---------- | -------------------------------------- | ----------------------------------------------- |
+| `route`    | `Route<T> \| Router`                   | Unit that controls whether the view opens       |
+| `view`     | `Component`                            | Component rendered for the opened unit          |
+| `layout`   | `Component<{ children: JSX.Element }>` | Optional wrapper component                      |
+| `closed`   | `Component`                            | Optional component rendered while it is closed  |
+| `loading`  | `Component`                            | Optional component rendered while it is pending |
+| `children` | `RouteView[]`                          | Optional direct child views for [`Outlet`]      |
 
 ## `CreateRouteViewProps`
 
@@ -59,14 +59,14 @@ Use `children` with [`Outlet`](./outlet) for nested views. A `Router` target is 
 
 `loading` covers the wait for data — a route with `beforeOpen`, or a
 [`chainRoute`] output that stays pending until preparation resolves.
-`otherwise` covers the plain closed state.
+`closed` covers the plain closed state.
 
 ```tsx
 const ProfileScreen = createRouteView({
   route: profileReady,
   view: Profile,
   loading: () => <ProfileSkeleton />,
-  otherwise: () => <p>Pick a profile</p>,
+  closed: () => <p>Pick a profile</p>,
 });
 ```
 
@@ -75,7 +75,7 @@ order:
 
 1. the deepest **opened** view;
 2. otherwise the `loading` of a **pending** view;
-3. otherwise the `otherwise` of a closed view;
+3. otherwise the `closed` of a closed view;
 4. otherwise the `otherwise` prop of [`createRoutesView`] (nothing inside an
    [`Outlet`]).
 
@@ -99,11 +99,11 @@ const ProfileScreen = createRouteView({
 ```
 
 ::: tip
-A view listed in `createRoutesView` that declares `otherwise` renders that
+A view listed in `createRoutesView` that declares `closed` renders that
 component for every state in which nothing else is opened, including an
 unmatched URL. Keep the not-found screen in the `otherwise` of
-`createRoutesView`, and use a per-view `otherwise` where the view owns its
-slot — inside an `Outlet`, or in a routes view with a single entry.
+`createRoutesView`, and use a per-view `closed` where the view owns its slot —
+inside an `Outlet`, or in a routes view with a single entry.
 :::
 
 [`chainRoute`]: /core/chain-route

@@ -10,7 +10,7 @@ import {
 
 interface FallbackProps {
   layout?: Component<{ children: JSX.Element }>;
-  otherwise?: Component;
+  closed?: Component;
   loading?: Component;
 }
 
@@ -22,7 +22,7 @@ export interface ResolvedRouteView {
 const $notPending = createStore(false);
 
 /**
- * @internal Wraps the `otherwise`/`loading` components with the same layout the
+ * @internal Wraps the `closed`/`loading` components with the same layout the
  * view itself uses, so a fallback never escapes its page shell. Returns
  * `undefined` when neither is declared — the symbol must stay absent then,
  * because `withLayout` copies own symbols onto its result.
@@ -30,9 +30,9 @@ const $notPending = createStore(false);
 export function createRouteViewFallback(
   props: FallbackProps,
 ): RouteViewFallback | undefined {
-  const { layout: Layout, otherwise: Otherwise, loading: Loading } = props;
+  const { layout: Layout, closed: Closed, loading: Loading } = props;
 
-  if (!Otherwise && !Loading) {
+  if (!Closed && !Loading) {
     return undefined;
   }
 
@@ -47,7 +47,7 @@ export function createRouteViewFallback(
 
   return {
     ...(Loading ? { loading: wrap(Loading) } : {}),
-    ...(Otherwise ? { otherwise: wrap(Otherwise) } : {}),
+    ...(Closed ? { closed: wrap(Closed) } : {}),
   };
 }
 
@@ -63,7 +63,7 @@ function pendingStore(view: RouteView): Store<boolean> {
  * @description Reactive accessor with the single view a routes view or an
  * `<Outlet />` should render: the deepest opened view when there is one,
  * otherwise the last declared fallback — `loading` of a pending route wins over
- * `otherwise` of a closed one.
+ * `closed` of a closed one.
  */
 export function useResolvedRouteView(
   routes: RouteView[],
@@ -80,7 +80,7 @@ export function useResolvedRouteView(
 
     const pendingValues = pending();
     let loading: ResolvedRouteView | null = null;
-    let otherwise: ResolvedRouteView | null = null;
+    let closed: ResolvedRouteView | null = null;
 
     for (let index = 0; index < routes.length; index += 1) {
       const view = routes[index];
@@ -90,12 +90,12 @@ export function useResolvedRouteView(
 
       if (fallback.loading && pendingValues[index]) {
         loading = { view, component: fallback.loading };
-      } else if (fallback.otherwise) {
-        otherwise = { view, component: fallback.otherwise };
+      } else if (fallback.closed) {
+        closed = { view, component: fallback.closed };
       }
     }
 
-    return loading ?? otherwise;
+    return loading ?? closed;
   };
 
   // Keep the identity stable while the same component stays selected, so keyed

@@ -46,28 +46,28 @@ export const ProfileScreen = createRouteView({
 
 ## With Fallbacks
 
-A route view can also describe what to render while its route is *not* opened:
+A route view can also describe what to render while its route is _not_ opened:
 
 ```tsx
 export const ProfileScreen = createRouteView({
   route: profileRoute,
   view: ProfileComponent,
   loading: ProfileSkeleton, // route is pending
-  otherwise: ProfilePlaceholder, // route is closed
+  closed: ProfilePlaceholder, // route is closed
 });
 ```
 
 `loading` covers the wait for data — a route with `beforeOpen`, or the
 [`chainRoute`] output that stays pending until its preparation resolves — and,
-for [`createLazyRouteView`], the wait for the chunk. `otherwise` covers the
-plain closed state.
+for [`createLazyRouteView`], the wait for the chunk. `closed` covers the plain
+closed state.
 
 Both are resolved by the surrounding [`createRoutesView`] or [`Outlet`], which
 still renders a single view. The order is:
 
 1. the deepest **opened** view, if any of the listed views is opened;
 2. otherwise the `loading` of a **pending** view;
-3. otherwise the `otherwise` of a closed view;
+3. otherwise the `closed` of a closed view;
 4. otherwise the `otherwise` prop of [`createRoutesView`] (`null` inside an
    [`Outlet`]).
 
@@ -104,11 +104,11 @@ Fallbacks are wrapped by the same `layout` as the view, and by the
 fallback swaps to the page.
 
 ::: tip
-A view listed in `createRoutesView` that declares `otherwise` renders that
-component for *every* state in which nothing else is opened, including an
+A view listed in `createRoutesView` that declares `closed` renders that
+component for _every_ state in which nothing else is opened, including an
 unmatched URL. Keep the not-found screen in the `otherwise` of
-`createRoutesView`, and use a per-view `otherwise` where the view owns its
-slot — inside an `Outlet`, or in a routes view with a single entry.
+`createRoutesView`, and use a per-view `closed` where the view owns its slot —
+inside an `Outlet`, or in a routes view with a single entry.
 :::
 
 ## With Nested Routes
@@ -233,7 +233,7 @@ const ProfileScreen = createRouteView({
 });
 ```
 
-### `otherwise` (optional)
+### `closed` (optional)
 
 A component rendered instead of `view` while the route is not opened:
 
@@ -241,7 +241,7 @@ A component rendered instead of `view` while the route is not opened:
 const ProfileScreen = createRouteView({
   route: profileRoute,
   view: ProfileComponent,
-  otherwise: () => <div>Pick a profile</div>,
+  closed: () => <div>Pick a profile</div>,
 });
 ```
 
@@ -284,14 +284,14 @@ const ProfileScreen = createRouteView({
 import type { CreateRouteViewProps } from '@effector/router-react';
 ```
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `route` | `Route<T>` or `Router` | The route or nested router that controls whether the view is active. |
-| `view` | `ComponentType` | Component rendered for the active view. |
-| `layout` | `ComponentType<{ children: ReactNode }>` | Optional layout that wraps the view and its fallbacks. |
-| `otherwise` | `ComponentType` | Optional component rendered while the route is not opened. |
-| `loading` | `ComponentType` | Optional component rendered while the route is pending. |
-| `children` | `RouteView[]` | Optional direct child views rendered through [`Outlet`]. |
+| Property   | Type                                     | Description                                                          |
+| ---------- | ---------------------------------------- | -------------------------------------------------------------------- |
+| `route`    | `Route<T>` or `Router`                   | The route or nested router that controls whether the view is active. |
+| `view`     | `ComponentType`                          | Component rendered for the active view.                              |
+| `layout`   | `ComponentType<{ children: ReactNode }>` | Optional layout that wraps the view and its fallbacks.               |
+| `closed`   | `ComponentType`                          | Optional component rendered while the route is not opened.           |
+| `loading`  | `ComponentType`                          | Optional component rendered while the route is pending.              |
+| `children` | `RouteView[]`                            | Optional direct child views rendered through [`Outlet`].             |
 
 ## Return Value
 
@@ -305,11 +305,11 @@ Returns a [`RouteView`](#routeview) object.
 import type { RouteView } from '@effector/router-react';
 ```
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `route` | Route-like target or `Router` | Target that determines whether the view is active. |
-| `view` | `React.FC` | Component rendered when selected. |
-| `children` | `RouteView[]` | Optional direct child views for [`Outlet`]. |
+| Property   | Type                          | Description                                        |
+| ---------- | ----------------------------- | -------------------------------------------------- |
+| `route`    | Route-like target or `Router` | Target that determines whether the view is active. |
+| `view`     | `React.FC`                    | Component rendered when selected.                  |
+| `children` | `RouteView[]`                 | Optional direct child views for [`Outlet`].        |
 
 ## Type Safety
 

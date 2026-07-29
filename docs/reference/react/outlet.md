@@ -49,7 +49,7 @@ const RoutesView = createRoutesView({
 2. Parent component renders `<Outlet />` where children should appear
 3. When a child route is active, `Outlet` renders that child's component
 4. When no child route is active, `Outlet` renders the `loading` of a pending
-   child or the `otherwise` of a closed one, if a child declares them
+   child or the `closed` of a closed one, if a child declares them
 5. Otherwise `Outlet` renders nothing
 
 ## Nested Navigation
@@ -164,8 +164,8 @@ function ParentComponent() {
 }
 ```
 
-The declarative way to fill that slot is a child `otherwise` — or `loading`
-while the child prepares — which keeps the parent view mounted:
+The declarative way to fill that slot is a child `closed` — or `loading` while
+the child prepares — which keeps the parent view mounted:
 
 ```tsx
 const ProfileScreen = createRouteView({
@@ -176,7 +176,7 @@ const ProfileScreen = createRouteView({
       route: settingsReady,
       view: SettingsComponent,
       loading: SettingsSkeleton,
-      otherwise: () => <div>Select an item from the sidebar</div>,
+      closed: () => <div>Select an item from the sidebar</div>,
     }),
   ],
 });
@@ -231,7 +231,7 @@ function MembersComponent() {
 Returns:
 
 - The active child route's component
-- The `loading` or `otherwise` fallback of a child route view, when no child is
+- The `loading` or `closed` fallback of a child route view, when no child is
   active and one is declared
 - `null` if no child route is active
 

@@ -102,7 +102,7 @@ The former chunk-only component. It is an alias of `loading` now: used when
 `loading`; the type is marked `@deprecated`, so editors point at the
 replacement.
 
-### `otherwise` (optional)
+### `closed` (optional)
 
 Component rendered while the route is not opened. It behaves exactly as in
 [`createRouteView`](/react/create-route-view#with-fallbacks), including the
@@ -153,15 +153,15 @@ const ProfileScreen = createLazyRouteView({
 import type { CreateLazyRouteViewProps } from '@effector/router-react';
 ```
 
-| Property    | Type                                        | Description                                                                                           |
-| ----------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `route`     | `Route<T>`                                  | Route that controls whether the lazy view is active. Router targets are not supported for lazy views. |
-| `view`      | `() => Promise<{ default: ComponentType }>` | Dynamic importer whose module has a default React component export.                                   |
-| `loading`   | `ComponentType`                             | Optional component rendered while the route is pending and while the chunk loads.                     |
-| `fallback`  | `ComponentType`                             | **Deprecated** — alias of `loading`, used when `loading` is absent.                                   |
-| `otherwise` | `ComponentType`                             | Optional component rendered while the route is not opened.                                            |
-| `layout`    | `ComponentType<{ children: ReactNode }>`    | Optional layout that wraps the lazy view and its fallbacks.                                           |
-| `children`  | `RouteView[]`                               | Optional direct child views rendered through [`Outlet`].                                              |
+| Property   | Type                                        | Description                                                                                           |
+| ---------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `route`    | `Route<T>`                                  | Route that controls whether the lazy view is active. Router targets are not supported for lazy views. |
+| `view`     | `() => Promise<{ default: ComponentType }>` | Dynamic importer whose module has a default React component export.                                   |
+| `loading`  | `ComponentType`                             | Optional component rendered while the route is pending and while the chunk loads.                     |
+| `fallback` | `ComponentType`                             | **Deprecated** — alias of `loading`, used when `loading` is absent.                                   |
+| `closed`   | `ComponentType`                             | Optional component rendered while the route is not opened.                                            |
+| `layout`   | `ComponentType<{ children: ReactNode }>`    | Optional layout that wraps the lazy view and its fallbacks.                                           |
+| `children` | `RouteView[]`                               | Optional direct child views rendered through [`Outlet`].                                              |
 
 ## Return Value
 

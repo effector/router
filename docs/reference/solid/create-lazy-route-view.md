@@ -10,15 +10,15 @@ function createLazyRouteView<T extends object | void = void>(
 ): RouteView;
 ```
 
-| Property    | Type                                    | Description                                                                      |
-| ----------- | --------------------------------------- | -------------------------------------------------------------------------------- |
-| `route`     | `Route<T> \| Router`                    | Unit that controls whether the view opens                                        |
-| `view`      | `() => Promise<{ default: Component }>` | Dynamic import with a default export                                             |
-| `loading`   | `Component`                             | Optional component rendered while the route is pending and while the chunk loads |
-| `fallback`  | `Component`                             | **Deprecated** — alias of `loading`, used when `loading` is absent               |
-| `otherwise` | `Component`                             | Optional component rendered while it is closed                                   |
-| `layout`    | `Component<{ children: JSX.Element }>`  | Optional wrapper component                                                       |
-| `children`  | `RouteView[]`                           | Optional direct child views for [`Outlet`]                                       |
+| Property   | Type                                    | Description                                                                      |
+| ---------- | --------------------------------------- | -------------------------------------------------------------------------------- |
+| `route`    | `Route<T> \| Router`                    | Unit that controls whether the view opens                                        |
+| `view`     | `() => Promise<{ default: Component }>` | Dynamic import with a default export                                             |
+| `loading`  | `Component`                             | Optional component rendered while the route is pending and while the chunk loads |
+| `fallback` | `Component`                             | **Deprecated** — alias of `loading`, used when `loading` is absent               |
+| `closed`   | `Component`                             | Optional component rendered while it is closed                                   |
+| `layout`   | `Component<{ children: JSX.Element }>`  | Optional wrapper component                                                       |
+| `children` | `RouteView[]`                           | Optional direct child views for [`Outlet`]                                       |
 
 ## `CreateLazyRouteViewProps`
 

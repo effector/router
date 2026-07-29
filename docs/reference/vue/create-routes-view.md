@@ -18,8 +18,7 @@ When several routes are active, selection happens in two stages:
    :::
 
 When no route is active, a view that declares `loading` (its route is pending)
-or `otherwise` (closed) renders that component instead of the `otherwise` option
-below — see [route view fallbacks](/vue/create-route-view#fallbacks).
+or `closed` renders that component instead of the `otherwise` option below — see [route view fallbacks](/vue/create-route-view#fallbacks).
 
 ### Example
 

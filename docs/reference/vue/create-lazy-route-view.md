@@ -8,7 +8,7 @@ route is pending and while the bundle loads) and optional `layout`.
 
 `CreateLazyRouteViewProps<T>` is the exported input type and `RouteView` is the
 returned view descriptor. It has the same `route`, optional `layout`,
-`otherwise`, `loading`, and optional `children` fields as
+`closed`, `loading`, and optional `children` fields as
 `CreateRouteViewProps<T>`, plus:
 
 - `view` — a function returning `Promise<{ default: Component }>`

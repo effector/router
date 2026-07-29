@@ -16,7 +16,7 @@ import {
 
 interface FallbackProps {
   layout?: Component;
-  otherwise?: Component;
+  closed?: Component;
   loading?: Component;
 }
 
@@ -28,7 +28,7 @@ export interface ResolvedRouteView {
 const $notPending = createStore(false);
 
 /**
- * @internal Wraps the `otherwise`/`loading` components with the same layout the
+ * @internal Wraps the `closed`/`loading` components with the same layout the
  * view itself uses, so a fallback never escapes its page shell. Returns
  * `undefined` when neither is declared — the symbol must stay absent then,
  * because `withLayout` copies own symbols onto its result.
@@ -36,9 +36,9 @@ const $notPending = createStore(false);
 export function createRouteViewFallback(
   props: FallbackProps,
 ): RouteViewFallback | undefined {
-  const { layout, otherwise, loading } = props;
+  const { layout, closed, loading } = props;
 
-  if (!otherwise && !loading) {
+  if (!closed && !loading) {
     return undefined;
   }
 
@@ -54,7 +54,7 @@ export function createRouteViewFallback(
 
   return {
     ...(loading ? { loading: wrap(loading) } : {}),
-    ...(otherwise ? { otherwise: wrap(otherwise) } : {}),
+    ...(closed ? { closed: wrap(closed) } : {}),
   };
 }
 
@@ -70,7 +70,7 @@ function pendingStore(view: RouteView): Store<boolean> {
  * @description Reactively resolves the single view a routes view or an
  * `<Outlet />` should render: the deepest opened view when there is one,
  * otherwise the last declared fallback — `loading` of a pending route wins over
- * `otherwise` of a closed one.
+ * `closed` of a closed one.
  */
 export function useResolvedRouteView(
   routes: RouteView[],
@@ -86,7 +86,7 @@ export function useResolvedRouteView(
     }
 
     let loading: ResolvedRouteView | null = null;
-    let otherwise: ResolvedRouteView | null = null;
+    let closed: ResolvedRouteView | null = null;
 
     for (let index = 0; index < routes.length; index += 1) {
       const view = routes[index];
@@ -96,11 +96,11 @@ export function useResolvedRouteView(
 
       if (fallback.loading && pending.value[index]) {
         loading = { view, component: fallback.loading };
-      } else if (fallback.otherwise) {
-        otherwise = { view, component: fallback.otherwise };
+      } else if (fallback.closed) {
+        closed = { view, component: fallback.closed };
       }
     }
 
-    return loading ?? otherwise;
+    return loading ?? closed;
   });
 }

@@ -24,7 +24,7 @@ import {
  *   view: Profile,
  *   layout: MainLayout,
  *   loading: ProfileSkeleton,
- *   otherwise: ProfilePlaceholder,
+ *   closed: ProfilePlaceholder,
  * });
  * ```
  */
