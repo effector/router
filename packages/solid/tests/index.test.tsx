@@ -723,5 +723,49 @@ describe('solid bindings', () => {
 
       await waitFor(() => expect(container.textContent).toBe('profile'));
     });
+
+    test('uses the deprecated fallback as loading', async () => {
+      let resolve!: (module: { default: () => JSX.Element }) => void;
+      const route = createRoute();
+      const dataRequested = createEvent();
+      const dataLoaded = createEvent();
+      const chained = chainRoute({
+        route,
+        beforeOpen: dataRequested,
+        openOn: dataLoaded,
+      });
+      const scope = fork();
+      const lazyView = createLazyRouteView({
+        route: chained,
+        view: () =>
+          new Promise<{ default: () => JSX.Element }>((done) => {
+            resolve = done;
+          }),
+        fallback: () => <p>chunk</p>,
+      });
+      const RoutesView = createRoutesView({
+        routes: [lazyView],
+        otherwise: () => <p>not found</p>,
+      });
+      const { container } = render(() => (
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>
+      ));
+
+      expect(container.textContent).toBe('not found');
+
+      // The chain is preparing: the routes view fallback must not flash.
+      await allSettled(route.open, { scope, params: undefined });
+      expect(container.textContent).toBe('chunk');
+
+      // The chunk is still loading after the route opened.
+      await allSettled(dataLoaded, { scope, params: undefined });
+      expect(container.textContent).toBe('chunk');
+
+      resolve({ default: () => <p>profile</p> });
+
+      await waitFor(() => expect(container.textContent).toBe('profile'));
+    });
   });
 });

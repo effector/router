@@ -840,5 +840,56 @@ describe('vue bindings', () => {
       await flushPromises();
       expect(wrapper.text()).toBe('profile');
     });
+
+    test('uses the deprecated fallback as loading', async () => {
+      type LazyModule = {
+        default: ReturnType<typeof defineComponent>;
+        __esModule: true;
+      };
+      let resolve!: (module: LazyModule) => void;
+      const route = createRoute();
+      const dataRequested = createEvent();
+      const dataLoaded = createEvent();
+      const chained = chainRoute({
+        route,
+        beforeOpen: dataRequested,
+        openOn: dataLoaded,
+      });
+      const scope = fork();
+      const lazyView = createLazyRouteView({
+        route: chained,
+        view: () => new Promise<LazyModule>((done) => (resolve = done)),
+        fallback: defineComponent({ render: () => h('p', 'chunk') }),
+      });
+      const RoutesView = createRoutesView({
+        routes: [lazyView],
+        otherwise: defineComponent({ render: () => h('p', 'not found') }),
+      });
+      const wrapper = mountRoutes(
+        createRouter({ routes: [] }),
+        scope,
+        RoutesView,
+      );
+
+      await flushPromises();
+      expect(wrapper.text()).toBe('not found');
+
+      // The chain is preparing: the routes view fallback must not flash.
+      await allSettled(route.open, { scope, params: undefined });
+      await flushPromises();
+      expect(wrapper.text()).toBe('chunk');
+
+      // The chunk is still loading after the route opened.
+      await allSettled(dataLoaded, { scope, params: undefined });
+      await flushPromises();
+      expect(wrapper.text()).toBe('chunk');
+
+      resolve({
+        default: defineComponent({ render: () => h('p', 'profile') }),
+        __esModule: true,
+      });
+      await flushPromises();
+      expect(wrapper.text()).toBe('profile');
+    });
   });
 });

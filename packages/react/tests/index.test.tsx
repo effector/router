@@ -956,7 +956,7 @@ describe('react bindings', () => {
       );
     });
 
-    test('keeps fallback as the explicit lazy Suspense fallback', async () => {
+    test('prefers loading over the deprecated fallback', async () => {
       let resolve!: (module: { default: () => ReactNode }) => void;
       const route = createRoute();
       const lazyView = createLazyRouteView({
@@ -969,6 +969,53 @@ describe('react bindings', () => {
 
       const View = lazyView.view;
       const { getByTestId } = render(<View />);
+
+      expect(getByTestId('message').textContent).toBe('skeleton');
+
+      resolve({ default: () => <p data-testid="message">profile</p> });
+
+      await waitFor(() =>
+        expect(getByTestId('message').textContent).toBe('profile'),
+      );
+    });
+
+    test('uses the deprecated fallback as loading', async () => {
+      let resolve!: (module: { default: () => ReactNode }) => void;
+      const route = createRoute();
+      const dataRequested = createEvent();
+      const dataLoaded = createEvent();
+      const chained = chainRoute({
+        route,
+        beforeOpen: dataRequested,
+        openOn: dataLoaded,
+      });
+      const scope = fork();
+      const lazyView = createLazyRouteView({
+        route: chained,
+        view: () =>
+          new Promise<{ default: () => ReactNode }>((done) => (resolve = done)),
+        fallback: () => <p data-testid="message">chunk</p>,
+      });
+      const RoutesView = createRoutesView({
+        routes: [lazyView],
+        otherwise: () => <p data-testid="message">not found</p>,
+      });
+
+      const { getByTestId } = render(
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>,
+      );
+
+      expect(getByTestId('message').textContent).toBe('not found');
+
+      // The chain is preparing: the routes view fallback must not flash.
+      await act(() => allSettled(route.open, { scope, params: undefined }));
+
+      expect(getByTestId('message').textContent).toBe('chunk');
+
+      // The chunk is still loading after the route opened.
+      await act(() => allSettled(dataLoaded, { scope, params: undefined }));
 
       expect(getByTestId('message').textContent).toBe('chunk');
 
