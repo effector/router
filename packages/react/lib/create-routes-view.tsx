@@ -1,6 +1,7 @@
-import { type ComponentType, createElement } from 'react';
+import { type ComponentType, createElement, memo } from 'react';
 import { OutletContext } from './context';
 import {
+  useOutletValue,
   useResolvedRouteView,
   type ResolvedRouteView,
 } from './resolve-route-view';
@@ -13,18 +14,24 @@ interface CreateRoutesViewProps {
 
 /**
  * @internal Renders the resolved component — the view itself, or its `loading`
- * / `otherwise` fallback — inside the layout group of the view it belongs to.
+ * / `closed` fallback — inside the layout group of the view it belongs to.
+ * Memoized: the selection is identity-stable, so unrelated router updates stop
+ * at this boundary instead of re-rendering the whole page branch.
  */
-function ViewRenderer({ view, component }: ResolvedRouteView) {
+const ViewRenderer = memo(function ViewRenderer({
+  view,
+  component,
+}: ResolvedRouteView) {
+  const outlet = useOutletValue(view);
   const group = view[layoutGroup];
   const content = (
-    <OutletContext.Provider value={{ children: view.children ?? [] }}>
+    <OutletContext.Provider value={outlet}>
       {createElement(component)}
     </OutletContext.Provider>
   );
 
   return group ? <group.layout>{content}</group.layout> : content;
-}
+});
 
 /**
  * @description Create routes view which renders current opened route. `Don't forget add <RouterProvider>`!

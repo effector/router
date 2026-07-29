@@ -1,9 +1,28 @@
 import { OutletContext } from './context';
-import { createElement, useContext } from 'react';
-import { useResolvedRouteView } from './resolve-route-view';
-import type { RouteView } from './types';
+import { createElement, memo, useContext } from 'react';
+import {
+  noChildren,
+  useOutletValue,
+  useResolvedRouteView,
+  type ResolvedRouteView,
+} from './resolve-route-view';
 
-const noChildren: RouteView[] = [];
+/**
+ * @internal Same memo boundary as the routes view renderer, so a nested branch
+ * re-renders only when its own selection changes.
+ */
+const OutletRenderer = memo(function OutletRenderer({
+  view,
+  component,
+}: ResolvedRouteView) {
+  const outlet = useOutletValue(view);
+
+  return (
+    <OutletContext.Provider value={outlet}>
+      {createElement(component)}
+    </OutletContext.Provider>
+  );
+});
 
 /**
  * @description Outlet component for nested routes
@@ -40,9 +59,5 @@ export const Outlet = () => {
     return null;
   }
 
-  return (
-    <OutletContext.Provider value={{ children: resolved.view.children ?? [] }}>
-      {createElement(resolved.component)}
-    </OutletContext.Provider>
-  );
+  return <OutletRenderer view={resolved.view} component={resolved.component} />;
 };

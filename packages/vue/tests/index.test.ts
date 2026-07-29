@@ -627,6 +627,70 @@ describe('vue bindings', () => {
     expect(wrapper.find('[data-testid="message"]').text()).toBe('auth');
   });
 
+  describe('render stability', () => {
+    test('keeps the selected view rendered through unrelated router churn', async () => {
+      const selected = createRoute();
+      const child = createRoute();
+      const sibling = createRoute();
+      const prepare = createEvent();
+      const ready = createEvent();
+      const siblingReady = chainRoute({
+        route: sibling,
+        beforeOpen: prepare,
+        openOn: ready,
+      });
+      let pageRenders = 0;
+      let childRenders = 0;
+      const Page = defineComponent({
+        setup: () => () => {
+          pageRenders += 1;
+
+          return h('div', ['page', h(Outlet)]);
+        },
+      });
+      const Child = defineComponent({
+        setup: () => () => {
+          childRenders += 1;
+
+          return h('p', 'child');
+        },
+      });
+      const scope = fork();
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route: selected,
+            view: Page,
+            children: [createRouteView({ route: child, view: Child })],
+          }),
+          createRouteView({
+            route: siblingReady,
+            view: defineComponent({ render: () => h('p', 'sibling') }),
+            loading: defineComponent({
+              render: () => h('p', 'sibling loading'),
+            }),
+          }),
+        ],
+      });
+      mountRoutes(createRouter({ routes: [] }), scope, RoutesView);
+
+      await allSettled(selected.open, { scope, params: undefined });
+      await allSettled(child.open, { scope, params: undefined });
+      await flushPromises();
+
+      const pageRendersBefore = pageRenders;
+      const childRendersBefore = childRenders;
+
+      // A sibling chain starts preparing: the routes view re-renders, but the
+      // selected branch is unaffected and must not re-render with it.
+      await allSettled(sibling.open, { scope, params: undefined });
+      await flushPromises();
+
+      expect(pageRenders).toBe(pageRendersBefore);
+      expect(childRenders).toBe(childRendersBefore);
+    });
+  });
+
   describe('closed and loading', () => {
     test('renders the closed component while the route is closed', async () => {
       const route = createRoute();

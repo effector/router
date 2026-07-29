@@ -530,6 +530,71 @@ describe('solid bindings', () => {
     expect(container.textContent).toContain('child');
   });
 
+  describe('render stability', () => {
+    test('keeps the selected view mounted through unrelated router churn', async () => {
+      const selected = createRoute();
+      const child = createRoute();
+      const sibling = createRoute();
+      const prepare = createEvent();
+      const ready = createEvent();
+      const siblingReady = chainRoute({
+        route: sibling,
+        beforeOpen: prepare,
+        openOn: ready,
+      });
+      let pageRuns = 0;
+      let childRuns = 0;
+      const Page = () => {
+        pageRuns += 1;
+
+        return (
+          <div>
+            page
+            <Outlet />
+          </div>
+        );
+      };
+      const Child = () => {
+        childRuns += 1;
+
+        return <p>child</p>;
+      };
+      const scope = fork();
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route: selected,
+            view: Page,
+            children: [createRouteView({ route: child, view: Child })],
+          }),
+          createRouteView({
+            route: siblingReady,
+            view: () => <p>sibling</p>,
+            loading: () => <p>sibling loading</p>,
+          }),
+        ],
+      });
+      render(() => (
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>
+      ));
+
+      await allSettled(selected.open, { scope, params: undefined });
+      await allSettled(child.open, { scope, params: undefined });
+
+      expect(pageRuns).toBe(1);
+      expect(childRuns).toBe(1);
+
+      // A sibling chain starts preparing: the selected branch must not be
+      // recreated by the unrelated update.
+      await allSettled(sibling.open, { scope, params: undefined });
+
+      expect(pageRuns).toBe(1);
+      expect(childRuns).toBe(1);
+    });
+  });
+
   describe('closed and loading', () => {
     test('renders the closed component while the route is closed', async () => {
       const route = createRoute();

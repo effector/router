@@ -659,6 +659,72 @@ describe('react bindings', () => {
     expect(layoutUnmounts).toBe(1);
   });
 
+  describe('render stability', () => {
+    test('keeps the selected view rendered through unrelated router churn', async () => {
+      const selected = createRoute();
+      const child = createRoute();
+      const sibling = createRoute();
+      const prepare = createEvent();
+      const ready = createEvent();
+      const siblingReady = chainRoute({
+        route: sibling,
+        beforeOpen: prepare,
+        openOn: ready,
+      });
+      let pageRenders = 0;
+      let childRenders = 0;
+      const Page = () => {
+        pageRenders += 1;
+
+        return (
+          <div>
+            page
+            <Outlet />
+          </div>
+        );
+      };
+      const Child = () => {
+        childRenders += 1;
+
+        return <p>child</p>;
+      };
+      const scope = fork();
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route: selected,
+            view: Page,
+            children: [createRouteView({ route: child, view: Child })],
+          }),
+          createRouteView({
+            route: siblingReady,
+            view: () => <p>sibling</p>,
+            loading: () => <p>sibling loading</p>,
+          }),
+        ],
+      });
+
+      render(
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>,
+      );
+
+      await act(() => allSettled(selected.open, { scope, params: undefined }));
+      await act(() => allSettled(child.open, { scope, params: undefined }));
+
+      const pageRendersBefore = pageRenders;
+      const childRendersBefore = childRenders;
+
+      // A sibling chain starts preparing: the routes view re-renders, but the
+      // selected branch is unaffected and must not re-render with it.
+      await act(() => allSettled(sibling.open, { scope, params: undefined }));
+
+      expect(pageRenders).toBe(pageRendersBefore);
+      expect(childRenders).toBe(childRendersBefore);
+    });
+  });
+
   describe('closed and loading', () => {
     test('renders the closed component while the route is closed', async () => {
       const route = createRoute();

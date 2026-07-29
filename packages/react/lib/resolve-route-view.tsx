@@ -1,4 +1,10 @@
-import { useMemo, type ComponentType, type FC, type ReactNode } from 'react';
+import {
+  useMemo,
+  useRef,
+  type ComponentType,
+  type FC,
+  type ReactNode,
+} from 'react';
 import { combine, createStore, type Store } from 'effector';
 import { useUnit } from 'effector-react';
 import { useOpenedViews } from './use-opened-views';
@@ -51,6 +57,19 @@ export function createRouteViewFallback(
   };
 }
 
+export const noChildren: RouteView[] = [];
+
+/**
+ * @internal Stable `OutletContext` value for a resolved view, so a re-render of
+ * the renderer does not invalidate the context for every nested consumer.
+ */
+export function useOutletValue(view: RouteView): { children: RouteView[] } {
+  return useMemo(
+    () => ({ children: view.children ?? noChildren }),
+    [view.children],
+  );
+}
+
 function pendingStore(view: RouteView): Store<boolean> {
   // Router targets and hand-written `{ route, view }` objects have no pending
   // state, so they never contribute a `loading` fallback.
@@ -71,8 +90,12 @@ export function useResolvedRouteView(
   const openedViews = useOpenedViews(routes);
   const $pending = useMemo(() => combine(routes.map(pendingStore)), [routes]);
   const pending = useUnit($pending);
+  // Router churn that does not change the selection — a sibling chain starting
+  // to prepare, for example — must not hand a new object to the renderer, or
+  // the whole selected branch re-renders with it.
+  const previous = useRef<ResolvedRouteView | null>(null);
 
-  return useMemo(() => {
+  const resolved = useMemo(() => {
     const openedView = openedViews.at(-1);
 
     if (openedView) {
@@ -97,4 +120,19 @@ export function useResolvedRouteView(
 
     return loading ?? closed;
   }, [routes, openedViews, pending]);
+
+  const last = previous.current;
+
+  if (
+    last &&
+    resolved &&
+    last.view === resolved.view &&
+    last.component === resolved.component
+  ) {
+    return last;
+  }
+
+  previous.current = resolved;
+
+  return resolved;
 }
