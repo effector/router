@@ -1,6 +1,7 @@
-import { allSettled, fork, type Scope } from 'effector';
+import { allSettled, createEvent, fork, type Scope } from 'effector';
 import { describe, expect, test, vi } from 'vitest';
 import {
+  chainRoute,
   createRoute,
   createRouter,
   historyAdapter,
@@ -624,5 +625,219 @@ describe('vue bindings', () => {
     await flushPromises();
     expect(wrapper.find('[data-testid="layout"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="message"]').text()).toBe('auth');
+  });
+
+  describe('otherwise and loading', () => {
+    test('renders otherwise while the route is closed', async () => {
+      const route = createRoute();
+      const scope = fork();
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route,
+            view: defineComponent({ render: () => h('p', 'profile') }),
+            otherwise: defineComponent({ render: () => h('p', 'closed') }),
+          }),
+        ],
+      });
+      const wrapper = mountRoutes(
+        createRouter({ routes: [] }),
+        scope,
+        RoutesView,
+      );
+
+      await flushPromises();
+      expect(wrapper.text()).toBe('closed');
+
+      await allSettled(route.open, { scope, params: undefined });
+      await flushPromises();
+      expect(wrapper.text()).toBe('profile');
+
+      await allSettled(route.close, { scope, params: undefined });
+      await flushPromises();
+      expect(wrapper.text()).toBe('closed');
+    });
+
+    test('renders loading while a chained route is pending', async () => {
+      const route = createRoute({ path: '/profile' });
+      const dataRequested = createEvent();
+      const dataLoaded = createEvent();
+      const chained = chainRoute({
+        route,
+        beforeOpen: dataRequested,
+        openOn: dataLoaded,
+      });
+      const scope = fork();
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route: chained,
+            view: defineComponent({ render: () => h('p', 'profile') }),
+            loading: defineComponent({ render: () => h('p', 'skeleton') }),
+            otherwise: defineComponent({ render: () => h('p', 'closed') }),
+          }),
+        ],
+      });
+      const wrapper = mountRoutes(
+        createRouter({ routes: [] }),
+        scope,
+        RoutesView,
+      );
+
+      await flushPromises();
+      expect(wrapper.text()).toBe('closed');
+
+      await allSettled(route.open, { scope, params: undefined });
+      await flushPromises();
+      expect(wrapper.text()).toBe('skeleton');
+
+      await allSettled(dataLoaded, { scope, params: undefined });
+      await flushPromises();
+      expect(wrapper.text()).toBe('profile');
+    });
+
+    test('prefers an opened sibling view over a declared fallback', async () => {
+      const first = createRoute();
+      const second = createRoute();
+      const scope = fork();
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route: first,
+            view: defineComponent({ render: () => h('p', 'first') }),
+          }),
+          createRouteView({
+            route: second,
+            view: defineComponent({ render: () => h('p', 'second') }),
+            otherwise: defineComponent({
+              render: () => h('p', 'second closed'),
+            }),
+          }),
+        ],
+      });
+      const wrapper = mountRoutes(
+        createRouter({ routes: [] }),
+        scope,
+        RoutesView,
+      );
+
+      await flushPromises();
+      expect(wrapper.text()).toBe('second closed');
+
+      await allSettled(first.open, { scope, params: undefined });
+      await flushPromises();
+      expect(wrapper.text()).toBe('first');
+    });
+
+    test('renders a nested fallback through Outlet', async () => {
+      const profileRoute = createRoute({ path: '/profile' });
+      const settingsRoute = createRoute({
+        path: '/settings',
+        parent: profileRoute,
+      });
+      const dataRequested = createEvent();
+      const dataLoaded = createEvent();
+      const chained = chainRoute({
+        route: settingsRoute,
+        beforeOpen: dataRequested,
+        openOn: dataLoaded,
+      });
+      const scope = fork();
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route: profileRoute,
+            view: defineComponent({
+              setup: () => () => h('div', ['profile', h(Outlet)]),
+            }),
+            children: [
+              createRouteView({
+                route: chained,
+                view: defineComponent({ render: () => h('p', 'settings') }),
+                loading: defineComponent({ render: () => h('p', 'skeleton') }),
+              }),
+            ],
+          }),
+        ],
+      });
+      const wrapper = mountRoutes(
+        createRouter({ routes: [] }),
+        scope,
+        RoutesView,
+      );
+
+      await allSettled(settingsRoute.open, { scope, params: undefined });
+      await flushPromises();
+      expect(wrapper.text()).toBe('profileskeleton');
+
+      await allSettled(dataLoaded, { scope, params: undefined });
+      await flushPromises();
+      expect(wrapper.text()).toBe('profilesettings');
+    });
+
+    test('wraps a fallback with the view layout', async () => {
+      const route = createRoute();
+      const scope = fork();
+      const Layout = defineComponent({
+        setup:
+          (_, { slots }) =>
+          () =>
+            h('div', ['layout!', slots.default?.()]),
+      });
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route,
+            view: defineComponent({ render: () => h('p', 'profile') }),
+            otherwise: defineComponent({ render: () => h('p', 'closed') }),
+            layout: Layout,
+          }),
+        ],
+      });
+      const wrapper = mountRoutes(
+        createRouter({ routes: [] }),
+        scope,
+        RoutesView,
+      );
+
+      await flushPromises();
+      expect(wrapper.text()).toBe('layout!closed');
+
+      await allSettled(route.open, { scope, params: undefined });
+      await flushPromises();
+      expect(wrapper.text()).toBe('layout!profile');
+    });
+
+    test('uses loading as the lazy loading component', async () => {
+      type LazyModule = {
+        default: ReturnType<typeof defineComponent>;
+        __esModule: true;
+      };
+      let resolve!: (module: LazyModule) => void;
+      const route = createRoute({ path: '/lazy' });
+      const scope = fork();
+      const lazyView = createLazyRouteView({
+        route,
+        view: () => new Promise<LazyModule>((done) => (resolve = done)),
+        loading: defineComponent({ render: () => h('p', 'skeleton') }),
+      });
+      const RoutesView = createRoutesView({ routes: [lazyView] });
+      const wrapper = mountRoutes(
+        createRouter({ routes: [] }),
+        scope,
+        RoutesView,
+      );
+
+      await allSettled(route.open, { scope, params: undefined });
+      await flushPromises();
+      expect(wrapper.text()).toBe('skeleton');
+
+      resolve({
+        default: defineComponent({ render: () => h('p', 'profile') }),
+        __esModule: true,
+      });
+      await flushPromises();
+      expect(wrapper.text()).toBe('profile');
+    });
   });
 });

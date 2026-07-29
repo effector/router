@@ -1,9 +1,14 @@
-import { allSettled, fork } from 'effector';
+import { allSettled, createEvent, fork } from 'effector';
 import { Provider } from 'effector-solid';
 import { createSignal, onCleanup, onMount } from 'solid-js';
 import { describe, expect, test, vi } from 'vitest';
-import { fireEvent, render } from '@solidjs/testing-library';
-import { createRoute, createRouter, historyAdapter } from '@effector/router';
+import { fireEvent, render, waitFor } from '@solidjs/testing-library';
+import {
+  chainRoute,
+  createRoute,
+  createRouter,
+  historyAdapter,
+} from '@effector/router';
 import { createMemoryHistory } from 'history';
 
 import {
@@ -523,5 +528,200 @@ describe('solid bindings', () => {
 
     await allSettled(childRoute.open, { scope, params: undefined });
     expect(container.textContent).toContain('child');
+  });
+
+  describe('otherwise and loading', () => {
+    test('renders otherwise while the route is closed', async () => {
+      const route = createRoute();
+      const scope = fork();
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route,
+            view: () => <p>profile</p>,
+            otherwise: () => <p>closed</p>,
+          }),
+        ],
+      });
+      const { container } = render(() => (
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>
+      ));
+
+      expect(container.textContent).toBe('closed');
+
+      await allSettled(route.open, { scope, params: undefined });
+      expect(container.textContent).toBe('profile');
+
+      await allSettled(route.close, { scope, params: undefined });
+      expect(container.textContent).toBe('closed');
+    });
+
+    test('renders loading while a chained route is pending', async () => {
+      const route = createRoute({ path: '/profile' });
+      const dataRequested = createEvent();
+      const dataLoaded = createEvent();
+      const chained = chainRoute({
+        route,
+        beforeOpen: dataRequested,
+        openOn: dataLoaded,
+      });
+      const scope = fork();
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route: chained,
+            view: () => <p>profile</p>,
+            loading: () => <p>skeleton</p>,
+            otherwise: () => <p>closed</p>,
+          }),
+        ],
+      });
+      const { container } = render(() => (
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>
+      ));
+
+      expect(container.textContent).toBe('closed');
+
+      await allSettled(route.open, { scope, params: undefined });
+      expect(container.textContent).toBe('skeleton');
+
+      await allSettled(dataLoaded, { scope, params: undefined });
+      expect(container.textContent).toBe('profile');
+    });
+
+    test('prefers an opened sibling view over a declared fallback', async () => {
+      const first = createRoute();
+      const second = createRoute();
+      const scope = fork();
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({ route: first, view: () => <p>first</p> }),
+          createRouteView({
+            route: second,
+            view: () => <p>second</p>,
+            otherwise: () => <p>second closed</p>,
+          }),
+        ],
+      });
+      const { container } = render(() => (
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>
+      ));
+
+      expect(container.textContent).toBe('second closed');
+
+      await allSettled(first.open, { scope, params: undefined });
+      expect(container.textContent).toBe('first');
+    });
+
+    test('renders a nested fallback through Outlet', async () => {
+      const profileRoute = createRoute({ path: '/profile' });
+      const settingsRoute = createRoute({
+        path: '/settings',
+        parent: profileRoute,
+      });
+      const dataRequested = createEvent();
+      const dataLoaded = createEvent();
+      const chained = chainRoute({
+        route: settingsRoute,
+        beforeOpen: dataRequested,
+        openOn: dataLoaded,
+      });
+      const scope = fork();
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route: profileRoute,
+            view: () => (
+              <div>
+                profile
+                <Outlet />
+              </div>
+            ),
+            children: [
+              createRouteView({
+                route: chained,
+                view: () => <p>settings</p>,
+                loading: () => <p>skeleton</p>,
+              }),
+            ],
+          }),
+        ],
+      });
+      const { container } = render(() => (
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>
+      ));
+
+      await allSettled(settingsRoute.open, { scope, params: undefined });
+      expect(container.textContent).toBe('profileskeleton');
+
+      await allSettled(dataLoaded, { scope, params: undefined });
+      expect(container.textContent).toBe('profilesettings');
+    });
+
+    test('wraps a fallback with the view layout', async () => {
+      const route = createRoute();
+      const scope = fork();
+      const Layout = (props: { children: JSX.Element }) => (
+        <div>
+          layout!
+          {props.children}
+        </div>
+      );
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route,
+            view: () => <p>profile</p>,
+            otherwise: () => <p>closed</p>,
+            layout: Layout,
+          }),
+        ],
+      });
+      const { container } = render(() => (
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>
+      ));
+
+      expect(container.textContent).toBe('layout!closed');
+
+      await allSettled(route.open, { scope, params: undefined });
+      expect(container.textContent).toBe('layout!profile');
+    });
+
+    test('uses loading as the lazy Suspense fallback', async () => {
+      let resolve!: (module: { default: () => JSX.Element }) => void;
+      const route = createRoute({ path: '/lazy' });
+      const scope = fork();
+      const lazyView = createLazyRouteView({
+        route,
+        view: () =>
+          new Promise<{ default: () => JSX.Element }>((done) => {
+            resolve = done;
+          }),
+        loading: () => <p>skeleton</p>,
+      });
+      const RoutesView = createRoutesView({ routes: [lazyView] });
+      const { container } = render(() => (
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>
+      ));
+
+      await allSettled(route.open, { scope, params: undefined });
+      expect(container.textContent).toBe('skeleton');
+
+      resolve({ default: () => <p>profile</p> });
+
+      await waitFor(() => expect(container.textContent).toBe('profile'));
+    });
   });
 });
