@@ -7,6 +7,12 @@ export interface LayoutGroup {
   token: number;
   layout: LayoutComponent;
 }
+export const routeViewFallback = Symbol('effector-router-solid-fallback');
+/** @internal Components a view renders while its route is not opened. */
+export interface RouteViewFallback {
+  loading?: Component;
+  otherwise?: Component;
+}
 type RouteViewWithLayout = RouteView & { layout?: LayoutComponent };
 type RouteViewTarget = Pick<Route<any>, '$isOpened'>;
 
@@ -14,6 +20,8 @@ interface CreateBaseRouteViewProps<T extends object | void = void> {
   route: Route<T> | RouteViewTarget | Router;
   layout?: LayoutComponent;
   children?: RouteViewWithLayout[];
+  otherwise?: Component;
+  loading?: Component;
 }
 
 export interface CreateRouteViewProps<
@@ -34,6 +42,7 @@ export interface RouteView {
   view: Component;
   children?: RouteView[];
   [layoutGroup]?: LayoutGroup;
+  [routeViewFallback]?: RouteViewFallback;
 }
 
 type AnchorProps = Omit<JSX.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>;

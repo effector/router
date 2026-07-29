@@ -8,17 +8,27 @@ export interface LayoutGroup {
   layout: Component;
 }
 
+export const routeViewFallback = Symbol('effector-router-vue-fallback');
+/** @internal Components a view renders while its route is not opened. */
+export interface RouteViewFallback {
+  loading?: Component;
+  otherwise?: Component;
+}
+
 export interface RouteView {
   route: RouteViewTarget | Router;
   view: Component;
   children?: RouteView[];
   [layoutGroup]?: LayoutGroup;
+  [routeViewFallback]?: RouteViewFallback;
 }
 
 interface CreateBaseRouteViewProps<T extends object | void = void> {
   route: Route<T> | RouteViewTarget | Router;
   layout?: Component;
   children?: RouteView[];
+  otherwise?: Component;
+  loading?: Component;
 }
 
 export interface CreateRouteViewProps<

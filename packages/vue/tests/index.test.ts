@@ -659,7 +659,7 @@ describe('vue bindings', () => {
     });
 
     test('renders loading while a chained route is pending', async () => {
-      const route = createRoute({ path: '/profile' });
+      const route = createRoute();
       const dataRequested = createEvent();
       const dataLoaded = createEvent();
       const chained = chainRoute({
@@ -730,11 +730,8 @@ describe('vue bindings', () => {
     });
 
     test('renders a nested fallback through Outlet', async () => {
-      const profileRoute = createRoute({ path: '/profile' });
-      const settingsRoute = createRoute({
-        path: '/settings',
-        parent: profileRoute,
-      });
+      const profileRoute = createRoute();
+      const settingsRoute = createRoute();
       const dataRequested = createEvent();
       const dataLoaded = createEvent();
       const chained = chainRoute({
@@ -765,6 +762,10 @@ describe('vue bindings', () => {
         scope,
         RoutesView,
       );
+
+      await allSettled(profileRoute.open, { scope, params: undefined });
+      await flushPromises();
+      expect(wrapper.text()).toBe('profile');
 
       await allSettled(settingsRoute.open, { scope, params: undefined });
       await flushPromises();
@@ -814,7 +815,7 @@ describe('vue bindings', () => {
         __esModule: true;
       };
       let resolve!: (module: LazyModule) => void;
-      const route = createRoute({ path: '/lazy' });
+      const route = createRoute();
       const scope = fork();
       const lazyView = createLazyRouteView({
         route,

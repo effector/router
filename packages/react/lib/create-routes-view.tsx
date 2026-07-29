@@ -1,27 +1,29 @@
 import { type ComponentType, createElement } from 'react';
 import { OutletContext } from './context';
-import { useOpenedViews } from './use-opened-views';
-import { layoutGroup, type LayoutGroup, type RouteView } from './types';
+import {
+  useResolvedRouteView,
+  type ResolvedRouteView,
+} from './resolve-route-view';
+import { layoutGroup, type RouteView } from './types';
 
 interface CreateRoutesViewProps {
   routes: RouteView[];
   otherwise?: ComponentType;
 }
 
-function LayoutRenderer({
-  group,
-  view,
-}: {
-  group: LayoutGroup;
-  view: RouteView;
-}) {
-  return (
-    <group.layout>
-      <OutletContext.Provider value={{ children: view.children ?? [] }}>
-        {createElement(view.view)}
-      </OutletContext.Provider>
-    </group.layout>
+/**
+ * @internal Renders the resolved component — the view itself, or its `loading`
+ * / `otherwise` fallback — inside the layout group of the view it belongs to.
+ */
+function ViewRenderer({ view, component }: ResolvedRouteView) {
+  const group = view[layoutGroup];
+  const content = (
+    <OutletContext.Provider value={{ children: view.children ?? [] }}>
+      {createElement(component)}
+    </OutletContext.Provider>
   );
+
+  return group ? <group.layout>{content}</group.layout> : content;
 }
 
 /**
@@ -51,24 +53,18 @@ export const createRoutesView = (props: CreateRoutesViewProps) => {
   const { routes, otherwise: NotFound } = props;
 
   return () => {
-    const openedView = useOpenedViews(routes).at(-1);
+    const resolved = useResolvedRouteView(routes);
 
-    if (!openedView) {
+    if (!resolved) {
       return NotFound ? <NotFound /> : null;
     }
 
-    const group = openedView[layoutGroup];
-
-    if (group) {
-      return (
-        <LayoutRenderer key={group.token} group={group} view={openedView} />
-      );
-    }
-
     return (
-      <OutletContext.Provider value={{ children: openedView.children ?? [] }}>
-        {createElement(openedView.view)}
-      </OutletContext.Provider>
+      <ViewRenderer
+        key={resolved.view[layoutGroup]?.token}
+        view={resolved.view}
+        component={resolved.component}
+      />
     );
   };
 };

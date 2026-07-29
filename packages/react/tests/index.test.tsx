@@ -691,7 +691,7 @@ describe('react bindings', () => {
     });
 
     test('renders loading while a chained route is pending', async () => {
-      const route = createRoute({ path: '/profile' });
+      const route = createRoute();
       const dataRequested = createEvent();
       const dataLoaded = createEvent();
       const chained = chainRoute({
@@ -761,7 +761,7 @@ describe('react bindings', () => {
     });
 
     test('prefers a pending loading view over a closed otherwise view', async () => {
-      const route = createRoute({ path: '/profile' });
+      const route = createRoute();
       const dataRequested = createEvent();
       const dataLoaded = createEvent();
       const chained = chainRoute({
@@ -800,11 +800,8 @@ describe('react bindings', () => {
     });
 
     test('renders a nested fallback through Outlet', async () => {
-      const profileRoute = createRoute({ path: '/profile' });
-      const settingsRoute = createRoute({
-        path: '/settings',
-        parent: profileRoute,
-      });
+      const profileRoute = createRoute();
+      const settingsRoute = createRoute();
       const dataRequested = createEvent();
       const dataLoaded = createEvent();
       const chained = chainRoute({
@@ -932,7 +929,7 @@ describe('react bindings', () => {
 
     test('uses loading as the lazy Suspense fallback', async () => {
       let resolve!: (module: { default: () => ReactNode }) => void;
-      const route = createRoute({ path: '/lazy' });
+      const route = createRoute();
       const scope = fork();
       const lazyView = createLazyRouteView({
         route,
@@ -961,7 +958,7 @@ describe('react bindings', () => {
 
     test('keeps fallback as the explicit lazy Suspense fallback', async () => {
       let resolve!: (module: { default: () => ReactNode }) => void;
-      const route = createRoute({ path: '/lazy' });
+      const route = createRoute();
       const lazyView = createLazyRouteView({
         route,
         view: () =>

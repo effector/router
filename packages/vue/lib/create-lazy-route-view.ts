@@ -1,5 +1,10 @@
 import { defineAsyncComponent, defineComponent, h } from 'vue';
-import type { CreateLazyRouteViewProps, RouteView } from './types';
+import { createRouteViewFallback } from './resolve-route-view';
+import {
+  routeViewFallback,
+  type CreateLazyRouteViewProps,
+  type RouteView,
+} from './types';
 
 /**
  * @description Creates Lazy route view with async bundle load
@@ -27,7 +32,9 @@ export function createLazyRouteView<T extends object | void = void>(
 
   const AsyncView = defineAsyncComponent({
     loader: view,
-    loadingComponent: fallback,
+    // `loading` covers both waits, so it also fills the chunk gap unless the
+    // chunk-only `fallback` is declared explicitly.
+    loadingComponent: fallback ?? props.loading,
     delay: 0,
   });
 
@@ -45,5 +52,12 @@ export function createLazyRouteView<T extends object | void = void>(
         },
       });
 
-  return { route, view: wrapped, children };
+  const routeFallback = createRouteViewFallback(props);
+
+  return {
+    route,
+    view: wrapped,
+    children,
+    ...(routeFallback ? { [routeViewFallback]: routeFallback } : {}),
+  };
 }

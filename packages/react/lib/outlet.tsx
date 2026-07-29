@@ -1,6 +1,9 @@
 import { OutletContext } from './context';
 import { createElement, useContext } from 'react';
-import { useOpenedViews } from './use-opened-views';
+import { useResolvedRouteView } from './resolve-route-view';
+import type { RouteView } from './types';
+
+const noChildren: RouteView[] = [];
 
 /**
  * @description Outlet component for nested routes
@@ -30,16 +33,16 @@ import { useOpenedViews } from './use-opened-views';
  * ```
  */
 export const Outlet = () => {
-  const { children } = useContext(OutletContext) ?? { children: [] };
-  const openedView = useOpenedViews(children).at(-1);
+  const { children } = useContext(OutletContext) ?? { children: noChildren };
+  const resolved = useResolvedRouteView(children);
 
-  if (!openedView) {
+  if (!resolved) {
     return null;
   }
 
   return (
-    <OutletContext.Provider value={{ children: openedView.children ?? [] }}>
-      {createElement(openedView.view)}
+    <OutletContext.Provider value={{ children: resolved.view.children ?? [] }}>
+      {createElement(resolved.component)}
     </OutletContext.Provider>
   );
 };

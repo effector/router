@@ -33,7 +33,7 @@ let nextLayoutGroupToken = 0;
 export function withLayout(
   layout: ComponentType<{ children: ReactNode }>,
   views: RouteView[],
-) {
+): RouteView[] {
   const group = { token: ++nextLayoutGroupToken, layout };
 
   return views.map((view) => ({ ...view, [layoutGroup]: group }));

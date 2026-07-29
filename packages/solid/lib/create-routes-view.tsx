@@ -1,7 +1,7 @@
 import { Show, type Component } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { OutletContext } from './context';
-import { useOpenedViews } from './use-opened-views';
+import { useResolvedRouteView } from './resolve-route-view';
 import { layoutGroup, type RouteView } from './types';
 
 interface CreateRoutesViewProps {
@@ -11,12 +11,13 @@ interface CreateRoutesViewProps {
 
 function LayoutRenderer(props: {
   view: RouteView;
+  component: Component;
   group: NonNullable<RouteView[typeof layoutGroup]>;
 }) {
   return (
     <Dynamic component={props.group.layout}>
       <OutletContext.Provider value={{ children: props.view.children ?? [] }}>
-        <Dynamic component={props.view.view} />
+        <Dynamic component={props.component} />
       </OutletContext.Provider>
     </Dynamic>
   );
@@ -49,26 +50,31 @@ export function createRoutesView(props: CreateRoutesViewProps) {
   const { routes, otherwise: NotFound } = props;
 
   return () => {
-    const openedViews = useOpenedViews(routes);
-    const openedView = () => openedViews().at(-1);
+    const resolved = useResolvedRouteView(routes);
 
     return (
-      <Show when={openedView()} fallback={NotFound ? <NotFound /> : null}>
-        {(view) => {
-          const group = () => view()[layoutGroup];
+      <Show when={resolved()} fallback={NotFound ? <NotFound /> : null}>
+        {(current) => {
+          const group = () => current().view[layoutGroup];
 
           return (
             <Show
               when={group()}
               fallback={
                 <OutletContext.Provider
-                  value={{ children: view().children ?? [] }}
+                  value={{ children: current().view.children ?? [] }}
                 >
-                  <Dynamic component={view().view} />
+                  <Dynamic component={current().component} />
                 </OutletContext.Provider>
               }
             >
-              {(layout) => <LayoutRenderer view={view()} group={layout()} />}
+              {(layout) => (
+                <LayoutRenderer
+                  view={current().view}
+                  component={current().component}
+                  group={layout()}
+                />
+              )}
             </Show>
           );
         }}

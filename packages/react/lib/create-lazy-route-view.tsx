@@ -1,5 +1,10 @@
 import { lazy, Suspense } from 'react';
-import type { CreateLazyRouteViewProps, RouteView } from './types';
+import { createRouteViewFallback } from './resolve-route-view';
+import {
+  routeViewFallback,
+  type CreateLazyRouteViewProps,
+  type RouteView,
+} from './types';
 
 /**
  * @description Creates Lazy route view with async bundle load
@@ -29,7 +34,12 @@ export function createLazyRouteView<T extends object | void = void>(
   props: CreateLazyRouteViewProps<T>,
 ): RouteView {
   const View = lazy(props.view);
-  const { layout: Layout, fallback: Fallback = () => <></> } = props;
+  // `loading` covers both waits, so it also feeds Suspense unless the
+  // chunk-only `fallback` is declared explicitly.
+  const {
+    layout: Layout,
+    fallback: Fallback = props.loading ?? (() => <></>),
+  } = props;
 
   const view = Layout
     ? () => (
@@ -45,9 +55,12 @@ export function createLazyRouteView<T extends object | void = void>(
         </Suspense>
       );
 
+  const fallback = createRouteViewFallback(props);
+
   return {
     route: props.route,
     view,
     children: props.children,
+    ...(fallback ? { [routeViewFallback]: fallback } : {}),
   };
 }
