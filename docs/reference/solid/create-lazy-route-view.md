@@ -10,13 +10,15 @@ function createLazyRouteView<T extends object | void = void>(
 ): RouteView;
 ```
 
-| Property   | Type                                    | Description                                |
-| ---------- | --------------------------------------- | ------------------------------------------ |
-| `route`    | `Route<T> \| Router`                    | Unit that controls whether the view opens  |
-| `view`     | `() => Promise<{ default: Component }>` | Dynamic import with a default export       |
-| `fallback` | `Component`                             | Optional Suspense fallback                 |
-| `layout`   | `Component<{ children: JSX.Element }>`  | Optional wrapper component                 |
-| `children` | `RouteView[]`                           | Optional direct child views for [`Outlet`] |
+| Property    | Type                                    | Description                                                                           |
+| ----------- | --------------------------------------- | ------------------------------------------------------------------------------------- |
+| `route`     | `Route<T> \| Router`                    | Unit that controls whether the view opens                                             |
+| `view`      | `() => Promise<{ default: Component }>` | Dynamic import with a default export                                                  |
+| `fallback`  | `Component`                             | Optional Suspense fallback                                                            |
+| `loading`   | `Component`                             | Optional pending-route fallback, and the Suspense fallback when `fallback` is omitted |
+| `otherwise` | `Component`                             | Optional component rendered while it is closed                                        |
+| `layout`    | `Component<{ children: JSX.Element }>`  | Optional wrapper component                                                            |
+| `children`  | `RouteView[]`                           | Optional direct child views for [`Outlet`]                                            |
 
 ## `CreateLazyRouteViewProps`
 
@@ -40,8 +42,20 @@ when Solid renders the lazy view. It is not registered with core and route
 opening does not wait for the chunk, so the configured `Suspense` fallback is
 observable.
 
-Route/chained `$isPending` describes model preparation, not chunk loading. For
-preload, reuse the importer in an ordinary Effect:
+Route/chained `$isPending` describes model preparation, not chunk loading.
+`loading` spans both: it is the fallback of a pending route (see
+[route view fallbacks](/solid/create-route-view#fallbacks)) and, when `fallback`
+is omitted, the Suspense fallback as well.
+
+```tsx
+const ProfileScreen = createLazyRouteView({
+  route: profileReady,
+  view: () => import('./screens/ProfileScreen'),
+  loading: ProfileSkeleton,
+});
+```
+
+For preload, reuse the importer in an ordinary Effect:
 
 ```tsx
 import { createEffect } from 'effector';

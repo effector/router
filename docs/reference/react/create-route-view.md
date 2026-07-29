@@ -44,6 +44,73 @@ export const ProfileScreen = createRouteView({
 });
 ```
 
+## With Fallbacks
+
+A route view can also describe what to render while its route is *not* opened:
+
+```tsx
+export const ProfileScreen = createRouteView({
+  route: profileRoute,
+  view: ProfileComponent,
+  loading: ProfileSkeleton, // route is pending
+  otherwise: ProfilePlaceholder, // route is closed
+});
+```
+
+`loading` covers the wait for data — a route with `beforeOpen`, or the
+[`chainRoute`] output that stays pending until its preparation resolves — and,
+for [`createLazyRouteView`], the wait for the chunk. `otherwise` covers the
+plain closed state.
+
+Both are resolved by the surrounding [`createRoutesView`] or [`Outlet`], which
+still renders a single view. The order is:
+
+1. the deepest **opened** view, if any of the listed views is opened;
+2. otherwise the `loading` of a **pending** view;
+3. otherwise the `otherwise` of a closed view;
+4. otherwise the `otherwise` prop of [`createRoutesView`] (`null` inside an
+   [`Outlet`]).
+
+Later declarations win between equal candidates, mirroring how an opened
+sibling is selected. Because an opened view always wins, `loading` never
+replaces a page that is already on screen — a route that re-opens with new
+parameters keeps rendering `view`.
+
+This composes the skeleton pattern for nested routes: keep the parent view
+mounted and let its `Outlet` render the child's `loading` while the child chain
+prepares.
+
+```tsx
+const settingsReady = chainRoute({
+  route: settingsRoute,
+  beforeOpen: loadSettingsFx,
+});
+
+export const ProfileScreen = createRouteView({
+  route: profileRoute,
+  view: ProfileComponent, // renders <Outlet />
+  children: [
+    createRouteView({
+      route: settingsReady,
+      view: SettingsComponent,
+      loading: SettingsSkeleton,
+    }),
+  ],
+});
+```
+
+Fallbacks are wrapped by the same `layout` as the view, and by the
+[`withLayout`] group of the view, so the layout stays mounted while the
+fallback swaps to the page.
+
+::: tip
+A view listed in `createRoutesView` that declares `otherwise` renders that
+component for *every* state in which nothing else is opened, including an
+unmatched URL. Keep the not-found screen in the `otherwise` of
+`createRoutesView`, and use a per-view `otherwise` where the view owns its
+slot — inside an `Outlet`, or in a routes view with a single entry.
+:::
+
 ## With Nested Routes
 
 Create nested route structures using children:
@@ -166,6 +233,34 @@ const ProfileScreen = createRouteView({
 });
 ```
 
+### `otherwise` (optional)
+
+A component rendered instead of `view` while the route is not opened:
+
+```tsx
+const ProfileScreen = createRouteView({
+  route: profileRoute,
+  view: ProfileComponent,
+  otherwise: () => <div>Pick a profile</div>,
+});
+```
+
+### `loading` (optional)
+
+A component rendered while the route is pending — `route.$isPending`, which
+covers `beforeOpen` effects and a [`chainRoute`] preparation:
+
+```tsx
+const ProfileScreen = createRouteView({
+  route: profileReady,
+  view: ProfileComponent,
+  loading: ProfileSkeleton,
+});
+```
+
+An opened view wins over any fallback, so `loading` shows only while nothing in
+the same routes view or `Outlet` is opened.
+
 ### `children` (optional)
 
 Nested route views:
@@ -193,7 +288,9 @@ import type { CreateRouteViewProps } from '@effector/router-react';
 | --- | --- | --- |
 | `route` | `Route<T>` or `Router` | The route or nested router that controls whether the view is active. |
 | `view` | `ComponentType` | Component rendered for the active view. |
-| `layout` | `ComponentType<{ children: ReactNode }>` | Optional layout that wraps the view. |
+| `layout` | `ComponentType<{ children: ReactNode }>` | Optional layout that wraps the view and its fallbacks. |
+| `otherwise` | `ComponentType` | Optional component rendered while the route is not opened. |
+| `loading` | `ComponentType` | Optional component rendered while the route is pending. |
 | `children` | `RouteView[]` | Optional direct child views rendered through [`Outlet`]. |
 
 ## Return Value
@@ -240,7 +337,10 @@ const UserScreen = createRouteView({
 - [Outlet](./outlet) - Render nested routes
 - [withLayout](./with-layout) - Apply layouts to multiple routes
 
+[`chainRoute`]: /core/chain-route
 [`createLazyRouteView`]: /react/create-lazy-route-view
 [`createRoute`]: /core/create-route
 [`createRouter`]: /core/create-router
+[`createRoutesView`]: /react/create-routes-view
 [`Outlet`]: /react/outlet
+[`withLayout`]: /react/with-layout

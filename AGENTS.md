@@ -107,9 +107,16 @@ and is excluded from the root `eslint.config.mts` and from `tsconfig.check.json`
 
 These three packages share an identical file set and are meant to track each other's API shape:
 `context`, `router-provider`, `create-route-view`, `create-routes-view`, `create-lazy-route-view`,
-`outlet`, `link`, `use-router`, `use-link`, `use-is-opened`, `use-opened-views`, `with-layout`,
-`index`. When changing behavior in one, check whether the equivalent change belongs in the other
-two.
+`outlet`, `link`, `resolve-route-view`, `use-router`, `use-link`, `use-is-opened`,
+`use-opened-views`, `with-layout`, `index`. When changing behavior in one, check whether the
+equivalent change belongs in the other two.
+
+`resolve-route-view` is internal and owns view selection for both `create-routes-view` and
+`outlet`: an opened view (via `use-opened-views`) wins; otherwise the last declared fallback
+renders — `loading` of a pending route before `otherwise` of a closed one. It also wraps a view's
+`otherwise`/`loading` with that view's `layout` at creation time, while `withLayout` groups are
+applied by the renderers. The fallback symbol must stay absent from a `RouteView` that declares
+neither, because `withLayout` copies own symbols onto its result.
 
 ### `packages/react-native`
 

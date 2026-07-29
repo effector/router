@@ -90,6 +90,30 @@ const ProfileScreen = createLazyRouteView({
 });
 ```
 
+### `loading` (optional)
+
+Component rendered while the route is pending **and** — unless `fallback` is
+declared — while the chunk loads. It is the single "still working" component of
+a lazy view:
+
+```tsx
+const ProfileScreen = createLazyRouteView({
+  route: profileReady,
+  view: () => import('./ProfileComponent'),
+  loading: ProfileSkeleton,
+});
+```
+
+Declare `fallback` next to it when the chunk wait deserves its own component;
+`fallback` then stays chunk-only and `loading` keeps covering the pending route.
+
+### `otherwise` (optional)
+
+Component rendered while the route is not opened. It behaves exactly as in
+[`createRouteView`](/react/create-route-view#with-fallbacks), including the
+selection order used by [`createRoutesView`](/react/create-routes-view) and
+[`Outlet`](/react/outlet).
+
 ### `layout` (optional)
 
 Layout component to wrap the view:
@@ -139,7 +163,9 @@ import type { CreateLazyRouteViewProps } from '@effector/router-react';
 | `route` | `Route<T>` | Route that controls whether the lazy view is active. Router targets are not supported for lazy views. |
 | `view` | `() => Promise<{ default: ComponentType }>` | Dynamic importer whose module has a default React component export. |
 | `fallback` | `ComponentType` | Optional component rendered by `Suspense` while the module loads. |
-| `layout` | `ComponentType<{ children: ReactNode }>` | Optional layout that wraps the lazy view. |
+| `loading` | `ComponentType` | Optional component rendered while the route is pending, and by `Suspense` when `fallback` is omitted. |
+| `otherwise` | `ComponentType` | Optional component rendered while the route is not opened. |
+| `layout` | `ComponentType<{ children: ReactNode }>` | Optional layout that wraps the lazy view and its fallbacks. |
 | `children` | `RouteView[]` | Optional direct child views rendered through [`Outlet`]. |
 
 ## Return Value
@@ -161,7 +187,9 @@ Lazy route views enable automatic code splitting - the component code is only lo
 The importer starts when the route view renders, not when `route.open()` is
 called. React `Suspense` can therefore commit the configured fallback while the
 chunk is loading. Route or chained `$isPending` represents model preparation;
-chunk loading is observed by the Suspense boundary.
+chunk loading is observed by the Suspense boundary. `loading` spans both: it is
+the pending-route fallback and, when `fallback` is omitted, the Suspense
+fallback as well.
 
 ## Preloading
 
