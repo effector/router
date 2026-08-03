@@ -5,7 +5,7 @@
   "devDependencies": {
     "@fontsource/inter": "^5.2.8",
     "@fontsource/jetbrains-mono": "^5.2.8",
-    "@iconify-json/logos": "1.2.10",
+    "@iconify-json/logos": "1.2.11",
     "@resvg/resvg-js": "^2.6.2",
     "@unocss/preset-icons": "66.7.5",
     "satori": "^0.28.0",
