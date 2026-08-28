@@ -35,6 +35,7 @@ const RoutesView = createRoutesView({ routes: [ProfileScreen] });
 
 `Outlet` is recursive: every selected child provides its own `children` to the
 next outlet, with no depth limit. When no child is active it renders the
-`loading` of a pending child or the `closed` of a closed one — see
-[route view fallbacks](/solid/create-route-view#fallbacks) — and nothing when no
-child declares either.
+`loading` of a pending child, then the child it rendered before while one is
+still pending, then the `closed` of a closed one — see
+[route view fallbacks](/solid/create-route-view#fallbacks) — and nothing when
+none of those apply.

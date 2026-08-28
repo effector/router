@@ -100,7 +100,8 @@ The routes view:
 
 1. Uses [`useOpenedViews`] to track which routes are currently open
 2. Renders the last declared active route after parent suppression
-3. Falls back, when nothing is open, to the `loading` of a pending view or the
+3. Falls back, when nothing is open, to the `loading` of a pending view, then
+   to the view it rendered before while a route is still pending, then to the
    `closed` of a closed one, before using its own `otherwise`
 4. Provides outlet context for nested routes
 5. Re-renders automatically when route state changes

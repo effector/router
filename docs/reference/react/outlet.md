@@ -49,7 +49,8 @@ const RoutesView = createRoutesView({
 2. Parent component renders `<Outlet />` where children should appear
 3. When a child route is active, `Outlet` renders that child's component
 4. When no child route is active, `Outlet` renders the `loading` of a pending
-   child or the `closed` of a closed one, if a child declares them
+   child, then the child it rendered before while a child is still pending,
+   then the `closed` of a closed one, if a child declares them
 5. Otherwise `Outlet` renders nothing
 
 ## Nested Navigation
@@ -233,6 +234,7 @@ Returns:
 - The active child route's component
 - The `loading` or `closed` fallback of a child route view, when no child is
   active and one is declared
+- The child it rendered before, while no child is active and one is pending
 - `null` if no child route is active
 
 ## See Also

@@ -51,14 +51,25 @@ order:
 
 1. the deepest **opened** view;
 2. otherwise the `loading` of a **pending** view;
-3. otherwise the `closed` of a closed view;
-4. otherwise the `otherwise` prop of [`createRoutesView`] (nothing inside an
+3. otherwise the view most recently resolved, while any listed route is still
+   **pending**;
+4. otherwise the `closed` of a closed view;
+5. otherwise the `otherwise` prop of [`createRoutesView`] (nothing inside an
    [`Outlet`]).
 
 Later declarations win between equal candidates. An opened view always wins, so
-`loading` never replaces a page that is already on screen. Fallbacks are wrapped
-by the view's `layout` and by its [`withLayout`] group, so the layout stays
-mounted while a nested chain resolves:
+`loading` never replaces a page that is already on screen.
+
+Step 3 is a hold: closing the previous route and opening the next one is not
+atomic, so for one instant nothing in the list is opened. Without the hold that
+instant would fall through to `closed`/`otherwise` and tear the rendered
+branch — a [`withLayout`] group included — down with it, even when neither
+view declares a `loading`. The hold applies only while something is pending;
+an unmatched URL has nothing pending for it, so `otherwise` still shows without
+delay.
+
+Fallbacks are wrapped by the view's `layout` and by its [`withLayout`] group,
+so the layout stays mounted while a nested chain resolves:
 
 ```ts
 export const ProfileScreen = createRouteView({

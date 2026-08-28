@@ -67,14 +67,32 @@ still renders a single view. The order is:
 
 1. the deepest **opened** view, if any of the listed views is opened;
 2. otherwise the `loading` of a **pending** view;
-3. otherwise the `closed` of a closed view;
-4. otherwise the `otherwise` prop of [`createRoutesView`] (`null` inside an
+3. otherwise the view most recently resolved, while any of the listed routes
+   is still **pending**;
+4. otherwise the `closed` of a closed view;
+5. otherwise the `otherwise` prop of [`createRoutesView`] (`null` inside an
    [`Outlet`]).
 
 Later declarations win between equal candidates, mirroring how an opened
 sibling is selected. Because an opened view always wins, `loading` never
 replaces a page that is already on screen — a route that re-opens with new
 parameters keeps rendering `view`.
+
+Step 3 is a hold: closing the previous route and opening the next one is not
+atomic, so for one instant nothing in the list is opened. Without the hold that
+instant would fall through to `closed`/`otherwise` and tear the rendered
+branch — a [`withLayout`] group included — down with it, even when neither
+view declares a `loading`. The hold applies only while something is pending;
+an unmatched URL has nothing pending for it, so `otherwise` still shows without
+delay.
+
+> [!NOTE]
+> The Solid binding's fine-grained reactivity can still surface that instant as
+> a transient `otherwise` frame during an ordinary navigation between sibling
+> routes — its signals propagate per store notification, with no scheduler to
+> coalesce the route closing and the next one becoming pending the way
+> React's and Vue's do. The hold still guarantees the navigation converges on
+> the right page rather than getting stuck.
 
 This composes the skeleton pattern for nested routes: keep the parent view
 mounted and let its `Outlet` render the child's `loading` while the child chain
