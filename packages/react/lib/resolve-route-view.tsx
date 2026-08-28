@@ -80,9 +80,17 @@ function pendingStore(view: RouteView): Store<boolean> {
 
 /**
  * @description Reactively resolves the single view a routes view or an
- * `<Outlet />` should render: the deepest opened view when there is one,
- * otherwise the last declared fallback — `loading` of a pending route wins over
- * `closed` of a closed one.
+ * `<Outlet />` should render:
+ *
+ * 1. the deepest opened view, if one of the listed views is opened;
+ * 2. otherwise the `loading` of a pending view;
+ * 3. otherwise the previously resolved view, while any listed route is still
+ *    pending — closing the previous route and opening the next one is not
+ *    atomic, and this holds the frame already on screen through that gap
+ *    instead of tearing it down for a fallback that belongs to an unrelated
+ *    view;
+ * 4. otherwise the `closed` of a closed view;
+ * 5. otherwise `null`.
  */
 export function useResolvedRouteView(
   routes: RouteView[],
@@ -118,7 +126,18 @@ export function useResolvedRouteView(
       }
     }
 
-    return loading ?? closed;
+    if (loading) {
+      return loading;
+    }
+
+    // Nothing in the list claims this frame outright, but a route is still
+    // transitioning: hold the frame already on screen rather than falling
+    // through to `closed`/`otherwise`.
+    if (previous.current && pending.some(Boolean)) {
+      return previous.current;
+    }
+
+    return closed;
   }, [routes, openedViews, pending]);
 
   const last = previous.current;

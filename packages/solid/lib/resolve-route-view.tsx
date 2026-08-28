@@ -61,9 +61,17 @@ function pendingStore(view: RouteView): Store<boolean> {
 
 /**
  * @description Reactive accessor with the single view a routes view or an
- * `<Outlet />` should render: the deepest opened view when there is one,
- * otherwise the last declared fallback — `loading` of a pending route wins over
- * `closed` of a closed one.
+ * `<Outlet />` should render:
+ *
+ * 1. the deepest opened view, if one of the listed views is opened;
+ * 2. otherwise the `loading` of a pending view;
+ * 3. otherwise the previously resolved view, while any listed route is still
+ *    pending — closing the previous route and opening the next one is not
+ *    atomic, and this holds the frame already on screen through that gap
+ *    instead of tearing it down for a fallback that belongs to an unrelated
+ *    view;
+ * 4. otherwise the `closed` of a closed view;
+ * 5. otherwise `null`.
  */
 export function useResolvedRouteView(
   routes: RouteView[],
@@ -71,11 +79,18 @@ export function useResolvedRouteView(
   const openedViews = useOpenedViews(routes);
   const pending = useUnit(combine(routes.map(pendingStore)));
 
+  // Plain (non-reactive) box for the last definite resolution — an opened
+  // view, a `loading` fallback, or a `closed` fallback. It is deliberately
+  // left untouched when neither applies, so an intermediate recompute with
+  // nothing to show does not erase what a later pending tick should hold.
+  let previous: ResolvedRouteView | null = null;
+
   const resolve = (): ResolvedRouteView | null => {
     const openedView = openedViews().at(-1);
 
     if (openedView) {
-      return { view: openedView, component: openedView.view };
+      previous = { view: openedView, component: openedView.view };
+      return previous;
     }
 
     const pendingValues = pending();
@@ -95,19 +110,35 @@ export function useResolvedRouteView(
       }
     }
 
-    return loading ?? closed;
+    if (loading) {
+      previous = loading;
+      return loading;
+    }
+
+    // Nothing in the list claims this frame outright, but a route is still
+    // transitioning: hold the frame already on screen rather than falling
+    // through to `closed`/`otherwise`.
+    if (previous && pendingValues.some(Boolean)) {
+      return previous;
+    }
+
+    if (closed) {
+      previous = closed;
+    }
+
+    return closed;
   };
 
   // Keep the identity stable while the same component stays selected, so keyed
   // consumers do not remount the page on unrelated router updates.
-  return createMemo<ResolvedRouteView | null>((previous) => {
+  return createMemo<ResolvedRouteView | null>((last) => {
     const next = resolve();
 
-    return previous &&
+    return last &&
       next &&
-      previous.view === next.view &&
-      previous.component === next.component
-      ? previous
+      last.view === next.view &&
+      last.component === next.component
+      ? last
       : next;
   }, null);
 }

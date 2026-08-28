@@ -68,21 +68,34 @@ function pendingStore(view: RouteView): Store<boolean> {
 
 /**
  * @description Reactively resolves the single view a routes view or an
- * `<Outlet />` should render: the deepest opened view when there is one,
- * otherwise the last declared fallback — `loading` of a pending route wins over
- * `closed` of a closed one.
+ * `<Outlet />` should render:
+ *
+ * 1. the deepest opened view, if one of the listed views is opened;
+ * 2. otherwise the `loading` of a pending view;
+ * 3. otherwise the previously resolved view, while any listed route is still
+ *    pending — closing the previous route and opening the next one is not
+ *    atomic, and this holds the frame already on screen through that gap
+ *    instead of tearing it down for a fallback that belongs to an unrelated
+ *    view;
+ * 4. otherwise the `closed` of a closed view;
+ * 5. otherwise `null`.
  */
 export function useResolvedRouteView(
   routes: RouteView[],
 ): ComputedRef<ResolvedRouteView | null> {
   const openedViews = useOpenedViews(routes);
   const pending = useUnit(combine(routes.map(pendingStore)));
+  // Plain (non-reactive) box for the last resolution: reading and writing it
+  // inside the computed getter below must not register as one of its
+  // reactive dependencies, or holding the frame would retrigger itself.
+  let previous: ResolvedRouteView | null = null;
 
   return computed(() => {
     const openedView = openedViews.value.at(-1);
 
     if (openedView) {
-      return { view: openedView, component: openedView.view };
+      previous = { view: openedView, component: openedView.view };
+      return previous;
     }
 
     let loading: ResolvedRouteView | null = null;
@@ -101,6 +114,19 @@ export function useResolvedRouteView(
       }
     }
 
-    return loading ?? closed;
+    if (loading) {
+      previous = loading;
+      return loading;
+    }
+
+    // Nothing in the list claims this frame outright, but a route is still
+    // transitioning: hold the frame already on screen rather than falling
+    // through to `closed`/`otherwise`.
+    if (previous && pending.value.some(Boolean)) {
+      return previous;
+    }
+
+    previous = closed;
+    return closed;
   });
 }
