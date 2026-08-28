@@ -595,6 +595,174 @@ describe('solid bindings', () => {
     });
   });
 
+  describe('transition hold', () => {
+    test('recovers from the sibling-route gap with no loading declared (Solid limitation, see docs)', async () => {
+      const frames: string[] = [];
+      const registry = createRoute({ path: '/registry' });
+      const settings = createRoute({ path: '/settings' });
+      const localRouter = createRouter({ routes: [registry, settings] });
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route: registry,
+            view: () => {
+              frames.push('registry');
+
+              return <p>registry</p>;
+            },
+          }),
+          createRouteView({
+            route: settings,
+            view: () => {
+              frames.push('settings');
+
+              return <p>settings</p>;
+            },
+          }),
+        ],
+        otherwise: () => {
+          frames.push('otherwise');
+
+          return <p>not found</p>;
+        },
+      });
+      const scope = fork();
+
+      await allSettled(localRouter.setHistory, {
+        scope,
+        params: historyAdapter(
+          createMemoryHistory({ initialEntries: ['/registry'] }),
+        ),
+      });
+
+      render(() => (
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>
+      ));
+
+      frames.length = 0;
+
+      await allSettled(settings.open, { scope, params: undefined });
+
+      // Unlike React and Vue, Solid observes the previous route closing and
+      // the next one becoming pending as two separate, unbatchable ticks (its
+      // fine-grained signals propagate synchronously per notification, with
+      // no scheduler to coalesce them the way React/Vue's do) — see
+      // `docs/reference/solid/create-route-view.md` for the caveat. The hold
+      // still guarantees the navigation converges on the right page rather
+      // than getting stuck on `otherwise`.
+      expect(frames.at(-1)).toBe('settings');
+    });
+
+    test('costs one layout remount recovering from that gap (Solid limitation, see docs)', async () => {
+      const registry = createRoute({ path: '/registry' });
+      const settings = createRoute({ path: '/settings' });
+      const localRouter = createRouter({ routes: [registry, settings] });
+      let mounts = 0;
+      const AppLayout = (props: { children: JSX.Element }) => {
+        onMount(() => {
+          mounts += 1;
+        });
+
+        return (
+          <div>
+            [app]
+            {props.children}
+          </div>
+        );
+      };
+      const RoutesView = createRoutesView({
+        routes: withLayout(AppLayout, [
+          createRouteView({ route: registry, view: () => <p>registry</p> }),
+          createRouteView({ route: settings, view: () => <p>settings</p> }),
+        ]),
+        otherwise: () => <p>not found</p>,
+      });
+      const scope = fork();
+
+      await allSettled(localRouter.setHistory, {
+        scope,
+        params: historyAdapter(
+          createMemoryHistory({ initialEntries: ['/registry'] }),
+        ),
+      });
+
+      const { container } = render(() => (
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>
+      ));
+
+      expect(container.textContent).toBe('[app]registry');
+      expect(mounts).toBe(1);
+
+      await allSettled(settings.open, { scope, params: undefined });
+
+      expect(container.textContent).toBe('[app]settings');
+      // Solid's extra tick (see the previous test) can unmount the group
+      // before the hold recovers it, costing one remount per such navigation
+      // — a known Solid-specific limitation, not the every-navigation
+      // remounting the hold otherwise prevents.
+      expect(mounts).toBe(2);
+    });
+
+    test('does not hold a stale page for a genuinely unmatched URL', async () => {
+      const registry = createRoute({ path: '/registry' });
+      const localRouter = createRouter({ routes: [registry] });
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({ route: registry, view: () => <p>registry</p> }),
+        ],
+        otherwise: () => <p>not found</p>,
+      });
+      const scope = fork();
+      const history = createMemoryHistory({ initialEntries: ['/registry'] });
+
+      await allSettled(localRouter.setHistory, {
+        scope,
+        params: historyAdapter(history),
+      });
+
+      const { container } = render(() => (
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>
+      ));
+
+      expect(container.textContent).toBe('registry');
+
+      // Nothing in the routes view pends for this URL, so nothing holds the
+      // previous page: not-found renders right away.
+      history.push('/nowhere');
+      await allSettled(scope);
+
+      expect(container.textContent).toBe('not found');
+    });
+
+    test('first render has nothing to hold and falls through to closed', async () => {
+      const route = createRoute();
+      const scope = fork();
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route,
+            view: () => <p>profile</p>,
+            closed: () => <p>closed</p>,
+          }),
+        ],
+      });
+
+      const { container } = render(() => (
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>
+      ));
+
+      expect(container.textContent).toBe('closed');
+    });
+  });
+
   describe('closed and loading', () => {
     test('renders the closed component while the route is closed', async () => {
       const route = createRoute();

@@ -691,6 +691,183 @@ describe('vue bindings', () => {
     });
   });
 
+  describe('transition hold', () => {
+    test('covers the gap between sibling routes with no loading declared', async () => {
+      const frames: string[] = [];
+      const registry = createRoute({ path: '/registry' });
+      const settings = createRoute({ path: '/settings' });
+      const localRouter = createRouter({ routes: [registry, settings] });
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route: registry,
+            view: defineComponent({
+              setup: () => () => {
+                frames.push('registry');
+
+                return h('p', 'registry');
+              },
+            }),
+          }),
+          createRouteView({
+            route: settings,
+            view: defineComponent({
+              setup: () => () => {
+                frames.push('settings');
+
+                return h('p', 'settings');
+              },
+            }),
+          }),
+        ],
+        otherwise: defineComponent({
+          setup: () => () => {
+            frames.push('otherwise');
+
+            return h('p', 'not found');
+          },
+        }),
+      });
+      const scope = fork();
+
+      await allSettled(localRouter.setHistory, {
+        scope,
+        params: historyAdapter(
+          createMemoryHistory({ initialEntries: ['/registry'] }),
+        ),
+      });
+
+      mountRoutes(createRouter({ routes: [] }), scope, RoutesView);
+      await flushPromises();
+
+      frames.length = 0;
+
+      await allSettled(settings.open, { scope, params: undefined });
+      await flushPromises();
+
+      // Neither view declares `loading`: without the hold this frame sequence
+      // would include 'otherwise' (the routes view falling through while
+      // settings is briefly pending during the ordinary open lifecycle).
+      expect(frames).not.toContain('otherwise');
+      expect(frames).toEqual(['settings']);
+    });
+
+    test('keeps a grouped layout mounted across a navigation with no loading declared', async () => {
+      const registry = createRoute({ path: '/registry' });
+      const settings = createRoute({ path: '/settings' });
+      const localRouter = createRouter({ routes: [registry, settings] });
+      let mounts = 0;
+      const AppLayout = defineComponent({
+        setup(_, { slots }) {
+          onMounted(() => {
+            mounts += 1;
+          });
+
+          return () => h('div', ['[app]', slots.default?.()]);
+        },
+      });
+      const RoutesView = createRoutesView({
+        routes: withLayout(AppLayout, [
+          createRouteView({
+            route: registry,
+            view: defineComponent({ render: () => h('p', 'registry') }),
+          }),
+          createRouteView({
+            route: settings,
+            view: defineComponent({ render: () => h('p', 'settings') }),
+          }),
+        ]),
+        otherwise: defineComponent({ render: () => h('p', 'not found') }),
+      });
+      const scope = fork();
+
+      await allSettled(localRouter.setHistory, {
+        scope,
+        params: historyAdapter(
+          createMemoryHistory({ initialEntries: ['/registry'] }),
+        ),
+      });
+
+      const wrapper = mountRoutes(
+        createRouter({ routes: [] }),
+        scope,
+        RoutesView,
+      );
+      await flushPromises();
+
+      expect(wrapper.text()).toBe('[app]registry');
+      expect(mounts).toBe(1);
+
+      await allSettled(settings.open, { scope, params: undefined });
+      await flushPromises();
+
+      expect(wrapper.text()).toBe('[app]settings');
+      expect(mounts).toBe(1);
+    });
+
+    test('does not hold a stale page for a genuinely unmatched URL', async () => {
+      const registry = createRoute({ path: '/registry' });
+      const localRouter = createRouter({ routes: [registry] });
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route: registry,
+            view: defineComponent({ render: () => h('p', 'registry') }),
+          }),
+        ],
+        otherwise: defineComponent({ render: () => h('p', 'not found') }),
+      });
+      const scope = fork();
+      const history = createMemoryHistory({ initialEntries: ['/registry'] });
+
+      await allSettled(localRouter.setHistory, {
+        scope,
+        params: historyAdapter(history),
+      });
+
+      const wrapper = mountRoutes(
+        createRouter({ routes: [] }),
+        scope,
+        RoutesView,
+      );
+      await flushPromises();
+
+      expect(wrapper.text()).toBe('registry');
+
+      // Nothing in the routes view pends for this URL, so nothing holds the
+      // previous page: not-found renders right away.
+      await allSettled(localRouter.navigate, {
+        scope,
+        params: { path: '/nowhere', query: {} },
+      });
+      await flushPromises();
+
+      expect(wrapper.text()).toBe('not found');
+    });
+
+    test('first render has nothing to hold and falls through to closed', async () => {
+      const route = createRoute();
+      const scope = fork();
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route,
+            view: defineComponent({ render: () => h('p', 'profile') }),
+            closed: defineComponent({ render: () => h('p', 'closed') }),
+          }),
+        ],
+      });
+      const wrapper = mountRoutes(
+        createRouter({ routes: [] }),
+        scope,
+        RoutesView,
+      );
+      await flushPromises();
+
+      expect(wrapper.text()).toBe('closed');
+    });
+  });
+
   describe('closed and loading', () => {
     test('renders the closed component while the route is closed', async () => {
       const route = createRoute();
