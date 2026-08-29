@@ -1,4 +1,5 @@
 import {
+  useLayoutEffect,
   useMemo,
   useRef,
   type ComponentType,
@@ -160,17 +161,20 @@ export function useResolvedRouteView(
   }, [routes, openedViews, pending, hasOtherwise]);
 
   const last = previous.current;
-
-  if (
+  const collapsed =
     last &&
     resolved &&
     last.view === resolved.view &&
     last.component === resolved.component
-  ) {
-    return last;
-  }
+      ? last
+      : resolved;
 
-  previous.current = resolved;
+  // Only a committed render may update `previous`: a render pass that never
+  // commits (React 18 Strict Mode's double-invoke, an interrupted concurrent
+  // render) must not leave behind a value nothing on screen ever matched.
+  useLayoutEffect(() => {
+    previous.current = collapsed;
+  }, [collapsed]);
 
-  return resolved;
+  return collapsed;
 }
