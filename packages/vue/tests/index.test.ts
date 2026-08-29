@@ -9,7 +9,14 @@ import {
 } from '@effector/router';
 import { createMemoryHistory } from 'history';
 import { flushPromises, mount } from '@vue/test-utils';
-import { defineComponent, h, onMounted, onUnmounted, type Plugin } from 'vue';
+import {
+  defineComponent,
+  h,
+  onMounted,
+  onUnmounted,
+  watchEffect,
+  type Plugin,
+} from 'vue';
 import { createRequire } from 'node:module';
 import {
   createLazyRouteView,
@@ -20,6 +27,7 @@ import {
   RouterProvider,
   withLayout,
 } from '../lib';
+import { useResolvedRouteView } from '../lib/resolve-route-view';
 
 // effector-vue@23.1.1's native ESM entry imports a Vue 2-style default export,
 // which Vitest cannot load with Vue 3. The package's CJS entry exposes the same
@@ -688,6 +696,72 @@ describe('vue bindings', () => {
 
       expect(pageRenders).toBe(pageRendersBefore);
       expect(childRenders).toBe(childRendersBefore);
+    });
+
+    test('does not hand watchers a new object across a pending round-trip that leaves the resolution unchanged', async () => {
+      const a = createRoute();
+      const b = createRoute();
+      const prepare = createEvent();
+      const ready = createEvent();
+      const cancel = createEvent();
+      const chained = chainRoute({
+        route: b,
+        beforeOpen: prepare,
+        openOn: ready,
+        cancelOn: cancel,
+      });
+      const scope = fork();
+      const routes = [
+        createRouteView({
+          route: a,
+          view: defineComponent({ render: () => h('p', 'a') }),
+          closed: defineComponent({ render: () => h('p', 'a closed') }),
+        }),
+        createRouteView({
+          route: chained,
+          view: defineComponent({ render: () => h('p', 'b') }),
+        }),
+      ];
+      let recomputes = 0;
+      const Probe = defineComponent({
+        setup() {
+          const resolved = useResolvedRouteView(routes);
+
+          watchEffect(() => {
+            // Reading `.value` is what makes this watcher a dependent of the
+            // computed: it reruns whenever Vue considers the value changed.
+            void resolved.value;
+            recomputes += 1;
+          });
+
+          return () => null;
+        },
+      });
+
+      mount(Probe, {
+        global: { plugins: [EffectorScopePlugin({ scope })] },
+      });
+      await flushPromises();
+
+      // Neither route is open: `a`'s closed fallback renders.
+      const recomputesAfterMount = recomputes;
+
+      // `b`'s chain starts preparing: nothing definite changes (the hold
+      // keeps returning the same object), so this must not refire watchers.
+      await allSettled(b.open, { scope, params: undefined });
+      await flushPromises();
+
+      expect(recomputes).toBe(recomputesAfterMount);
+
+      const recomputesBeforeCancel = recomputes;
+
+      // The chain is cancelled without ever opening `b`: resolution falls
+      // back to `a`'s closed fallback again — the very same view and
+      // component as before, so it must not be handed out as a new object.
+      await allSettled(cancel, { scope, params: undefined });
+      await flushPromises();
+
+      expect(recomputes).toBe(recomputesBeforeCancel);
     });
   });
 
