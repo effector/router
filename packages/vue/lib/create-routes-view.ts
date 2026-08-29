@@ -63,7 +63,9 @@ export const createRoutesView = (props: CreateRoutesViewProps) => {
   return defineComponent({
     name: 'RoutesView',
     setup() {
-      const resolved = useResolvedRouteView(routes);
+      const resolved = useResolvedRouteView(routes, {
+        hasOtherwise: !!otherwise,
+      });
 
       return () => {
         const current = resolved.value;

@@ -79,19 +79,34 @@ function pendingStore(view: RouteView): Store<boolean> {
  *    view;
  * 4. otherwise the `closed` of a closed view;
  * 5. otherwise `null`.
+ *
+ * @param options.hasOtherwise Whether the caller has its own fallback for
+ * "nothing matched" (`createRoutesView`'s `otherwise`). When set, step 4 is
+ * skipped until something in `routes` has actually opened or been pending at
+ * least once — otherwise a sibling's `closed` fallback would permanently
+ * shadow `otherwise` for a URL that never matched anything in this list.
  */
 export function useResolvedRouteView(
   routes: RouteView[],
+  options?: { hasOtherwise?: boolean },
 ): ComputedRef<ResolvedRouteView | null> {
   const openedViews = useOpenedViews(routes);
   const pending = useUnit(combine(routes.map(pendingStore)));
+  const hasOtherwise = options?.hasOtherwise ?? false;
   // Plain (non-reactive) box for the last resolution: reading and writing it
   // inside the computed getter below must not register as one of its
   // reactive dependencies, or holding the frame would retrigger itself.
   let previous: ResolvedRouteView | null = null;
+  // Whether any route in the list has ever opened or been pending, so step 4
+  // can tell a route that was genuinely visited from one that never matched.
+  let hasBeenActive = false;
 
   return computed(() => {
     const openedView = openedViews.value.at(-1);
+
+    if (openedView || pending.value.some(Boolean)) {
+      hasBeenActive = true;
+    }
 
     if (openedView) {
       previous = { view: openedView, component: openedView.view };
@@ -124,6 +139,10 @@ export function useResolvedRouteView(
     // through to `closed`/`otherwise`.
     if (previous && pending.value.some(Boolean)) {
       return previous;
+    }
+
+    if (closed && hasOtherwise && !hasBeenActive) {
+      return null;
     }
 
     previous = closed;

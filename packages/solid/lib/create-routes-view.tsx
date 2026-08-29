@@ -50,7 +50,7 @@ export function createRoutesView(props: CreateRoutesViewProps) {
   const { routes, otherwise: NotFound } = props;
 
   return () => {
-    const resolved = useResolvedRouteView(routes);
+    const resolved = useResolvedRouteView(routes, { hasOtherwise: !!NotFound });
 
     return (
       <Show when={resolved()} fallback={NotFound ? <NotFound /> : null}>

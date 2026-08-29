@@ -72,28 +72,43 @@ function pendingStore(view: RouteView): Store<boolean> {
  *    view;
  * 4. otherwise the `closed` of a closed view;
  * 5. otherwise `null`.
+ *
+ * @param options.hasOtherwise Whether the caller has its own fallback for
+ * "nothing matched" (`createRoutesView`'s `otherwise`). When set, step 4 is
+ * skipped until something in `routes` has actually opened or been pending at
+ * least once — otherwise a sibling's `closed` fallback would permanently
+ * shadow `otherwise` for a URL that never matched anything in this list.
  */
 export function useResolvedRouteView(
   routes: RouteView[],
+  options?: { hasOtherwise?: boolean },
 ): Accessor<ResolvedRouteView | null> {
   const openedViews = useOpenedViews(routes);
   const pending = useUnit(combine(routes.map(pendingStore)));
+  const hasOtherwise = options?.hasOtherwise ?? false;
 
   // Plain (non-reactive) box for the last definite resolution — an opened
   // view, a `loading` fallback, or a `closed` fallback. It is deliberately
   // left untouched when neither applies, so an intermediate recompute with
   // nothing to show does not erase what a later pending tick should hold.
   let previous: ResolvedRouteView | null = null;
+  // Whether any route in the list has ever opened or been pending, so step 4
+  // can tell a route that was genuinely visited from one that never matched.
+  let hasBeenActive = false;
 
   const resolve = (): ResolvedRouteView | null => {
     const openedView = openedViews().at(-1);
+    const pendingValues = pending();
+
+    if (openedView || pendingValues.some(Boolean)) {
+      hasBeenActive = true;
+    }
 
     if (openedView) {
       previous = { view: openedView, component: openedView.view };
       return previous;
     }
 
-    const pendingValues = pending();
     let loading: ResolvedRouteView | null = null;
     let closed: ResolvedRouteView | null = null;
 
@@ -120,6 +135,10 @@ export function useResolvedRouteView(
     // through to `closed`/`otherwise`.
     if (previous && pendingValues.some(Boolean)) {
       return previous;
+    }
+
+    if (closed && hasOtherwise && !hasBeenActive) {
+      return null;
     }
 
     if (closed) {
