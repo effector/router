@@ -740,6 +740,45 @@ describe('solid bindings', () => {
       expect(container.textContent).toBe('not found');
     });
 
+    test('does not resurrect an abandoned view for an unrelated later pending route', async () => {
+      const first = createRoute();
+      const second = createRoute();
+      const dataRequested = createEvent();
+      const dataLoaded = createEvent();
+      const chained = chainRoute({
+        route: second,
+        beforeOpen: dataRequested,
+        openOn: dataLoaded,
+      });
+      const scope = fork();
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({ route: first, view: () => <p>first</p> }),
+          createRouteView({ route: chained, view: () => <p>second</p> }),
+        ],
+        otherwise: () => <p>not found</p>,
+      });
+
+      const { container } = render(() => (
+        <Provider value={scope}>
+          <RoutesView />
+        </Provider>
+      ));
+
+      await allSettled(first.open, { scope, params: undefined });
+      expect(container.textContent).toBe('first');
+
+      await allSettled(first.close, { scope, params: undefined });
+      expect(container.textContent).toBe('not found');
+
+      // Much later, an unrelated route's chain starts preparing — nothing to
+      // do with `first`, which the user left long ago. It must not resurrect
+      // the page the user already navigated away from.
+      await allSettled(second.open, { scope, params: undefined });
+
+      expect(container.textContent).toBe('not found');
+    });
+
     test('first render has nothing to hold and falls through to closed', async () => {
       const route = createRoute();
       const scope = fork();
