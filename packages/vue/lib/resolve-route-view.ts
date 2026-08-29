@@ -94,14 +94,17 @@ export function useResolvedRouteView(
   const pending = useUnit(combine(routes.map(pendingStore)));
   const hasOtherwise = options?.hasOtherwise ?? false;
   // Plain (non-reactive) box for the last resolution: reading and writing it
-  // inside the computed getter below must not register as one of its
-  // reactive dependencies, or holding the frame would retrigger itself.
+  // inside `resolve` must not register as one of its reactive dependencies,
+  // or holding the frame would retrigger itself.
   let previous: ResolvedRouteView | null = null;
   // Whether any route in the list has ever opened or been pending, so step 4
   // can tell a route that was genuinely visited from one that never matched.
   let hasBeenActive = false;
+  // The last value actually handed out, so router churn that recomputes the
+  // same view/component does not hand watchers a new object to react to.
+  let lastReturned: ResolvedRouteView | null = null;
 
-  return computed(() => {
+  const resolve = (): ResolvedRouteView | null => {
     const openedView = openedViews.value.at(-1);
 
     if (openedView || pending.value.some(Boolean)) {
@@ -147,5 +150,22 @@ export function useResolvedRouteView(
 
     previous = closed;
     return closed;
+  };
+
+  // Keep the identity stable while the same component stays selected, so
+  // router churn that does not change the selection does not hand watchers a
+  // new object to react to.
+  return computed(() => {
+    const next = resolve();
+
+    lastReturned =
+      lastReturned &&
+      next &&
+      lastReturned.view === next.view &&
+      lastReturned.component === next.component
+        ? lastReturned
+        : next;
+
+    return lastReturned;
   });
 }
