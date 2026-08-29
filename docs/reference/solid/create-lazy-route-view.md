@@ -10,13 +10,15 @@ function createLazyRouteView<T extends object | void = void>(
 ): RouteView;
 ```
 
-| Property   | Type                                    | Description                                |
-| ---------- | --------------------------------------- | ------------------------------------------ |
-| `route`    | `Route<T> \| Router`                    | Unit that controls whether the view opens  |
-| `view`     | `() => Promise<{ default: Component }>` | Dynamic import with a default export       |
-| `fallback` | `Component`                             | Optional Suspense fallback                 |
-| `layout`   | `Component<{ children: JSX.Element }>`  | Optional wrapper component                 |
-| `children` | `RouteView[]`                           | Optional direct child views for [`Outlet`] |
+| Property   | Type                                    | Description                                                                      |
+| ---------- | --------------------------------------- | -------------------------------------------------------------------------------- |
+| `route`    | `Route<T> \| Router`                    | Unit that controls whether the view opens                                        |
+| `view`     | `() => Promise<{ default: Component }>` | Dynamic import with a default export                                             |
+| `loading`  | `Component`                             | Optional component rendered while the route is pending and while the chunk loads |
+| `fallback` | `Component`                             | **Deprecated** — alias of `loading`, used when `loading` is absent               |
+| `closed`   | `Component`                             | Optional component rendered while it is closed                                   |
+| `layout`   | `Component<{ children: JSX.Element }>`  | Optional wrapper component                                                       |
+| `children` | `RouteView[]`                           | Optional direct child views for [`Outlet`]                                       |
 
 ## `CreateLazyRouteViewProps`
 
@@ -30,7 +32,7 @@ import { createLazyRouteView } from '@effector/router-solid';
 const ProfileScreen = createLazyRouteView({
   route: profileRoute,
   view: () => import('./screens/ProfileScreen'),
-  fallback: () => <p>Loading profile...</p>,
+  loading: () => <p>Loading profile...</p>,
   layout: MainLayout,
 });
 ```
@@ -40,8 +42,25 @@ when Solid renders the lazy view. It is not registered with core and route
 opening does not wait for the chunk, so the configured `Suspense` fallback is
 observable.
 
-Route/chained `$isPending` describes model preparation, not chunk loading. For
-preload, reuse the importer in an ordinary Effect:
+Route/chained `$isPending` describes model preparation, not chunk loading.
+`loading` spans both — the pending route (see
+[route view fallbacks](/solid/create-route-view#fallbacks)) and the chunk — so
+the routes view `otherwise`, usually the not-found screen, no longer flashes
+between them:
+
+```tsx
+const ProfileScreen = createLazyRouteView({
+  route: profileReady,
+  view: () => import('./screens/ProfileScreen'),
+  loading: ProfileSkeleton,
+});
+```
+
+`fallback` is deprecated: it is an alias of `loading` now, used when `loading` is
+absent, and the type is marked `@deprecated` so editors point at the
+replacement.
+
+For preload, reuse the importer in an ordinary Effect:
 
 ```tsx
 import { createEffect } from 'effector';
@@ -52,7 +71,7 @@ const preloadProfileFx = createEffect(importProfile);
 const ProfileScreen = createLazyRouteView({
   route: profileRoute,
   view: importProfile,
-  fallback: ProfileSkeleton,
+  loading: ProfileSkeleton,
 });
 ```
 

@@ -1,5 +1,10 @@
 import { defineAsyncComponent, defineComponent, h } from 'vue';
-import type { CreateLazyRouteViewProps, RouteView } from './types';
+import { createRouteViewFallback } from './resolve-route-view';
+import {
+  routeViewFallback,
+  type CreateLazyRouteViewProps,
+  type RouteView,
+} from './types';
 
 /**
  * @description Creates Lazy route view with async bundle load
@@ -10,12 +15,12 @@ import type { CreateLazyRouteViewProps, RouteView } from './types';
  * import { createLazyRouteView } from '@effector/router-vue';
  * import { routes } from '@shared/routing';
  * import { MainLayout } from '@layouts';
- * import Fallback from './fallback.vue';
+ * import Skeleton from './skeleton.vue';
  *
  * export const ProfileScreen = createLazyRouteView({
  *   route: routes.profile,
  *   view: () => import('./profile.vue'),
- *   fallback: Fallback,
+ *   loading: Skeleton,
  *   layout: MainLayout,
  * });
  * ```
@@ -23,11 +28,14 @@ import type { CreateLazyRouteViewProps, RouteView } from './types';
 export function createLazyRouteView<T extends object | void = void>(
   props: CreateLazyRouteViewProps<T>,
 ): RouteView {
-  const { route, view, layout, fallback, children } = props;
+  const { route, view, layout, children } = props;
+  // One component covers both waits — the pending route and the chunk request.
+  // The deprecated `fallback` is kept as its alias.
+  const loading = props.loading ?? props.fallback;
 
   const AsyncView = defineAsyncComponent({
     loader: view,
-    loadingComponent: fallback,
+    loadingComponent: loading,
     delay: 0,
   });
 
@@ -45,5 +53,12 @@ export function createLazyRouteView<T extends object | void = void>(
         },
       });
 
-  return { route, view: wrapped, children };
+  const routeFallback = createRouteViewFallback({ ...props, loading });
+
+  return {
+    route,
+    view: wrapped,
+    children,
+    ...(routeFallback ? { [routeViewFallback]: routeFallback } : {}),
+  };
 }

@@ -1,28 +1,37 @@
-import { type ComponentType, createElement } from 'react';
+import { type ComponentType, createElement, memo } from 'react';
 import { OutletContext } from './context';
-import { useOpenedViews } from './use-opened-views';
-import { layoutGroup, type LayoutGroup, type RouteView } from './types';
+import {
+  useOutletValue,
+  useResolvedRouteView,
+  type ResolvedRouteView,
+} from './resolve-route-view';
+import { layoutGroup, type RouteView } from './types';
 
 interface CreateRoutesViewProps {
   routes: RouteView[];
   otherwise?: ComponentType;
 }
 
-function LayoutRenderer({
-  group,
+/**
+ * @internal Renders the resolved component — the view itself, or its `loading`
+ * / `closed` fallback — inside the layout group of the view it belongs to.
+ * Memoized: the selection is identity-stable, so unrelated router updates stop
+ * at this boundary instead of re-rendering the whole page branch.
+ */
+const ViewRenderer = memo(function ViewRenderer({
   view,
-}: {
-  group: LayoutGroup;
-  view: RouteView;
-}) {
-  return (
-    <group.layout>
-      <OutletContext.Provider value={{ children: view.children ?? [] }}>
-        {createElement(view.view)}
-      </OutletContext.Provider>
-    </group.layout>
+  component,
+}: ResolvedRouteView) {
+  const outlet = useOutletValue(view);
+  const group = view[layoutGroup];
+  const content = (
+    <OutletContext.Provider value={outlet}>
+      {createElement(component)}
+    </OutletContext.Provider>
   );
-}
+
+  return group ? <group.layout>{content}</group.layout> : content;
+});
 
 /**
  * @description Create routes view which renders current opened route. `Don't forget add <RouterProvider>`!
@@ -51,24 +60,18 @@ export const createRoutesView = (props: CreateRoutesViewProps) => {
   const { routes, otherwise: NotFound } = props;
 
   return () => {
-    const openedView = useOpenedViews(routes).at(-1);
+    const resolved = useResolvedRouteView(routes, { hasOtherwise: !!NotFound });
 
-    if (!openedView) {
+    if (!resolved) {
       return NotFound ? <NotFound /> : null;
     }
 
-    const group = openedView[layoutGroup];
-
-    if (group) {
-      return (
-        <LayoutRenderer key={group.token} group={group} view={openedView} />
-      );
-    }
-
     return (
-      <OutletContext.Provider value={{ children: openedView.children ?? [] }}>
-        {createElement(openedView.view)}
-      </OutletContext.Provider>
+      <ViewRenderer
+        key={resolved.view[layoutGroup]?.token}
+        view={resolved.view}
+        component={resolved.component}
+      />
     );
   };
 };

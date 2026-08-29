@@ -98,6 +98,10 @@ and is excluded from the root `eslint.config.mts` and from `tsconfig.check.json`
   **`track-query.ts`** — composition helpers layered on routes/controls: post-commit readiness,
   route grouping, pre-commit navigation policy, redirect targets for `sample()`, and standalone
   query trackers.
+- **`resolve-route-view.ts`** — `@internal`, exported anyway: the pure, framework-agnostic
+  view-priority algorithm the `react`/`vue`/`solid` bindings' own `resolve-route-view` files wrap
+  with their reactive glue (see below). Lives in core purely so the three bindings share one
+  implementation instead of three hand-copied ones; not part of the router's documented public API.
 - The accepted navigation lifecycle contract and its compatibility matrix are documented in
   `docs/explanation/navigation-lifecycle.md` — read it before changing router or route lifecycle
   behavior. It's enforced by `packages/core/tests/lifecycle-compatibility.test.ts` and
@@ -107,9 +111,26 @@ and is excluded from the root `eslint.config.mts` and from `tsconfig.check.json`
 
 These three packages share an identical file set and are meant to track each other's API shape:
 `context`, `router-provider`, `create-route-view`, `create-routes-view`, `create-lazy-route-view`,
-`outlet`, `link`, `use-router`, `use-link`, `use-is-opened`, `use-opened-views`, `with-layout`,
-`index`. When changing behavior in one, check whether the equivalent change belongs in the other
-two.
+`outlet`, `link`, `resolve-route-view`, `use-router`, `use-link`, `use-is-opened`,
+`use-opened-views`, `with-layout`, `index`. When changing behavior in one, check whether the
+equivalent change belongs in the other two.
+
+`resolve-route-view` is internal and owns view selection for both `create-routes-view` and
+`outlet`. The actual priority algorithm (opened view via `use-opened-views`, then `loading` of a
+pending view, then holding the previously resolved view through the close/open gap, then `closed`
+of a closed view — gated behind the `otherwise` prop until the list has genuinely been active —
+then `null`) is `resolveRouteView` in `packages/core/lib/resolve-route-view.ts`, a pure,
+framework-agnostic function exported (marked `@internal`) from `@effector/router` specifically for
+the three bindings to share. Each binding's `resolve-route-view` file is thin reactive glue around
+it: subscribing to opened/pending state, carrying the algorithm's state across calls, and
+collapsing back to the previous object reference when a recompute doesn't change the selection.
+React additionally defers committing that state to a `useLayoutEffect`, since a render pass can be
+discarded without committing (Strict Mode's double-invoke, an interrupted concurrent render) and
+must not leave behind a value nothing on screen ever matched. Fix the algorithm once in
+`packages/core`; only the reactive wiring is binding-specific. `resolve-route-view` also wraps a
+view's `closed`/`loading` with that view's `layout` at creation time, while `withLayout` groups are
+applied by the renderers. The fallback symbol must stay absent from a `RouteView` that declares
+neither, because `withLayout` copies own symbols onto its result.
 
 ### `packages/react-native`
 

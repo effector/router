@@ -1,5 +1,10 @@
 import { lazy, Suspense } from 'solid-js';
-import type { CreateLazyRouteViewProps, RouteView } from './types';
+import { createRouteViewFallback } from './resolve-route-view';
+import {
+  routeViewFallback,
+  type CreateLazyRouteViewProps,
+  type RouteView,
+} from './types';
 
 /**
  * @description Creates Lazy route view with async bundle load
@@ -20,7 +25,7 @@ import type { CreateLazyRouteViewProps, RouteView } from './types';
  * export const ProfileScreen = createLazyRouteView({
  *   route: routes.profile,
  *   view: () => import('./profile'),
- *   fallback: () => ':(',
+ *   loading: () => ':(',
  *   layout: MainLayout,
  * });
  * ```
@@ -29,7 +34,11 @@ export function createLazyRouteView<T extends object | void = void>(
   props: CreateLazyRouteViewProps<T>,
 ): RouteView {
   const View = lazy(props.view);
-  const { layout: Layout, fallback: Fallback, children } = props;
+  const { layout: Layout, children } = props;
+  // One component covers both waits — the pending route and the chunk request.
+  // The deprecated `fallback` is kept as its alias.
+  const loading = props.loading ?? props.fallback;
+  const Fallback = loading;
 
   const inner = () => (
     <Suspense fallback={Fallback ? <Fallback /> : null}>
@@ -39,9 +48,12 @@ export function createLazyRouteView<T extends object | void = void>(
 
   const view = Layout ? () => <Layout>{inner()}</Layout> : inner;
 
+  const fallback = createRouteViewFallback({ ...props, loading });
+
   return {
     route: props.route,
     view,
     children,
+    ...(fallback ? { [routeViewFallback]: fallback } : {}),
   };
 }

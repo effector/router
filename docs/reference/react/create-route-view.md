@@ -44,6 +44,98 @@ export const ProfileScreen = createRouteView({
 });
 ```
 
+## With Fallbacks
+
+A route view can also describe what to render while its route is _not_ opened:
+
+```tsx
+export const ProfileScreen = createRouteView({
+  route: profileRoute,
+  view: ProfileComponent,
+  loading: ProfileSkeleton, // route is pending
+  closed: ProfilePlaceholder, // route is closed
+});
+```
+
+`loading` covers the wait for data — a route with `beforeOpen`, or the
+[`chainRoute`] output that stays pending until its preparation resolves — and,
+for [`createLazyRouteView`], the wait for the chunk. `closed` covers the plain
+closed state.
+
+Both are resolved by the surrounding [`createRoutesView`] or [`Outlet`], which
+still renders a single view. The order is:
+
+1. the deepest **opened** view, if any of the listed views is opened;
+2. otherwise the `loading` of a **pending** view;
+3. otherwise the view most recently resolved, while any of the listed routes
+   is still **pending**;
+4. otherwise the `closed` of a closed view;
+5. otherwise the `otherwise` prop of [`createRoutesView`] (`null` inside an
+   [`Outlet`]).
+
+Later declarations win between equal candidates, mirroring how an opened
+sibling is selected. Because an opened view always wins, `loading` never
+replaces a page that is already on screen — a route that re-opens with new
+parameters keeps rendering `view`.
+
+Step 3 is a hold: closing the previous route and opening the next one is not
+atomic, so for one instant nothing in the list is opened. Without the hold that
+instant would fall through to `closed`/`otherwise` and tear the rendered
+branch — a [`withLayout`] group included — down with it, even when neither
+view declares a `loading`. The hold applies only while something is pending;
+an unmatched URL has nothing pending for it, so `otherwise` still shows without
+delay.
+
+> [!NOTE]
+> The Solid binding's fine-grained reactivity can still surface that instant as
+> a transient `otherwise` frame during an ordinary navigation between sibling
+> routes — its signals propagate per store notification, with no scheduler to
+> coalesce the route closing and the next one becoming pending the way
+> React's and Vue's do. The hold still guarantees the navigation converges on
+> the right page rather than getting stuck.
+
+This composes the skeleton pattern for nested routes: keep the parent view
+mounted and let its `Outlet` render the child's `loading` while the child chain
+prepares.
+
+```tsx
+const settingsReady = chainRoute({
+  route: settingsRoute,
+  beforeOpen: loadSettingsFx,
+});
+
+export const ProfileScreen = createRouteView({
+  route: profileRoute,
+  view: ProfileComponent, // renders <Outlet />
+  children: [
+    createRouteView({
+      route: settingsReady,
+      view: SettingsComponent,
+      loading: SettingsSkeleton,
+    }),
+  ],
+});
+```
+
+Fallbacks are wrapped by the same `layout` as the view, and by the
+[`withLayout`] group of the view, so the layout stays mounted while the
+fallback swaps to the page.
+
+Swapping a fallback for the view replaces one component with another, so that
+branch remounts — everything above it, including the layout and any parent view,
+stays put. When a subtree must survive the swap, render the skeleton from
+`route.$isPending` inside a single component instead; the
+[nested loading guide](/how-to/nested-loading-skeletons#variations) collects that
+and the other shapes.
+
+::: tip
+A view listed in `createRoutesView` that declares `closed` renders that
+component for _every_ state in which nothing else is opened, including an
+unmatched URL. Keep the not-found screen in the `otherwise` of
+`createRoutesView`, and use a per-view `closed` where the view owns its slot —
+inside an `Outlet`, or in a routes view with a single entry.
+:::
+
 ## With Nested Routes
 
 Create nested route structures using children:
@@ -166,6 +258,34 @@ const ProfileScreen = createRouteView({
 });
 ```
 
+### `closed` (optional)
+
+A component rendered instead of `view` while the route is not opened:
+
+```tsx
+const ProfileScreen = createRouteView({
+  route: profileRoute,
+  view: ProfileComponent,
+  closed: () => <div>Pick a profile</div>,
+});
+```
+
+### `loading` (optional)
+
+A component rendered while the route is pending — `route.$isPending`, which
+covers `beforeOpen` effects and a [`chainRoute`] preparation:
+
+```tsx
+const ProfileScreen = createRouteView({
+  route: profileReady,
+  view: ProfileComponent,
+  loading: ProfileSkeleton,
+});
+```
+
+An opened view wins over any fallback, so `loading` shows only while nothing in
+the same routes view or `Outlet` is opened.
+
 ### `children` (optional)
 
 Nested route views:
@@ -189,12 +309,14 @@ const ProfileScreen = createRouteView({
 import type { CreateRouteViewProps } from '@effector/router-react';
 ```
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `route` | `Route<T>` or `Router` | The route or nested router that controls whether the view is active. |
-| `view` | `ComponentType` | Component rendered for the active view. |
-| `layout` | `ComponentType<{ children: ReactNode }>` | Optional layout that wraps the view. |
-| `children` | `RouteView[]` | Optional direct child views rendered through [`Outlet`]. |
+| Property   | Type                                     | Description                                                          |
+| ---------- | ---------------------------------------- | -------------------------------------------------------------------- |
+| `route`    | `Route<T>` or `Router`                   | The route or nested router that controls whether the view is active. |
+| `view`     | `ComponentType`                          | Component rendered for the active view.                              |
+| `layout`   | `ComponentType<{ children: ReactNode }>` | Optional layout that wraps the view and its fallbacks.               |
+| `closed`   | `ComponentType`                          | Optional component rendered while the route is not opened.           |
+| `loading`  | `ComponentType`                          | Optional component rendered while the route is pending.              |
+| `children` | `RouteView[]`                            | Optional direct child views rendered through [`Outlet`].             |
 
 ## Return Value
 
@@ -208,11 +330,11 @@ Returns a [`RouteView`](#routeview) object.
 import type { RouteView } from '@effector/router-react';
 ```
 
-| Property | Type | Description |
-| --- | --- | --- |
-| `route` | Route-like target or `Router` | Target that determines whether the view is active. |
-| `view` | `React.FC` | Component rendered when selected. |
-| `children` | `RouteView[]` | Optional direct child views for [`Outlet`]. |
+| Property   | Type                          | Description                                        |
+| ---------- | ----------------------------- | -------------------------------------------------- |
+| `route`    | Route-like target or `Router` | Target that determines whether the view is active. |
+| `view`     | `React.FC`                    | Component rendered when selected.                  |
+| `children` | `RouteView[]`                 | Optional direct child views for [`Outlet`].        |
 
 ## Type Safety
 
@@ -235,12 +357,16 @@ const UserScreen = createRouteView({
 
 ## See Also
 
+- [Show skeletons while nested data loads](/how-to/nested-loading-skeletons) - The fallbacks in a full nested example
 - [createLazyRouteView](./create-lazy-route-view) - Lazy-loaded route views
 - [createRoutesView](./create-routes-view) - Render active routes
 - [Outlet](./outlet) - Render nested routes
 - [withLayout](./with-layout) - Apply layouts to multiple routes
 
+[`chainRoute`]: /core/chain-route
 [`createLazyRouteView`]: /react/create-lazy-route-view
 [`createRoute`]: /core/create-route
 [`createRouter`]: /core/create-router
+[`createRoutesView`]: /react/create-routes-view
 [`Outlet`]: /react/outlet
+[`withLayout`]: /react/with-layout

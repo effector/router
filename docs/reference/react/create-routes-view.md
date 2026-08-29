@@ -72,7 +72,8 @@ const RoutesView = createRoutesView({
 
 ### `otherwise` (optional)
 
-Component to render when no routes are active:
+Component to render when no routes are active and no listed view declares its
+own fallback:
 
 ```tsx
 const RoutesView = createRoutesView({
@@ -80,6 +81,9 @@ const RoutesView = createRoutesView({
   otherwise: () => <div>404 - Not Found</div>,
 });
 ```
+
+A view created with a `closed` or `loading` of its own takes precedence over
+this one — see [route view fallbacks](/react/create-route-view#with-fallbacks).
 
 ## Return Value
 
@@ -96,8 +100,11 @@ The routes view:
 
 1. Uses [`useOpenedViews`] to track which routes are currently open
 2. Renders the last declared active route after parent suppression
-3. Provides outlet context for nested routes
-4. Re-renders automatically when route state changes
+3. Falls back, when nothing is open, to the `loading` of a pending view, then
+   to the view it rendered before while a route is still pending, then to the
+   `closed` of a closed one, before using its own `otherwise`
+4. Provides outlet context for nested routes
+5. Re-renders automatically when route state changes
 
 ## Avoid Full-Page Remounts
 

@@ -1,6 +1,6 @@
 import { defineComponent, h, inject } from 'vue';
 import { OutletInjectionKey } from './context';
-import { useOpenedViews } from './use-opened-views';
+import { useResolvedRouteView } from './resolve-route-view';
 import { RouteRenderer } from './create-routes-view';
 
 /**
@@ -25,18 +25,19 @@ export const Outlet = defineComponent({
   name: 'Outlet',
   setup() {
     const children = inject(OutletInjectionKey, []);
-    const openedViews = useOpenedViews(children);
+    const resolved = useResolvedRouteView(children);
 
     return () => {
-      const view = openedViews.value.at(-1);
+      const current = resolved.value;
 
-      if (!view) {
+      if (!current) {
         return null;
       }
 
       return h(RouteRenderer, {
-        routeView: view,
-        key: children.indexOf(view),
+        routeView: current.view,
+        component: current.component,
+        key: children.indexOf(current.view),
       });
     };
   },

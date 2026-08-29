@@ -1,4 +1,9 @@
-import type { CreateRouteViewProps, RouteView } from './types';
+import { createRouteViewFallback } from './resolve-route-view';
+import {
+  routeViewFallback,
+  type CreateRouteViewProps,
+  type RouteView,
+} from './types';
 
 /**
  * @description Creates Route view without async bundle load
@@ -18,6 +23,8 @@ import type { CreateRouteViewProps, RouteView } from './types';
  *   route: routes.profile,
  *   view: Profile,
  *   layout: MainLayout,
+ *   loading: ProfileSkeleton,
+ *   closed: ProfilePlaceholder,
  * });
  * ```
  */
@@ -34,9 +41,12 @@ export function createRouteView<T extends object | void = void>(
       )
     : () => <View />;
 
+  const fallback = createRouteViewFallback(props);
+
   return {
     route: props.route,
     view,
     children,
+    ...(fallback ? { [routeViewFallback]: fallback } : {}),
   };
 }

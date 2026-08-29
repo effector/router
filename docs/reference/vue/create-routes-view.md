@@ -17,6 +17,11 @@ When several routes are active, selection happens in two stages:
    `routes` array.
    :::
 
+When no route is active, a view that declares `loading` (its route is pending),
+or was on screen while a route is still pending, or declares `closed`, renders
+that component instead of the `otherwise` option below — see
+[route view fallbacks](/vue/create-route-view#fallbacks).
+
 ### Example
 
 ```ts

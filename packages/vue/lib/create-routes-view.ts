@@ -6,25 +6,31 @@ import {
   type PropType,
 } from 'vue';
 import { OutletInjectionKey } from './context';
-import { useOpenedViews } from './use-opened-views';
+import { useResolvedRouteView } from './resolve-route-view';
 import { layoutGroup, type RouteView } from './types';
 
 /**
  * @internal Renders a single resolved view and exposes its nested children to
  * `<Outlet />` through provide/inject. Grouped views keep a stable group key
- * while their page child changes.
+ * while their page child changes. `component` is the view itself or one of its
+ * `loading` / `otherwise` fallbacks.
  */
 export const RouteRenderer = defineComponent({
   name: 'RouteRenderer',
   props: {
     routeView: { type: Object as PropType<RouteView>, required: true },
+    component: {
+      type: [Object, Function] as PropType<Component>,
+      required: false,
+      default: undefined,
+    },
   },
   setup(props) {
     provide(OutletInjectionKey, props.routeView.children ?? []);
 
     return () => {
       const group = props.routeView[layoutGroup];
-      const content = h(props.routeView.view);
+      const content = h(props.component ?? props.routeView.view);
 
       return group
         ? h(group.layout, null, { default: () => content })
@@ -57,20 +63,23 @@ export const createRoutesView = (props: CreateRoutesViewProps) => {
   return defineComponent({
     name: 'RoutesView',
     setup() {
-      const openedViews = useOpenedViews(routes);
+      const resolved = useResolvedRouteView(routes, {
+        hasOtherwise: !!otherwise,
+      });
 
       return () => {
-        const view = openedViews.value.at(-1);
+        const current = resolved.value;
 
-        if (!view) {
+        if (!current) {
           return otherwise ? h(otherwise) : null;
         }
 
-        const group = view[layoutGroup];
+        const group = current.view[layoutGroup];
 
         return h(RouteRenderer, {
-          routeView: view,
-          key: group?.token ?? routes.indexOf(view),
+          routeView: current.view,
+          component: current.component,
+          key: group?.token ?? routes.indexOf(current.view),
         });
       };
     },

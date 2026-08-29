@@ -1,7 +1,7 @@
 import { Show, useContext } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 import { OutletContext } from './context';
-import { useOpenedViews } from './use-opened-views';
+import { useResolvedRouteView } from './resolve-route-view';
 
 /**
  * @description Outlet component for nested routes
@@ -34,14 +34,15 @@ import { useOpenedViews } from './use-opened-views';
  */
 export function Outlet() {
   const { children } = useContext(OutletContext);
-  const openedViews = useOpenedViews(children);
-  const openedView = () => openedViews().at(-1);
+  const resolved = useResolvedRouteView(children);
 
   return (
-    <Show when={openedView()} keyed>
-      {(view) => (
-        <OutletContext.Provider value={{ children: view.children ?? [] }}>
-          <Dynamic component={view.view} />
+    <Show when={resolved()} keyed>
+      {(current) => (
+        <OutletContext.Provider
+          value={{ children: current.view.children ?? [] }}
+        >
+          <Dynamic component={current.component} />
         </OutletContext.Provider>
       )}
     </Show>

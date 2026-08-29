@@ -45,3 +45,17 @@ export {
 export { is } from './utils';
 export { isEqualQuery, parseQuery, stringifyQuery } from './query-codec';
 export { trackQuery } from './track-query';
+
+/**
+ * @internal Shared by the React, Solid, and Vue bindings' `resolve-route-view`
+ * modules. Not part of the router's documented public API — the framework
+ * bindings are its only supported consumers.
+ */
+export {
+  createResolveRouteViewState,
+  resolveRouteView,
+  type ResolvedRouteView,
+  type ResolveRouteViewParams,
+  type ResolveRouteViewState,
+  type RouteViewFallbackShape,
+} from './resolve-route-view';

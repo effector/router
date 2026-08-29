@@ -73,7 +73,7 @@ const UserScreen = createRouteView({
 ## API
 
 - `RouterProvider` — provide the router to the tree.
-- `createRouteView` / `createLazyRouteView` — bind a route to a component (with optional lazy loading).
+- `createRouteView` / `createLazyRouteView` — bind a route to a component (with optional lazy loading), plus `closed` and `loading` components for the closed and pending states.
 - Lazy importers start when their view renders; preload is an application-owned
   Effect and never a recursive `route.open()` call.
 - `createRoutesView` — render the currently opened route, with an `otherwise` fallback.
