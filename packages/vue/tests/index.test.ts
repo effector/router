@@ -970,6 +970,44 @@ describe('vue bindings', () => {
       expect(wrapper.text()).toBe('first');
     });
 
+    test('prefers otherwise over an unrelated closed sibling when nothing has ever matched', async () => {
+      const first = createRoute();
+      const second = createRoute();
+      const scope = fork();
+      const router = createRouter({ routes: [] });
+      const RoutesView = createRoutesView({
+        routes: [
+          createRouteView({
+            route: first,
+            view: defineComponent({ render: () => h('p', 'first') }),
+          }),
+          createRouteView({
+            route: second,
+            view: defineComponent({ render: () => h('p', 'second') }),
+            closed: defineComponent({
+              render: () => h('p', 'second closed'),
+            }),
+          }),
+        ],
+        otherwise: defineComponent({ render: () => h('p', 'not found') }),
+      });
+      const wrapper = mountRoutes(router, scope, RoutesView);
+
+      await flushPromises();
+      // Neither route has ever been part of a real navigation, so this is a
+      // genuine not-found, not second's closed fallback bleeding through.
+      expect(wrapper.text()).toBe('not found');
+
+      await allSettled(second.open, { scope, params: undefined });
+      await flushPromises();
+      expect(wrapper.text()).toBe('second');
+
+      // Now second has real history: its closed fallback is relevant again.
+      await allSettled(second.close, { scope, params: undefined });
+      await flushPromises();
+      expect(wrapper.text()).toBe('second closed');
+    });
+
     test('renders a nested fallback through Outlet', async () => {
       const profileRoute = createRoute();
       const settingsRoute = createRoute();
