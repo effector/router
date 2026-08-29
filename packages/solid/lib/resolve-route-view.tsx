@@ -87,10 +87,9 @@ export function useResolvedRouteView(
   const pending = useUnit(combine(routes.map(pendingStore)));
   const hasOtherwise = options?.hasOtherwise ?? false;
 
-  // Plain (non-reactive) box for the last definite resolution — an opened
-  // view, a `loading` fallback, or a `closed` fallback. It is deliberately
-  // left untouched when neither applies, so an intermediate recompute with
-  // nothing to show does not erase what a later pending tick should hold.
+  // Plain (non-reactive) box for the last resolution: reading and writing it
+  // inside `resolve` must not register as one of its reactive dependencies,
+  // or holding the frame would retrigger itself.
   let previous: ResolvedRouteView | null = null;
   // Whether any route in the list has ever opened or been pending, so step 4
   // can tell a route that was genuinely visited from one that never matched.
@@ -138,13 +137,11 @@ export function useResolvedRouteView(
     }
 
     if (closed && hasOtherwise && !hasBeenActive) {
+      previous = null;
       return null;
     }
 
-    if (closed) {
-      previous = closed;
-    }
-
+    previous = closed;
     return closed;
   };
 
