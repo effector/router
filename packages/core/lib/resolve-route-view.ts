@@ -22,6 +22,12 @@
  * has actually opened or been pending at least once — otherwise a sibling's
  * `closed` fallback would permanently shadow a declared `otherwise` for a URL
  * that never matched anything in the list.
+ *
+ * `resolveRouteView` itself never mutates anything: it takes the state left
+ * by the previous call and returns the next one, leaving the caller free to
+ * decide when that next state actually becomes "current" (a plain variable
+ * for Solid/Vue's synchronous reactivity; only after a render commits for
+ * React, where an in-progress render can be discarded without ever painting).
  */
 
 export interface RouteViewFallbackShape<TComponent> {
@@ -35,11 +41,9 @@ export interface ResolvedRouteView<TView, TComponent> {
 }
 
 /**
- * Carries the algorithm's own bookkeeping across calls: which view was last
+ * The algorithm's own bookkeeping carried across calls: which view was last
  * resolved (for the transition hold) and whether the list has ever had real
- * activity (for the `otherwise` gate). One instance belongs to one
- * `resolveRouteView` call site — create it once per component instance/setup
- * and reuse it across every call.
+ * activity (for the `otherwise` gate).
  */
 export interface ResolveRouteViewState<TView, TComponent> {
   previous: ResolvedRouteView<TView, TComponent> | null;
@@ -60,12 +64,17 @@ export interface ResolveRouteViewParams<TView, TComponent> {
   getFallback: (view: TView) => RouteViewFallbackShape<TComponent> | undefined;
   getViewComponent: (view: TView) => TComponent;
   hasOtherwise: boolean;
+  previousState: ResolveRouteViewState<TView, TComponent>;
+}
+
+export interface ResolveRouteViewResult<TView, TComponent> {
+  resolved: ResolvedRouteView<TView, TComponent> | null;
   state: ResolveRouteViewState<TView, TComponent>;
 }
 
 export function resolveRouteView<TView, TComponent>(
   params: ResolveRouteViewParams<TView, TComponent>,
-): ResolvedRouteView<TView, TComponent> | null {
+): ResolveRouteViewResult<TView, TComponent> {
   const {
     views,
     openedView,
@@ -73,19 +82,19 @@ export function resolveRouteView<TView, TComponent>(
     getFallback,
     getViewComponent,
     hasOtherwise,
-    state,
+    previousState,
   } = params;
 
-  if (openedView || pending.some(Boolean)) {
-    state.hasBeenActive = true;
-  }
+  const hasBeenActive =
+    previousState.hasBeenActive || Boolean(openedView) || pending.some(Boolean);
 
   if (openedView) {
-    state.previous = {
+    const resolved = {
       view: openedView,
       component: getViewComponent(openedView),
     };
-    return state.previous;
+
+    return { resolved, state: { previous: resolved, hasBeenActive } };
   }
 
   let loading: ResolvedRouteView<TView, TComponent> | null = null;
@@ -105,22 +114,22 @@ export function resolveRouteView<TView, TComponent>(
   }
 
   if (loading) {
-    state.previous = loading;
-    return loading;
+    return { resolved: loading, state: { previous: loading, hasBeenActive } };
   }
 
   // Nothing in the list claims this frame outright, but a route is still
   // transitioning: hold the frame already on screen rather than falling
   // through to `closed`/`otherwise`.
-  if (state.previous && pending.some(Boolean)) {
-    return state.previous;
+  if (previousState.previous && pending.some(Boolean)) {
+    return {
+      resolved: previousState.previous,
+      state: { previous: previousState.previous, hasBeenActive },
+    };
   }
 
-  if (closed && hasOtherwise && !state.hasBeenActive) {
-    state.previous = null;
-    return null;
+  if (closed && hasOtherwise && !hasBeenActive) {
+    return { resolved: null, state: { previous: null, hasBeenActive } };
   }
 
-  state.previous = closed;
-  return closed;
+  return { resolved: closed, state: { previous: closed, hasBeenActive } };
 }

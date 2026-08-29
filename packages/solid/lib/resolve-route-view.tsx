@@ -1,6 +1,10 @@
 import { createMemo, type Accessor, type Component, type JSX } from 'solid-js';
 import { combine, createStore, type Store } from 'effector';
 import { useUnit } from 'effector-solid';
+import {
+  createResolveRouteViewState,
+  resolveRouteView,
+} from '@effector/router';
 import { useOpenedViews } from './use-opened-views';
 import {
   routeViewFallback,
@@ -61,23 +65,11 @@ function pendingStore(view: RouteView): Store<boolean> {
 
 /**
  * @description Reactive accessor with the single view a routes view or an
- * `<Outlet />` should render:
- *
- * 1. the deepest opened view, if one of the listed views is opened;
- * 2. otherwise the `loading` of a pending view;
- * 3. otherwise the previously resolved view, while any listed route is still
- *    pending — closing the previous route and opening the next one is not
- *    atomic, and this holds the frame already on screen through that gap
- *    instead of tearing it down for a fallback that belongs to an unrelated
- *    view;
- * 4. otherwise the `closed` of a closed view;
- * 5. otherwise `null`.
+ * `<Outlet />` should render — see `resolveRouteView` in `@effector/router`
+ * for the 5-step resolution order this wraps.
  *
  * @param options.hasOtherwise Whether the caller has its own fallback for
- * "nothing matched" (`createRoutesView`'s `otherwise`). When set, step 4 is
- * skipped until something in `routes` has actually opened or been pending at
- * least once — otherwise a sibling's `closed` fallback would permanently
- * shadow `otherwise` for a URL that never matched anything in this list.
+ * "nothing matched" (`createRoutesView`'s `otherwise`).
  */
 export function useResolvedRouteView(
   routes: RouteView[],
@@ -86,63 +78,22 @@ export function useResolvedRouteView(
   const openedViews = useOpenedViews(routes);
   const pending = useUnit(combine(routes.map(pendingStore)));
   const hasOtherwise = options?.hasOtherwise ?? false;
-
-  // Plain (non-reactive) box for the last resolution: reading and writing it
-  // inside `resolve` must not register as one of its reactive dependencies,
-  // or holding the frame would retrigger itself.
-  let previous: ResolvedRouteView | null = null;
-  // Whether any route in the list has ever opened or been pending, so step 4
-  // can tell a route that was genuinely visited from one that never matched.
-  let hasBeenActive = false;
+  let state = createResolveRouteViewState<RouteView, Component>();
 
   const resolve = (): ResolvedRouteView | null => {
-    const openedView = openedViews().at(-1);
-    const pendingValues = pending();
+    const { resolved, state: nextState } = resolveRouteView({
+      views: routes,
+      openedView: openedViews().at(-1),
+      pending: pending(),
+      getFallback: (view) => view[routeViewFallback],
+      getViewComponent: (view) => view.view,
+      hasOtherwise,
+      previousState: state,
+    });
 
-    if (openedView || pendingValues.some(Boolean)) {
-      hasBeenActive = true;
-    }
+    state = nextState;
 
-    if (openedView) {
-      previous = { view: openedView, component: openedView.view };
-      return previous;
-    }
-
-    let loading: ResolvedRouteView | null = null;
-    let closed: ResolvedRouteView | null = null;
-
-    for (let index = 0; index < routes.length; index += 1) {
-      const view = routes[index];
-      const fallback = view[routeViewFallback];
-
-      if (!fallback) continue;
-
-      if (fallback.loading && pendingValues[index]) {
-        loading = { view, component: fallback.loading };
-      } else if (fallback.closed) {
-        closed = { view, component: fallback.closed };
-      }
-    }
-
-    if (loading) {
-      previous = loading;
-      return loading;
-    }
-
-    // Nothing in the list claims this frame outright, but a route is still
-    // transitioning: hold the frame already on screen rather than falling
-    // through to `closed`/`otherwise`.
-    if (previous && pendingValues.some(Boolean)) {
-      return previous;
-    }
-
-    if (closed && hasOtherwise && !hasBeenActive) {
-      previous = null;
-      return null;
-    }
-
-    previous = closed;
-    return closed;
+    return resolved;
   };
 
   // Keep the identity stable while the same component stays selected, so keyed

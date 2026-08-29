@@ -8,6 +8,11 @@ import {
 } from 'react';
 import { combine, createStore, type Store } from 'effector';
 import { useUnit } from 'effector-react';
+import {
+  createResolveRouteViewState,
+  resolveRouteView,
+  type ResolveRouteViewState,
+} from '@effector/router';
 import { useOpenedViews } from './use-opened-views';
 import {
   routeViewFallback,
@@ -81,23 +86,11 @@ function pendingStore(view: RouteView): Store<boolean> {
 
 /**
  * @description Reactively resolves the single view a routes view or an
- * `<Outlet />` should render:
- *
- * 1. the deepest opened view, if one of the listed views is opened;
- * 2. otherwise the `loading` of a pending view;
- * 3. otherwise the previously resolved view, while any listed route is still
- *    pending — closing the previous route and opening the next one is not
- *    atomic, and this holds the frame already on screen through that gap
- *    instead of tearing it down for a fallback that belongs to an unrelated
- *    view;
- * 4. otherwise the `closed` of a closed view;
- * 5. otherwise `null`.
+ * `<Outlet />` should render — see `resolveRouteView` in `@effector/router`
+ * for the 5-step resolution order this wraps.
  *
  * @param options.hasOtherwise Whether the caller has its own fallback for
- * "nothing matched" (`createRoutesView`'s `otherwise`). When set, step 4 is
- * skipped until something in `routes` has actually opened or been pending at
- * least once — otherwise a sibling's `closed` fallback would permanently
- * shadow `otherwise` for a URL that never matched anything in this list.
+ * "nothing matched" (`createRoutesView`'s `otherwise`).
  */
 export function useResolvedRouteView(
   routes: RouteView[],
@@ -106,75 +99,48 @@ export function useResolvedRouteView(
   const openedViews = useOpenedViews(routes);
   const $pending = useMemo(() => combine(routes.map(pendingStore)), [routes]);
   const pending = useUnit($pending);
-  // Router churn that does not change the selection — a sibling chain starting
-  // to prepare, for example — must not hand a new object to the renderer, or
-  // the whole selected branch re-renders with it.
-  const previous = useRef<ResolvedRouteView | null>(null);
-  // Whether any route in the list has ever opened or been pending, so step 4
-  // can tell a route that was genuinely visited from one that never matched.
-  const hasBeenActive = useRef(false);
   const hasOtherwise = options?.hasOtherwise ?? false;
 
-  const resolved = useMemo(() => {
-    const openedView = openedViews.at(-1);
+  // State as of the last render that actually committed. A render pass that
+  // never commits (React 18 Strict Mode's double-invoke, an interrupted
+  // concurrent render) must not leave behind a value nothing on screen ever
+  // matched, so only a useLayoutEffect below may advance it.
+  const committed = useRef<ResolveRouteViewState<RouteView, FC>>(
+    createResolveRouteViewState(),
+  );
 
-    if (openedView || pending.some(Boolean)) {
-      hasBeenActive.current = true;
-    }
+  const { resolved, state } = useMemo(
+    () =>
+      resolveRouteView({
+        views: routes,
+        openedView: openedViews.at(-1),
+        pending,
+        getFallback: (view) => view[routeViewFallback],
+        getViewComponent: (view) => view.view,
+        hasOtherwise,
+        previousState: committed.current,
+      }),
+    [routes, openedViews, pending, hasOtherwise],
+  );
 
-    if (openedView) {
-      return { view: openedView, component: openedView.view };
-    }
-
-    let loading: ResolvedRouteView | null = null;
-    let closed: ResolvedRouteView | null = null;
-
-    for (let index = 0; index < routes.length; index += 1) {
-      const view = routes[index];
-      const fallback = view[routeViewFallback];
-
-      if (!fallback) continue;
-
-      if (fallback.loading && pending[index]) {
-        loading = { view, component: fallback.loading };
-      } else if (fallback.closed) {
-        closed = { view, component: fallback.closed };
-      }
-    }
-
-    if (loading) {
-      return loading;
-    }
-
-    // Nothing in the list claims this frame outright, but a route is still
-    // transitioning: hold the frame already on screen rather than falling
-    // through to `closed`/`otherwise`.
-    if (previous.current && pending.some(Boolean)) {
-      return previous.current;
-    }
-
-    if (closed && hasOtherwise && !hasBeenActive.current) {
-      return null;
-    }
-
-    return closed;
-  }, [routes, openedViews, pending, hasOtherwise]);
-
-  const last = previous.current;
+  // Router churn that does not change the selection — a sibling chain
+  // starting to prepare, for example — must not hand a new object to the
+  // renderer, or the whole selected branch re-renders with it.
+  const lastResolved = committed.current.previous;
   const collapsed =
-    last &&
+    lastResolved &&
     resolved &&
-    last.view === resolved.view &&
-    last.component === resolved.component
-      ? last
+    lastResolved.view === resolved.view &&
+    lastResolved.component === resolved.component
+      ? lastResolved
       : resolved;
 
-  // Only a committed render may update `previous`: a render pass that never
-  // commits (React 18 Strict Mode's double-invoke, an interrupted concurrent
-  // render) must not leave behind a value nothing on screen ever matched.
   useLayoutEffect(() => {
-    previous.current = collapsed;
-  }, [collapsed]);
+    committed.current = {
+      previous: collapsed,
+      hasBeenActive: state.hasBeenActive,
+    };
+  }, [collapsed, state.hasBeenActive]);
 
   return collapsed;
 }
