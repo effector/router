@@ -388,6 +388,7 @@ controls.navigate({
 - [createRouter](/core/create-router) - Create complete router with controls
 - [Adapters](/core/adapters) - History adapters and custom adapter creation
 - [trackQuery](/core/track-query) - Track individual query parameters
+- [Routes and query](/explanation/routes-and-query) - Route identity vs query state
 
 [`createRouter`]: /core/create-router
 [`trackQuery`]: /core/track-query

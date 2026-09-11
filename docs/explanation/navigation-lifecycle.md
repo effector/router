@@ -110,6 +110,8 @@ barriers are useful for shared recovery around asynchronous work, but do not
 model history, confirmation, or redirects. React Router likewise separates
 pre-commit blockers from post-commit data loading. The router keeps those roles
 composable from ordinary Effector events, effects, stores, and `sample`.
+Path params and query stay separate objects: a query-only commit is not a
+route activation. See [Routes and query](/explanation/routes-and-query).
 
 Redirects are semantic navigation targets composed with `sample`; they re-enter
 normal matching, supersede a held attempt, and are bounded to prevent loops.

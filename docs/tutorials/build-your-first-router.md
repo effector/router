@@ -150,5 +150,7 @@ button returns you to Home, all without a full page reload.
   query string), and how partial navigation targets are resolved.
 - [Navigation lifecycle](/explanation/navigation-lifecycle) — what actually
   happens, in what order, between a navigation request and a route opening.
+- [Routes and query](/explanation/routes-and-query) — why path params and
+  query are different objects, and how to compose loading from each.
 - [React reference](/react/) — the full API surface used above, plus
   `Outlet`, `withLayout`, and the `use*` hooks for nested routing.

@@ -105,6 +105,7 @@ profileRoute.open({ replace: true });
 
 - [trackQuery](/core/track-query) - Track query parameter changes
 - [group](/core/group) - Group related routes
+- [Routes and query](/explanation/routes-and-query) - Route identity vs query state
 
 ## Quick Example
 
