@@ -89,7 +89,8 @@ Duplicate names are rejected during path validation.
 The first activation emits `opened`, not `updated`. Later value changes emit one
 `updated` payload; equal params, query-only changes, and closing the route do
 not emit it. Param comparison ignores object key order but preserves array order
-and the difference between `null` and an absent key.
+and the difference between `null` and an absent key. Query lives on controls,
+not on the route; see [Routes and query](/explanation/routes-and-query).
 
 The route contract is shared by path and pathless routes, including nested
 parent chains and Fork/SSR usage. The deprecated `createVirtualRoute` alias is
@@ -349,4 +350,5 @@ beforeNavigate({
 - [createVirtualRoute](/core/create-virtual-route) - Create virtual routes
 - [beforeNavigate](/core/before-navigate) - Hold transitions before history
 - [chainRoute](/core/chain-route) - Derive post-commit readiness
+- [Routes and query](/explanation/routes-and-query) - Route identity vs query state
 - [@effector/router-paths](https://github.com/effector/router/tree/main/packages/router-paths) - Path parameter syntax

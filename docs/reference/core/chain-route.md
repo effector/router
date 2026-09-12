@@ -100,7 +100,10 @@ const ready = chainRoute({
 ```
 
 Use this for post-commit authorization/readiness UI, not for protecting a URL
-from entering history. For a true transition guard, compose
+from entering history. Nested chains stay on the route object: they do not
+re-run when only the query changes. Load filters from `$query` or
+[`trackQuery`](/core/track-query); see [Routes and query](/explanation/routes-and-query).
+For a true transition guard, compose
 `beforeNavigate({ controls, to: routes.admin, ... })`.
 
 ## Lifecycle summary
@@ -112,4 +115,5 @@ from entering history. For a true transition guard, compose
 5. A newer parent activation supersedes the older attempt.
 
 See [Navigation lifecycle](/core/navigation-lifecycle) for the pre-/post-commit
-boundary.
+boundary, and [Routes and query](/explanation/routes-and-query) for why a
+query-only `route.open` does not restart a chain.

@@ -178,6 +178,10 @@ export default defineConfig({
               text: 'Navigation lifecycle',
               link: '/explanation/navigation-lifecycle',
             },
+            {
+              text: 'Routes and query',
+              link: '/explanation/routes-and-query',
+            },
           ],
         },
       ],

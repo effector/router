@@ -520,5 +520,6 @@ const mixedTracker = trackQuery({
 
 ## See Also
 
+- [Routes and query](/explanation/routes-and-query) - Why query is not a route update
 - [createRouter](/core/create-router) - Register routes and bind controls to history
 - [createRouterControls](/core/create-router-controls) - Create controls for standalone operators
