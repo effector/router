@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@effector/router": "workspace:^",
-    "query-string": "^9.1.1"
+    "query-string": "^9.5.1"
   },
   "peerDependencies": {
     "effector": "catalog:peer",
