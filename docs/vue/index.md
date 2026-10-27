@@ -56,9 +56,13 @@ Reactivity and Effector `Scope` are handled by `effector-vue`. Register its scop
 plugin at the app root when you need a forked scope:
 
 ```ts
-import { EffectorScopePlugin } from 'effector-vue';
+import { EffectorScopePlugin } from 'effector-vue/composition';
 
 app.use(EffectorScopePlugin({ scope }));
 ```
+
+With `forceScope: true` a component that runs without a scope throws instead of
+reading the global state. `forceScope` works since `effector-vue` 23.3.0. The
+`effector-vue/composition` export of the plugin exists since 23.2.0.
 
 [`Link`]: /vue/link
