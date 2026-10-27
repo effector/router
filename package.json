@@ -46,7 +46,7 @@
     "effector": "^23.4.4",
     "effector-react": "^23.3.0",
     "effector-solid": "^0.23.0",
-    "effector-vue": "^23.1.1",
+    "effector-vue": "^23.3.0",
     "eslint": "10.0.2",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-prettier": "5.5.5",
