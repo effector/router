@@ -5,6 +5,7 @@ import type { RouteView } from './types';
 export const RouterInjectionKey: InjectionKey<Router> =
   Symbol('effector-router');
 
-export const OutletInjectionKey: InjectionKey<RouteView[]> = Symbol(
+/** Reads the children of the view rendered above, at the time of the call. */
+export const OutletInjectionKey: InjectionKey<() => RouteView[]> = Symbol(
   'effector-router-outlet',
 );

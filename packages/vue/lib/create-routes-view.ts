@@ -20,7 +20,9 @@ export const RouteRenderer = defineComponent({
     routeView: { type: Object as PropType<RouteView>, required: true },
   },
   setup(props) {
-    provide(OutletInjectionKey, props.routeView.children ?? []);
+    // A grouped renderer outlives its first view, so `<Outlet />` reads the
+    // children of the view that is rendered now.
+    provide(OutletInjectionKey, () => props.routeView.children ?? []);
 
     return () => {
       const group = props.routeView[layoutGroup];

@@ -625,4 +625,55 @@ describe('vue bindings', () => {
     expect(wrapper.find('[data-testid="layout"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="message"]').text()).toBe('auth');
   });
+
+  test('outlet of a grouped sibling renders its own children', async () => {
+    const first = createRoute();
+    const firstChild = createRoute();
+    const second = createRoute();
+    const secondChild = createRoute();
+    const scope = fork();
+    let layoutMounts = 0;
+    const Layout = defineComponent({
+      setup(_, { slots }) {
+        onMounted(() => {
+          layoutMounts += 1;
+        });
+        return () => h('section', slots.default?.());
+      },
+    });
+    const page = (name: string) =>
+      defineComponent({ render: () => h('div', [`${name}:`, h(Outlet)]) });
+    const leaf = (name: string) =>
+      defineComponent({ render: () => h('span', name) });
+    const RoutesView = createRoutesView({
+      routes: withLayout(Layout, [
+        createRouteView({
+          route: first,
+          view: page('first'),
+          children: [createRouteView({ route: firstChild, view: leaf('a') })],
+        }),
+        createRouteView({
+          route: second,
+          view: page('second'),
+          children: [createRouteView({ route: secondChild, view: leaf('b') })],
+        }),
+      ]),
+    });
+    const wrapper = mountRoutes(
+      createRouter({ routes: [] }),
+      scope,
+      RoutesView,
+    );
+
+    await allSettled(first.open, { scope, params: undefined });
+    await allSettled(firstChild.open, { scope, params: undefined });
+    await flushPromises();
+    expect(wrapper.text()).toBe('first:a');
+
+    await allSettled(second.open, { scope, params: undefined });
+    await allSettled(secondChild.open, { scope, params: undefined });
+    await flushPromises();
+    expect(layoutMounts).toBe(1);
+    expect(wrapper.text()).toBe('second:b');
+  });
 });

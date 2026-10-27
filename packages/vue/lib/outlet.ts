@@ -24,7 +24,7 @@ import { RouteRenderer } from './create-routes-view';
 export const Outlet = defineComponent({
   name: 'Outlet',
   setup() {
-    const children = inject(OutletInjectionKey, []);
+    const children = inject(OutletInjectionKey, () => [])();
     const openedViews = useOpenedViews(children);
 
     return () => {
