@@ -118,10 +118,13 @@ Reactivity and Effector `Scope` handling are provided by `effector-vue`. Install
 its scope plugin in your app (or tests) to run inside a forked scope:
 
 ```ts
-import { EffectorScopePlugin } from 'effector-vue';
+import { EffectorScopePlugin } from 'effector-vue/composition';
 
 app.use(EffectorScopePlugin({ scope }));
 ```
+
+With `forceScope: true` a component that runs without a scope throws instead of
+reading the global state. Both need `effector-vue` 23.3.0 or newer.
 
 ## Documentation
 
