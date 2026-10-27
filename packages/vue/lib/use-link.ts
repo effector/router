@@ -40,9 +40,7 @@ export function useLink<T extends object | void = void>(to: Route<T>) {
     build: (params?: T, query?: QueryInput) => {
       const path = target.build(params ?? undefined);
       const effectiveQuery = query === undefined ? currentQuery.value : query;
-      const search = effectiveQuery
-        ? stringifyQuery(effectiveQuery as QueryInput)
-        : '';
+      const search = effectiveQuery ? stringifyQuery(effectiveQuery) : '';
 
       return search ? `${path}?${search}` : path;
     },
