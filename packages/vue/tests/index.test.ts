@@ -9,7 +9,7 @@ import {
 } from '@effector/router';
 import { createMemoryHistory } from 'history';
 import { flushPromises, mount } from '@vue/test-utils';
-import { defineComponent, h, onMounted, onUnmounted } from 'vue';
+import { defineComponent, h, onMounted, onUnmounted, ref } from 'vue';
 import { EffectorScopePlugin } from 'effector-vue/composition';
 import {
   createLazyRouteView,
@@ -440,6 +440,53 @@ describe('vue bindings', () => {
     expect(scope.getState(route2.$isOpened)).toBeTruthy();
     expect(scope.getState(route2.$params)).toStrictEqual({ id: '123' });
     expect(scope.getState(router.$query)).toStrictEqual({ tab: 'details' });
+  });
+
+  test('link follows a changed `to`', async () => {
+    const home = createRoute({ path: '/home' });
+    const first = createRoute({ path: '/first' });
+    const second = createRoute({ path: '/second/:id' });
+    const scope = fork();
+    const router = createRouter({ routes: [home, first, second] });
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(createMemoryHistory()),
+    });
+
+    const target = ref<'first' | 'second'>('first');
+    const RoutesView = createRoutesView({
+      routes: [
+        {
+          route: home,
+          view: () =>
+            target.value === 'first'
+              ? h(Link, { to: first, id: 'link' }, () => 'go')
+              : h(
+                  Link,
+                  { to: second, params: { id: '7' }, id: 'link' },
+                  () => 'go',
+                ),
+        },
+      ],
+    });
+    const wrapper = mountRoutes(router, scope, RoutesView);
+
+    await allSettled(home.open, { scope, params: undefined });
+    await flushPromises();
+    expect(wrapper.find('#link').attributes('href')).toBe('/first');
+
+    target.value = 'second';
+    await flushPromises();
+    expect(wrapper.find('#link').attributes('href')).toBe('/second/7');
+
+    await wrapper.find('#link').trigger('click');
+    await allSettled(scope);
+    await flushPromises();
+
+    expect(scope.getState(first.$isOpened)).toBe(false);
+    expect(scope.getState(second.$isOpened)).toBe(true);
+    expect(scope.getState(second.$params)).toStrictEqual({ id: '7' });
   });
 
   test('href and route.open share effective query semantics', async () => {

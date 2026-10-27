@@ -23,6 +23,8 @@ anchor attributes and `onClick` are forwarded to the rendered anchor.
 - `type`: `Route<T>`
 - `required`: yes
 
+A new `to` updates `href` and the route opened on click.
+
 #### `params`
 
 - `type`: `T`

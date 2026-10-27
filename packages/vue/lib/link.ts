@@ -1,6 +1,6 @@
 import { defineComponent, h, type PropType } from 'vue';
 import type { QueryInput, Route, RouteOpenedPayload } from '@effector/router';
-import { useLink } from './use-link';
+import { useLinkTo } from './use-link';
 
 /**
  * @description Navigates user to provided route on click. Behaves like an
@@ -32,7 +32,7 @@ export const Link = defineComponent({
     },
   },
   setup(props, { slots, attrs }) {
-    const link = useLink(props.to);
+    const link = useLinkTo(() => props.to);
 
     const handleClick = (event: MouseEvent) => {
       props.onClick?.(event);
