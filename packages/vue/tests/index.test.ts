@@ -8,8 +8,8 @@ import {
 } from '@effector/router';
 import { createMemoryHistory } from 'history';
 import { flushPromises, mount } from '@vue/test-utils';
-import { defineComponent, h, onMounted, onUnmounted, type Plugin } from 'vue';
-import { createRequire } from 'node:module';
+import { defineComponent, h, onMounted, onUnmounted } from 'vue';
+import { EffectorScopePlugin } from 'effector-vue/composition';
 import {
   createLazyRouteView,
   createRouteView,
@@ -19,15 +19,6 @@ import {
   RouterProvider,
   withLayout,
 } from '../lib';
-
-// effector-vue@23.1.1's native ESM entry imports a Vue 2-style default export,
-// which Vitest cannot load with Vue 3. The package's CJS entry exposes the same
-// public factory and lets this test exercise the documented plugin setup.
-const { EffectorScopePlugin } = createRequire(import.meta.url)(
-  'effector-vue',
-) as {
-  EffectorScopePlugin: (config: { scope: Scope }) => Plugin;
-};
 
 function mountRoutes(
   router: Router,
