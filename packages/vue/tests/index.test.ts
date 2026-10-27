@@ -1,4 +1,5 @@
 import { allSettled, fork, type Scope } from 'effector';
+import { inspectGraph } from 'effector/inspect';
 import { describe, expect, test, vi } from 'vitest';
 import {
   createRoute,
@@ -72,6 +73,46 @@ describe('vue bindings', () => {
     const wrapper = mountRoutes(router, scope, RoutesView);
 
     await allSettled(first.open, { scope, params: undefined });
+    await allSettled(second.open, { scope, params: undefined });
+    await flushPromises();
+
+    expect(wrapper.text()).toBe('second');
+  });
+
+  test('creates no stores when a routes view mounts', async () => {
+    const first = createRoute();
+    const second = createRoute();
+    const scope = fork();
+    const router = createRouter({ routes: [] });
+    const RoutesView = createRoutesView({
+      routes: [
+        createRouteView({
+          route: first,
+          view: { render: () => h('p', 'first') },
+        }),
+        createRouteView({
+          route: second,
+          view: { render: () => h('p', 'second') },
+        }),
+      ],
+    });
+    const stores: string[] = [];
+    const inspection = inspectGraph({
+      fn: (declaration) => {
+        if (declaration.type === 'unit' && declaration.kind === 'store') {
+          stores.push(declaration.id);
+        }
+      },
+    });
+
+    for (let i = 0; i < 3; i++) {
+      mountRoutes(router, scope, RoutesView).unmount();
+    }
+    inspection.unsubscribe();
+
+    expect(stores).toEqual([]);
+
+    const wrapper = mountRoutes(router, scope, RoutesView);
     await allSettled(second.open, { scope, params: undefined });
     await flushPromises();
 
