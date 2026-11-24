@@ -94,10 +94,12 @@ import { routes } from '@shared/routing';
 
 - `RouterProvider` — provide the router to the tree (via `provide`/`inject`).
 - `createRouteView` / `createLazyRouteView` — bind a route to a component (with optional lazy loading).
-- Lazy importers start when their view renders; preload is an application-owned
-  Effect and never a recursive `route.open()` call.
+- Lazy importers start when their view renders or when the application calls
+  `preload()` of the lazy view, for example from an Effect; preload is never a
+  recursive `route.open()` call.
   `createLazyRouteView` also takes `error`, `onError`, `timeout`, `delay`,
   `suspensible` (default `false`) and `hydrate`.
+  Both functions take `name`, the component name for `KeepAlive include`.
 - `createRoutesView` — render the currently opened route, with an `otherwise` fallback.
 - Selection is declarative: active parents are suppressed by active children and
   the last declared remaining view wins.

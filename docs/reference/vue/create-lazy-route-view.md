@@ -6,9 +6,10 @@ bundle loads), optional `layout` and the loading options listed below.
 
 ## TypeScript
 
-`CreateLazyRouteViewProps<T>` is the exported input type and `RouteView` is the
-returned view descriptor. It has the same `route`, optional `layout`, and
-optional `children` fields as `CreateRouteViewProps<T>`, plus:
+`CreateLazyRouteViewProps<T>` is the exported input type and `LazyRouteView` is
+the returned view descriptor: a `RouteView` with [`preload()`](#preload). The
+input has the same `route`, optional `layout`, optional `children` and optional
+`name` fields as `CreateRouteViewProps<T>`, plus:
 
 - `view`: a function returning `Promise<{ default: Component }>`
 - `fallback?`: the component rendered while the async component loads
@@ -71,20 +72,47 @@ under an ancestor `<Suspense>`. With `suspensible: true` an ancestor
 
 ### Preload
 
-For preload, reuse the importer in an ordinary Effect instead of calling
-`route.open()` from a preparation hook:
+The returned view has `preload(): Promise<void>`. It calls the loader ahead of
+the render. The render and every `preload()` call share one request.
 
 ```ts
 import { createEffect } from 'effector';
 
-const importProfile = () => import('./Profile.vue');
-const preloadProfileFx = createEffect(importProfile);
-
 export const ProfileScreen = createLazyRouteView({
   route: routes.profile,
-  view: importProfile,
+  view: () => import('./Profile.vue'),
   fallback: Fallback,
+});
+
+const preloadProfileFx = createEffect(() => ProfileScreen.preload());
+```
+
+- A view mounted after the promise resolved renders the page at once, and
+  `fallback` is never mounted.
+- The promise rejects when the loader rejects or throws. The failed request is
+  dropped, so the next `preload()` or render calls the loader again.
+- `onError` and its `retry` belong to the render. They do not run for a failed
+  `preload()`.
+- Start preload from an ordinary Effect or event handler, not by calling
+  `route.open()` from a preparation hook.
+- [`withLayout`] returns copies typed as `RouteView`. Call `preload()` on the
+  object that `createLazyRouteView` returned.
+
+### Name
+
+`name` is the component name of the view. `KeepAlive include` matches it before
+the chunk loads, when the name of the page itself is not known yet:
+
+```ts
+export const ProfileScreen = createLazyRouteView({
+  route: routes.profile,
+  view: () => import('./Profile.vue'),
+  name: 'ProfilePage',
 });
 ```
 
+Without `name` the view is named `LazyRouteView`, or `LazyRouteViewWithLayout`
+when it has a `layout`.
+
 [`defineAsyncComponent`]: https://vuejs.org/api/general.html#defineasynccomponent
+[`withLayout`]: /vue/with-layout

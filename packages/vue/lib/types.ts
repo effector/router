@@ -29,10 +29,26 @@ export interface RouteView {
   [layoutGroup]?: LayoutGroup;
 }
 
+/** What `createLazyRouteView` returns. */
+export interface LazyRouteView extends RouteView {
+  /**
+   * Loads the chunk of the view ahead of its render. A view mounted after the
+   * returned promise resolved renders the page at once, without `fallback`.
+   * The promise rejects when the loader rejects or throws; a later call loads
+   * again.
+   */
+  preload(): Promise<void>;
+}
+
 interface CreateBaseRouteViewProps<T extends object | void = void> {
   route: Route<T> | RouteViewTarget | Router;
   layout?: Component;
   children?: RouteView[];
+  /**
+   * Component name of the view, for `KeepAlive include` and devtools. Without
+   * it a lazy view is `LazyRouteView` and a plain view keeps its own name.
+   */
+  name?: string;
 }
 
 export interface CreateRouteViewProps<
