@@ -21,7 +21,6 @@ import type {
 
 import { compile } from '@effector/router-paths';
 import { createRouterControls } from './create-router-controls';
-import { createAction } from 'effector-action';
 import { is } from './utils';
 import {
   type InternalNavigatePayload,
@@ -371,14 +370,10 @@ export function createRouter(config: RouterConfig): Router {
   $lastMatchedCount.on(openRoutesByPathFx.doneData, (_, { count }) => count);
 
   function registerRouteApi({ route, build }: MappedRoute) {
-    createAction({
+    sample({
       clock: route.internal.openFx.doneData,
-      target: { navigate },
-      fn: (target, payload) => {
-        if (payload?.navigate === false) {
-          return;
-        }
-
+      filter: (payload) => payload?.navigate !== false,
+      fn: (payload) => {
         const navigateParams: InternalNavigatePayload = {
           path: build(
             payload && 'params' in payload ? payload.params : undefined,
@@ -400,8 +395,9 @@ export function createRouter(config: RouterConfig): Router {
           navigateParams[navigationKind] = 'redirect';
         }
 
-        return target.navigate(navigateParams);
+        return navigateParams;
       },
+      target: navigate,
     });
   }
 

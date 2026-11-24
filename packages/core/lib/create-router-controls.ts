@@ -4,11 +4,11 @@ import {
   createEvent,
   createStore,
   merge,
+  perform,
   sample,
+  scopeBind,
   type Subscription,
 } from 'effector';
-
-import { createAsyncAction } from 'effector-action';
 
 import type {
   LocationState,
@@ -334,51 +334,54 @@ export function createRouterControls(): RouterControls {
     target: reportRedirectLoopFx,
   });
 
-  const subscribeHistoryFx = createAsyncAction({
-    target: {
-      locationUpdated,
-      locationInitialized,
-      initialized,
-      nativeNavigationRequested,
-      $subscription,
-      $blockSubscription,
+  // History callbacks fire outside of any effector call, so they are bound to
+  // the scope while the effect still runs synchronously inside it.
+  const subscribeHistoryFx = attach({
+    source: {
+      subscription: $subscription,
+      blockSubscription: $blockSubscription,
     },
-    source: { $subscription, $blockSubscription },
-    fn: async (target, getSource, history: RouterAdapter | null) => {
-      if (!history) {
-        throw Error(
-          'Cannot initialize router controls with empty history adapter. Please provide a non-null adapter',
-        );
-      }
+    effect: ({ subscription, blockSubscription }, history: RouterAdapter) => {
+      subscription?.unsubscribe();
+      blockSubscription?.unsubscribe();
 
-      const source = await getSource();
-      source.subscription?.unsubscribe();
-      source.blockSubscription?.unsubscribe();
-
-      target.locationInitialized({
-        pathname: history.location.pathname,
-        query: parseQuery(history.location.search),
+      const onLocationUpdated = scopeBind(locationUpdated, { safe: true });
+      const onNativeNavigation = scopeBind(nativeNavigationRequested, {
+        safe: true,
       });
 
-      target.$subscription(
-        history.listen((location) => {
-          target.locationUpdated({
+      return {
+        location: {
+          pathname: history.location.pathname,
+          query: parseQuery(history.location.search),
+        },
+        subscription: history.listen((location) => {
+          onLocationUpdated({
             pathname: location.pathname,
             query: parseQuery(location.search),
           });
         }),
-      );
+        blockSubscription:
+          history.block?.((transition) => {
+            onNativeNavigation(transition);
+          }) ?? null,
+      };
+    },
+  });
 
-      target.$blockSubscription(
-        history.block?.((transition) => {
-          target.nativeNavigationRequested(transition);
-        }) ?? null,
-      );
-
-      target.initialized({
-        path: history.location.pathname,
-        query: parseQuery(history.location.search),
-      });
+  perform({
+    clock: subscribeHistoryFx.doneData,
+    target: {
+      locationInitialized,
+      $subscription,
+      $blockSubscription,
+      initialized,
+    },
+    action: (target, { location, subscription, blockSubscription }) => {
+      target.locationInitialized(location);
+      target.$subscription(subscription);
+      target.$blockSubscription(blockSubscription);
+      target.initialized({ path: location.pathname, query: location.query });
     },
   });
 

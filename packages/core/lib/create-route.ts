@@ -2,6 +2,7 @@ import {
   createEffect,
   createEvent,
   createStore,
+  perform,
   sample,
   type Effect,
 } from 'effector';
@@ -20,7 +21,6 @@ import {
   ParseUrlParams,
   ValidatePath,
 } from '@effector/router-paths';
-import { createAction } from 'effector-action';
 import { createAttemptCoordinator } from './transition-attempt';
 
 type ParentRoute = Route<any> | undefined;
@@ -336,10 +336,10 @@ export function createRoute<Params>(
     target: activateFx,
   });
 
-  createAction({
+  sample({
     clock: forceOpenParentFx.doneData,
-    target: { $params },
-    fn: (target, payload) => target.$params(getOwnParams(payload)),
+    fn: getOwnParams,
+    target: $params,
   });
 
   sample({
@@ -379,14 +379,14 @@ export function createRoute<Params>(
     target: closed,
   });
 
-  createAction({
+  perform({
     clock: forceOpenParentFx.doneData,
     target: {
       openedOnServer,
       openedOnClient,
       opened,
     },
-    fn: (target, payload) => {
+    action: (target, payload) => {
       // Strip internal navigate flag before exposing through the public opened event,
       // so samplings like `sample({ clock: route.opened, target: otherRoute.open })`
       // don't accidentally suppress navigation in the target route.
