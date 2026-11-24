@@ -96,6 +96,8 @@ import { routes } from '@shared/routing';
 - `createRouteView` / `createLazyRouteView` — bind a route to a component (with optional lazy loading).
 - Lazy importers start when their view renders; preload is an application-owned
   Effect and never a recursive `route.open()` call.
+  `createLazyRouteView` also takes `error`, `onError`, `timeout`, `delay`,
+  `suspensible` (default `false`) and `hydrate`.
 - `createRoutesView` — render the currently opened route, with an `otherwise` fallback.
 - Selection is declarative: active parents are suppressed by active children and
   the last declared remaining view wins.

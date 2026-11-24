@@ -23,12 +23,32 @@ import type { CreateLazyRouteViewProps, RouteView } from './types';
 export function createLazyRouteView<T extends object | void = void>(
   props: CreateLazyRouteViewProps<T>,
 ): RouteView {
-  const { route, view, layout, fallback, children } = props;
+  const {
+    route,
+    view,
+    layout,
+    fallback,
+    children,
+    error,
+    onError,
+    timeout,
+    delay = 0,
+    // Vue's own default is `true`. Under any ancestor `<Suspense>` it replaces
+    // `fallback` of this view by the fallback of that Suspense.
+    // Test: "shows fallback under an ancestor Suspense".
+    suspensible = false,
+    hydrate,
+  } = props;
 
   const AsyncView = defineAsyncComponent({
     loader: view,
     loadingComponent: fallback,
-    delay: 0,
+    errorComponent: error,
+    onError,
+    timeout,
+    delay,
+    suspensible,
+    hydrate,
   });
 
   const wrapped = layout
