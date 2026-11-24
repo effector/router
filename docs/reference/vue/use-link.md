@@ -8,15 +8,20 @@ and bound `onOpen` event. Works only inside `<RouterProvider>`.
 ```ts
 function useLink<T extends object | void = void>(
   to: Route<T>,
-): {
-  build: (params?: T, query?: Query) => string;
-  onOpen: (payload: RouteOpenedPayload<T>) => void;
-};
+): UseLinkReturn<T>;
+
+interface UseLinkReturn<T extends object | void = void> {
+  build: (params?: T, query?: QueryInput) => string;
+  onOpen: (payload: RouteOpenPayload<T>) => RouteOpenPayload<T>;
+}
 ```
 
+`UseLinkReturn` is exported from the package.
+
 `build(params, query)` builds the route path and appends the serialized query.
-`onOpen` is the route's raw callable event: it does not capture arguments passed
-to `build`, so pass the navigation payload when calling it.
+`onOpen` is the route's `open` event bound to the current scope. It returns its
+payload, as an Effector event does. It does not capture arguments passed to
+`build`, so pass the navigation payload when calling it.
 
 ### Example
 

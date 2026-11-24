@@ -1,9 +1,18 @@
-import type { Route, Router, OpenPayloadBase } from '@effector/router';
+import type {
+  NavigatePayload,
+  OpenPayloadBase,
+  Query,
+  QueryInput,
+  Route,
+  RouteOpenPayload,
+  Router,
+} from '@effector/router';
 import type {
   AnchorHTMLAttributes,
   AsyncComponentOptions,
   Component,
   HydrationStrategy,
+  Ref,
 } from 'vue';
 
 type RouteViewTarget = Pick<Route<any>, '$isOpened'>;
@@ -69,3 +78,25 @@ export type LinkProps<Params extends object | void = void> = Params extends
   Record<string, never> | void | undefined
   ? BaseLinkProps<Params> & { params?: Params }
   : BaseLinkProps<Params> & { params: Params };
+
+/**
+ * What `useRouter` returns: the unit shape of the router, with stores as
+ * readonly refs and events as functions. Written by hand so that the published
+ * types do not depend on type names exported by `effector-vue`.
+ */
+export interface UseRouterReturn {
+  query: Readonly<Ref<Query>>;
+  path: Readonly<Ref<string | null>>;
+  activeRoutes: Readonly<Ref<Route<any>[]>>;
+  onBack: () => void;
+  onForward: () => void;
+  /** Returns its payload, as an Effector event does. */
+  onNavigate: (payload: NavigatePayload) => NavigatePayload;
+}
+
+/** What `useLink` returns. */
+export interface UseLinkReturn<T extends object | void = void> {
+  build: (params?: T, query?: QueryInput) => string;
+  /** Returns its payload, as an Effector event does. */
+  onOpen: (payload: RouteOpenPayload<T>) => RouteOpenPayload<T>;
+}

@@ -2,4 +2,4 @@
 '@effector/router-vue': minor
 ---
 
-The peer range of `effector-vue` starts at 23.3.0: the package uses APIs and types that exist only since that version.
+The peer range of `effector-vue` starts at 23.3.0: the package calls `useProvidedScope`, which exists only since that version.

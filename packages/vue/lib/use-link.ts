@@ -3,11 +3,11 @@ import {
   type InternalRoute,
   type QueryInput,
   type Route,
-  type RouteOpenPayload,
 } from '@effector/router';
 import { scopeBind } from 'effector';
 import { useProvidedScope, useUnit } from 'effector-vue/composition';
 import { computed, toRaw } from 'vue';
+import type { UseLinkReturn } from './types';
 import { useRouterContext } from './use-router';
 
 /**
@@ -15,7 +15,9 @@ import { useRouterContext } from './use-router';
  * builder and the bound `onOpen` event. Works only inside `<RouterProvider>`
  * @link https://router.effector.dev/vue/use-link.html
  */
-export function useLink<T extends object | void = void>(to: Route<T>) {
+export function useLink<T extends object | void = void>(
+  to: Route<T>,
+): UseLinkReturn<T> {
   return useLinkTo(() => to);
 }
 
@@ -25,7 +27,7 @@ export function useLink<T extends object | void = void>(to: Route<T>) {
  */
 export function useLinkTo<T extends object | void = void>(
   getTo: () => Route<T>,
-) {
+): UseLinkReturn<T> {
   const router = useRouterContext();
   const currentQuery = useUnit(router.$query);
   // Resolved here, in setup: a click handler has no injection context.
@@ -72,6 +74,13 @@ export function useLinkTo<T extends object | void = void>(
 
       return search ? `${path}?${search}` : path;
     },
-    onOpen: (payload: RouteOpenPayload<T>) => link.value.onOpen(payload),
+    // `scopeBind` types its function as returning nothing, while a bound
+    // event returns its payload, so the payload is returned here.
+    // Test: "useLink onOpen opens the route and returns its payload".
+    onOpen: (payload) => {
+      link.value.onOpen(payload);
+
+      return payload;
+    },
   };
 }

@@ -15,4 +15,6 @@ export type {
   CreateLazyRouteViewProps,
   CreateRouteViewProps,
   RouteView,
+  UseLinkReturn,
+  UseRouterReturn,
 } from './types';
