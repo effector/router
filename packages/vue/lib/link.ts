@@ -26,8 +26,11 @@ export const Link = defineComponent({
     },
     query: { type: Object as PropType<QueryInput>, default: undefined },
     target: { type: String as PropType<string>, default: undefined },
+    // Vue merges the click listeners of a wrapper and of its parent into an
+    // array, so the prop accepts a function and an array.
+    // Test: "runs the click listeners of a wrapper and of its parent".
     onClick: {
-      type: Function as PropType<(event: MouseEvent) => void>,
+      type: [Function, Array] as PropType<(event: MouseEvent) => void>,
       default: undefined,
     },
   },
@@ -35,7 +38,7 @@ export const Link = defineComponent({
     const link = useLinkTo(() => props.to);
 
     const handleClick = (event: MouseEvent) => {
-      props.onClick?.(event);
+      callClickListeners(props.onClick, event);
 
       // allow user to prevent navigation
       if (event.defaultPrevented) return;
@@ -79,3 +82,30 @@ export const Link = defineComponent({
       );
   },
 });
+
+// A click listener is a function or, after Vue merged several of them, an
+// array that may nest. The Solid binding does the same for its two listener
+// forms (`callClickHandler`).
+// After `stopImmediatePropagation()` in one listener the rest are skipped, as
+// on a native element: Vue wraps the method the same way for an array of
+// listeners (`patchStopImmediatePropagation` in @vue/runtime-dom).
+// Test: "stopImmediatePropagation in a listener skips the listeners after it".
+function callClickListeners(listener: unknown, event: MouseEvent) {
+  const stop = event.stopImmediatePropagation.bind(event);
+  let stopped = false;
+
+  event.stopImmediatePropagation = () => {
+    stop();
+    stopped = true;
+  };
+
+  const call = (item: unknown) => {
+    if (Array.isArray(item)) {
+      item.forEach(call);
+    } else if (typeof item === 'function' && !stopped) {
+      item(event);
+    }
+  };
+
+  call(listener);
+}

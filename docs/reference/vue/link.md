@@ -18,6 +18,11 @@ not preserve that conditional generic through a component template; annotate
 the props in TypeScript when compile-time enforcement is needed. Standard
 anchor attributes and `onClick` are forwarded to the rendered anchor.
 
+When a wrapper component and its parent both listen to `click`, Vue merges the
+listeners. `Link` runs them in order and then checks `preventDefault()`. A
+listener that calls `stopImmediatePropagation()` skips the listeners after it,
+as on a native element. It does not cancel the navigation.
+
 #### `to`
 
 - `type`: `Route<T>`
