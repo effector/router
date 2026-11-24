@@ -3,7 +3,9 @@ import {
   createLazyRouteView,
   createRouterPlugin,
   createRoutesView,
+  LayoutOutlet,
   useLink,
+  withLayout,
   type RouteViewSlotProps,
 } from '@effector/router-vue';
 import { createApp, h, KeepAlive } from 'vue';
@@ -29,6 +31,16 @@ export function vueRoutesViewSlot() {
       h(KeepAlive, { include: 'HomePage' }, () => Component),
   });
 }
+
+const KeepAliveLayout = () =>
+  h(LayoutOutlet, null, {
+    default: ({ Component }: RouteViewSlotProps) =>
+      h(KeepAlive, null, () => Component),
+  });
+
+export const GroupedRoutesView = createRoutesView({
+  routes: withLayout(KeepAliveLayout, [HomeScreen]),
+});
 
 export function vuePreload(): Promise<void> {
   return HomeScreen.preload();

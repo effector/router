@@ -1,6 +1,11 @@
 import { expectTypeOf, test } from 'vitest';
 import type { VNode } from 'vue';
-import { createRoutesView, Outlet, type RouteViewSlotProps } from '../lib';
+import {
+  createRoutesView,
+  LayoutOutlet,
+  Outlet,
+  type RouteViewSlotProps,
+} from '../lib';
 
 type DefaultSlot = (props: RouteViewSlotProps) => VNode[];
 
@@ -16,6 +21,14 @@ test('RoutesView and Outlet declare the default slot', () => {
     DefaultSlot | undefined
   >();
   expectTypeOf<OutletSlots['default']>().toEqualTypeOf<
+    DefaultSlot | undefined
+  >();
+});
+
+test('LayoutOutlet declares the default slot', () => {
+  type LayoutOutletSlots = InstanceType<typeof LayoutOutlet>['$slots'];
+
+  expectTypeOf<LayoutOutletSlots['default']>().toEqualTypeOf<
     DefaultSlot | undefined
   >();
 });

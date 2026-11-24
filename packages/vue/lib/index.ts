@@ -6,6 +6,7 @@ export { createRouteView } from './create-route-view';
 export { createRoutesView } from './create-routes-view';
 export { createLazyRouteView } from './create-lazy-route-view';
 export { Outlet } from './outlet';
+export { LayoutOutlet } from './layout-outlet';
 export { useRouter, useRouterContext } from './use-router';
 export { useLink } from './use-link';
 export { useIsOpened } from './use-is-opened';

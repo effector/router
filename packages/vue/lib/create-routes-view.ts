@@ -7,7 +7,7 @@ import {
   type SlotsType,
   type VNode,
 } from 'vue';
-import { OutletInjectionKey } from './context';
+import { LayoutPageInjectionKey, OutletInjectionKey } from './context';
 import { useOpenedViews } from './use-opened-views';
 import {
   layoutGroup,
@@ -46,6 +46,11 @@ function viewHost(view: RouteView): Component {
       name: nameOf(view.view) || 'RouteView',
       setup() {
         provide(OutletInjectionKey, view.children ?? []);
+        // The layout of a group is above this page. Without this line a
+        // `<LayoutOutlet />` inside the page would find that layout and
+        // render the page inside itself without end.
+        // Test: "a LayoutOutlet inside a page does not render the page again".
+        provide(LayoutPageInjectionKey, null);
 
         return () => h(view.view);
       },
@@ -78,10 +83,14 @@ function groupHost(group: LayoutGroup): Component {
         // this group is part of and renders the group inside itself.
         // Test: "an Outlet in a group layout under an Outlet does not recurse".
         provide(OutletInjectionKey, []);
+        // `<LayoutOutlet />` calls the getter in its own render, so it follows
+        // the page of the group.
+        // Test: "LayoutOutlet renders the page of its group".
+        provide(LayoutPageInjectionKey, () => props.routeView);
 
         return () =>
           h(group.layout, null, {
-            default: () => h(viewHost(props.routeView)),
+            default: () => renderPage(props.routeView),
           });
       },
     });
@@ -91,6 +100,11 @@ function groupHost(group: LayoutGroup): Component {
   return host;
 }
 
+/** @internal Renders a page without the layout of its group. */
+export function renderPage(view: RouteView) {
+  return h(viewHost(view));
+}
+
 /**
  * @internal Renders a resolved view for `RoutesView` and `<Outlet />`. No
  * `key` is needed: the component type differs for every view and every group.
@@ -98,14 +112,16 @@ function groupHost(group: LayoutGroup): Component {
 export function renderView(view: RouteView) {
   const group = view[layoutGroup];
 
-  return group ? h(groupHost(group), { routeView: view }) : h(viewHost(view));
+  return group ? h(groupHost(group), { routeView: view }) : renderPage(view);
 }
 
 /**
- * @internal The `slots` option of `RoutesView` and `<Outlet />`. Vue reads it
- * only as a type: it declares the default slot and its props for templates
- * and TSX. The function form keeps the slot argument required.
- * Test: "RoutesView and Outlet declare the default slot".
+ * @internal The `slots` option of `RoutesView`, `<Outlet />` and
+ * `<LayoutOutlet />`. Vue reads it only as a type: it declares the default
+ * slot and its props for templates and TSX. The function form keeps the slot
+ * argument required.
+ * Tests: "RoutesView and Outlet declare the default slot", "LayoutOutlet
+ * declares the default slot".
  */
 export const routeViewSlots = Object as SlotsType<{
   default?: (props: RouteViewSlotProps) => VNode[];

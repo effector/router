@@ -18,3 +18,10 @@ export const RouterInjectionKey: InjectionKey<Router> = Symbol.for(
 export const OutletInjectionKey: InjectionKey<RouteView[]> = Symbol.for(
   '@effector/router-vue:outlet:1',
 );
+
+// The page of the nearest `withLayout` group, for `<LayoutOutlet />`. A
+// getter, so that the reader tracks the page as the group switches it.
+// `null` marks a place outside a layout. The number is the version, as above.
+// Test: "a layout of one copy and a LayoutOutlet from the other meet".
+export const LayoutPageInjectionKey: InjectionKey<(() => RouteView) | null> =
+  Symbol.for('@effector/router-vue:layout-page:1');

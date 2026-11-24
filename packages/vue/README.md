@@ -117,6 +117,8 @@ import { routes } from '@shared/routing';
   Standard anchor attributes and `onClick` are forwarded.
 - `withLayout` — share a layout across routes. Views returned by one call share
   a private group identity, so the layout stays mounted while siblings switch.
+- `LayoutOutlet` renders the page of a `withLayout` group inside its layout,
+  with the same scoped slot `{ Component, view }`.
 - `Outlet`, `useRouter`, `useIsOpened`, `useOpenedViews` — composition helpers.
   `Outlet` recursively provides selected child views, so nested trees can be
   rendered without a depth limit.

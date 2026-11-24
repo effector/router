@@ -60,6 +60,7 @@ const vueItems = [
   { text: 'createRouterPlugin', link: '/vue/create-router-plugin' },
   { text: 'RouterInjectionKey', link: '/vue/router-injection-key' },
   { text: 'Outlet', link: '/vue/outlet' },
+  { text: 'LayoutOutlet', link: '/vue/layout-outlet' },
   { text: 'Link', link: '/vue/link' },
   { text: 'createRouteView', link: '/vue/create-route-view' },
   { text: 'createRoutesView', link: '/vue/create-routes-view' },

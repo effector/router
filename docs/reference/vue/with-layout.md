@@ -13,6 +13,8 @@ the group is opened in between, so the layout mounts again.
 
 The layout receives the page in its default slot. An `<Outlet />` placed in the
 layout itself renders nothing: the children of a page belong to the page.
+[`LayoutOutlet`] renders the page in place of the default slot and gives the
+layout a scoped slot for `KeepAlive` and `Transition`.
 
 ### Example
 
@@ -42,4 +44,5 @@ export const RoutesView = createRoutesView({
 ```
 
 [`createLazyRouteView`]: /vue/create-lazy-route-view
+[`LayoutOutlet`]: /vue/layout-outlet
 [`createRouteView`]: /vue/create-route-view
