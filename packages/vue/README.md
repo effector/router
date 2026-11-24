@@ -93,6 +93,8 @@ import { routes } from '@shared/routing';
 ## API
 
 - `RouterProvider` — provide the router to the tree (via `provide`/`inject`).
+- `createRouterPlugin({ router })` returns a Vue plugin that provides the router
+  to the whole app. It attaches no history and registers no components.
 - `createRouteView` / `createLazyRouteView` — bind a route to a component (with optional lazy loading).
 - Lazy importers start when their view renders or when the application calls
   `preload()` of the lazy view, for example from an Effect; preload is never a

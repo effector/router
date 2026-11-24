@@ -16,7 +16,11 @@ import type {
 } from 'vue';
 
 type RouteViewTarget = Pick<Route<any>, '$isOpened'>;
-export const layoutGroup = Symbol('effector-router-vue-layout-group');
+// A registered symbol with a version, as the keys in context.ts: `withLayout`
+// of one copy of the package marks a view for the routes view of another.
+// Test: "withLayout from one copy and a routes view from the other keep the
+// layout".
+export const layoutGroup = Symbol.for('@effector/router-vue:layout-group:1');
 export interface LayoutGroup {
   token: number;
   layout: Component;

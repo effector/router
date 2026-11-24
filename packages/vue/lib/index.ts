@@ -1,4 +1,5 @@
 export { RouterProvider } from './router-provider';
+export { createRouterPlugin } from './create-router-plugin';
 export { RouterInjectionKey } from './context';
 export { Link } from './link';
 export { createRouteView } from './create-route-view';
@@ -10,6 +11,7 @@ export { useLink } from './use-link';
 export { useIsOpened } from './use-is-opened';
 export { useOpenedViews } from './use-opened-views';
 export { withLayout } from './with-layout';
+export type { RouterPluginOptions } from './create-router-plugin';
 export type {
   LinkProps,
   CreateLazyRouteViewProps,

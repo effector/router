@@ -57,6 +57,7 @@ const reactItems = [
 
 const vueItems = [
   { text: 'RouterProvider', link: '/vue/router-provider' },
+  { text: 'createRouterPlugin', link: '/vue/create-router-plugin' },
   { text: 'RouterInjectionKey', link: '/vue/router-injection-key' },
   { text: 'Outlet', link: '/vue/outlet' },
   { text: 'Link', link: '/vue/link' },

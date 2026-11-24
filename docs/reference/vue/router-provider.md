@@ -1,7 +1,8 @@
 # RouterProvider
 
 Provides the router to the Vue component tree via `provide`/`inject`. All views,
-[`Link`] components, and composables must be rendered inside it.
+[`Link`] components, and composables must be rendered inside it, or in an app
+that uses [`createRouterPlugin`].
 
 #### `router`
 
@@ -25,3 +26,4 @@ import { RoutesView } from './routes';
 ```
 
 [`Link`]: /vue/link
+[`createRouterPlugin`]: /vue/create-router-plugin

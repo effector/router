@@ -48,6 +48,9 @@ Provide the router to your Vue tree:
 </template>
 ```
 
+[`createRouterPlugin`](/vue/create-router-plugin) provides the router to the
+whole app instead: `app.use(createRouterPlugin({ router }))`.
+
 Inside the provider, use [`useRouter`](/vue/use-router) for reactive router
 units. Use [`useRouterContext`](/vue/use-router) when you need the raw router
 instance.
