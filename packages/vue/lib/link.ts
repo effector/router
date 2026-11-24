@@ -1,5 +1,12 @@
-import { defineComponent, h, type PropType } from 'vue';
-import type { QueryInput, Route, RouteOpenedPayload } from '@effector/router';
+import {
+  defineComponent,
+  h,
+  type PropType,
+  type SlotsType,
+  type VNode,
+} from 'vue';
+import type { QueryInput, Route } from '@effector/router';
+import type { LinkSlotProps } from './types';
 import { useLinkTo } from './use-link';
 
 // `@__PURE__`: see router-provider.ts.
@@ -27,6 +34,8 @@ export const Link = /* @__PURE__ */ defineComponent({
     },
     query: { type: Object as PropType<QueryInput>, default: undefined },
     target: { type: String as PropType<string>, default: undefined },
+    activeClass: { type: String as PropType<string>, default: undefined },
+    exactActiveClass: { type: String as PropType<string>, default: undefined },
     // Vue merges the click listeners of a wrapper and of its parent into an
     // array, so the prop accepts a function and an array.
     // Test: "runs the click listeners of a wrapper and of its parent".
@@ -35,6 +44,12 @@ export const Link = /* @__PURE__ */ defineComponent({
       default: undefined,
     },
   },
+  // Read by Vue only as a type: the default slot and its props. The function
+  // form keeps the slot argument required.
+  // Test: "Link declares the default slot".
+  slots: Object as SlotsType<{
+    default?: (props: LinkSlotProps) => VNode[];
+  }>,
   setup(props, { slots, attrs }) {
     const link = useLinkTo<any>(
       () => props.to,
@@ -68,24 +83,46 @@ export const Link = /* @__PURE__ */ defineComponent({
 
       event.preventDefault();
 
-      link.onOpen({
-        params: props.params ?? {},
-        replace: props.replace,
-        query: props.query,
-      } as RouteOpenedPayload<any>);
+      link.navigate();
     };
 
-    return () =>
-      h(
+    return () => {
+      const href = link.href.value;
+      const isActive = link.isActive.value;
+      const isExactActive = link.isExactActive.value;
+      const anchor: Record<string, unknown> = {};
+
+      // Set before `attrs`, so `aria-current` passed to the link wins.
+      // Test: "aria-current passed to the link wins".
+      if (isExactActive) anchor['aria-current'] = 'page';
+
+      Object.assign(anchor, attrs, {
+        target: props.target,
+        href,
+        onClick: handleClick,
+      });
+
+      const classes = [
+        isActive && props.activeClass,
+        isExactActive && props.exactActiveClass,
+      ].filter(Boolean);
+
+      // `class` is set only when there is a class to add: a server render
+      // prints `class=""` for a `class` key without a value.
+      // Test: "a link without classes renders no class attribute".
+      if (classes.length > 0) anchor.class = [attrs.class, classes];
+
+      return h(
         'a',
-        {
-          ...attrs,
-          target: props.target,
-          href: link.build(props.params ?? undefined, props.query),
-          onClick: handleClick,
-        },
-        slots.default?.(),
+        anchor,
+        slots.default?.({
+          href,
+          isActive,
+          isExactActive,
+          navigate: link.navigate,
+        }),
       );
+    };
   },
 });
 

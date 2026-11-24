@@ -104,8 +104,24 @@ type AnchorProps = Omit<AnchorHTMLAttributes, 'href'>;
 
 type BaseLinkProps<Params extends object | void = void> = {
   to: Route<Params>;
+  /** Class added while the link is active. */
+  activeClass?: string;
+  /** Class added while the link is exactly active. */
+  exactActiveClass?: string;
 } & AnchorProps &
   OpenPayloadBase;
+
+/** What the default slot of `Link` receives. */
+export interface LinkSlotProps {
+  /** URL of the link, the `href` of the rendered anchor. */
+  href: string;
+  /** `isActive` of `useLink`. */
+  isActive: boolean;
+  /** `isExactActive` of `useLink`. */
+  isExactActive: boolean;
+  /** `navigate` of `useLink`, with `replace` of the link. */
+  navigate: (event?: MouseEvent) => void;
+}
 
 export type LinkProps<Params extends object | void = void> = Params extends
   Record<string, never> | void | undefined

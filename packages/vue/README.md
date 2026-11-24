@@ -115,6 +115,9 @@ import { routes } from '@shared/routing';
   The exported generic `LinkProps<Params>` conditionally requires params in
   TypeScript; Vue templates may need an explicit annotation for that check.
   Standard anchor attributes and `onClick` are forwarded.
+  `Link` takes `activeClass` and `exactActiveClass`, sets `aria-current="page"`
+  on an exact match and gives `{ href, isActive, isExactActive, navigate }` to
+  its default slot.
   `useLink(to, params?, query?)` accepts values, refs and getters and also
   returns `href`, `isActive`, `isExactActive` and `navigate`.
 - `withLayout` — share a layout across routes. Views returned by one call share

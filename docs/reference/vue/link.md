@@ -35,6 +35,75 @@ A new `to` updates `href` and the route opened on click.
 - `type`: `T`
 - `required`: if the route has params: `yes`, otherwise: `no`
 
+#### `activeClass`, `exactActiveClass`
+
+- `type`: `string`
+- `required`: no
+
+Classes added to the anchor while the link is active or exactly active. There
+are no default class names. `activeClass` compares the params of the link. In
+the Solid binding `activeClass` follows only `$isOpened` of the route.
+
+### Active state
+
+`Link` takes its state from [`useLink`](/vue/use-link#isactive-and-isexactactive):
+
+- Active: the route is opened and its params contain the params of the link.
+  The params of the route and of its whole `parent` chain are compared, so a
+  link to a parent route stays active while a child route is opened.
+- Exactly active: the link is active and its route is the last one matched by
+  the current path.
+
+An exactly active link gets `aria-current="page"`. An `aria-current` attribute
+passed to `Link` wins, and `:aria-current="undefined"` removes it. This
+attribute is the only change of the rendered markup against 0.1.0.
+
+### Scoped slot
+
+The default slot receives `{ href, isActive, isExactActive, navigate }`, the
+names `RouterLink` of vue-router uses. `navigate` opens the route with `params`,
+`query` and `replace` of the link. The type `LinkSlotProps` is exported.
+
+Pass the click event to `navigate`, as `@click="navigate"` does. A call without
+the event leaves the click to the anchor of the link, and `route.open` runs
+twice.
+
+```vue
+<template>
+  <Link :to="routes.settings" v-slot="{ isActive }">
+    <SettingsIcon :filled="isActive" />
+    Settings
+  </Link>
+</template>
+```
+
+### Recipe: a flat route table
+
+The active state follows `parent`. Routes created without `parent` are
+siblings, so a link to `/users` is not active on `/users/42`. For a tab that
+covers several routes, group them with [`group`](/core/group) and read the
+group with [`useIsOpened`](/vue/use-is-opened):
+
+```ts
+import { group } from '@effector/router';
+import { routes } from '@shared/routing';
+
+export const usersSection = group([routes.users, routes.user]);
+```
+
+```vue
+<script setup lang="ts">
+import { Link, useIsOpened } from '@effector/router-vue';
+import { routes, usersSection } from '@shared/routing';
+
+const isUsersOpened = useIsOpened(usersSection);
+</script>
+
+<template>
+  <Link :to="routes.users" :class="{ active: isUsersOpened }">Users</Link>
+</template>
+```
+
 ### Example
 
 ```vue

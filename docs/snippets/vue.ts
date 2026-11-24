@@ -1,9 +1,10 @@
-import { createRoute, createRouter } from '@effector/router';
+import { createRoute, createRouter, group } from '@effector/router';
 import {
   createLazyRouteView,
   createRouterPlugin,
   createRoutesView,
   LayoutOutlet,
+  Link,
   useIsOpened,
   useLink,
   withLayout,
@@ -59,4 +60,18 @@ export function vueReactiveLink(props: { id: string }) {
   const isUserOpened = useIsOpened(() => user);
 
   return { href, isActive, navigate, isUserOpened };
+}
+
+const users = createRoute({ path: '/users' });
+const usersSection = group([users, user]);
+
+export function vueFlatRouteTable() {
+  const isUsersOpened = useIsOpened(usersSection);
+
+  return () =>
+    h(
+      Link,
+      { to: users, class: { active: isUsersOpened.value } },
+      () => 'Users',
+    );
 }
