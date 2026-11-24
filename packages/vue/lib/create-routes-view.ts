@@ -7,31 +7,89 @@ import {
 } from 'vue';
 import { OutletInjectionKey } from './context';
 import { useOpenedViews } from './use-opened-views';
-import { layoutGroup, type RouteView } from './types';
+import { layoutGroup, type LayoutGroup, type RouteView } from './types';
+
+// A page or layout component may be a function or an options object. The name
+// is read the way Vue reads it, with `||` because an arrow function has ''.
+// `__name` is what a `<script setup>` SFC has in place of `name`.
+// Tests: "KeepAlive in a layout matches a page by its __name", "KeepAlive in
+// a layout matches a page by its displayName".
+const nameOf = (component: any): string | undefined =>
+  typeof component === 'function'
+    ? component.displayName || component.name
+    : component.name || component.__name;
+
+const viewHosts = new WeakMap<RouteView, Component>();
+const groupHosts = new WeakMap<LayoutGroup, Component>();
 
 /**
- * @internal Renders a single resolved view and exposes its nested children to
- * `<Outlet />` through provide/inject. Grouped views keep a stable group key
- * while their page child changes.
+ * @internal The host of one view: it provides the children of this view to
+ * `<Outlet />` and renders the page. Each view has its own host component, so
+ * Vue never patches one view into another and a view switch always remounts
+ * the page. The React binding does the same with a provider per view.
+ * The host takes the name of the page for `KeepAlive include`.
+ * Tests: "grouped siblings that share one page component get their own
+ * children", "KeepAlive in a layout matches a page by its name".
  */
-export const RouteRenderer = defineComponent({
-  name: 'RouteRenderer',
-  props: {
-    routeView: { type: Object as PropType<RouteView>, required: true },
-  },
-  setup(props) {
-    provide(OutletInjectionKey, props.routeView.children ?? []);
+function viewHost(view: RouteView): Component {
+  let host = viewHosts.get(view);
 
-    return () => {
-      const group = props.routeView[layoutGroup];
-      const content = h(props.routeView.view);
+  if (!host) {
+    host = defineComponent({
+      name: nameOf(view.view) || 'RouteView',
+      setup() {
+        provide(OutletInjectionKey, view.children ?? []);
 
-      return group
-        ? h(group.layout, null, { default: () => content })
-        : content;
-    };
-  },
-});
+        return () => h(view.view);
+      },
+    });
+    viewHosts.set(view, host);
+  }
+
+  return host;
+}
+
+/**
+ * @internal The host of one `withLayout` group. Its views share this
+ * component, so the layout stays mounted while the page inside it changes.
+ * Test: "a group layout under Outlet stays mounted while its pages switch".
+ */
+function groupHost(group: LayoutGroup): Component {
+  let host = groupHosts.get(group);
+
+  if (!host) {
+    host = defineComponent({
+      name: nameOf(group.layout) || 'RouteLayout',
+      props: {
+        routeView: { type: Object as PropType<RouteView>, required: true },
+      },
+      setup(props) {
+        // Without its own context an `<Outlet />` in the layout reads the list
+        // this group is part of and renders the group inside itself.
+        // Test: "an Outlet in a group layout under an Outlet does not recurse".
+        provide(OutletInjectionKey, []);
+
+        return () =>
+          h(group.layout, null, {
+            default: () => h(viewHost(props.routeView)),
+          });
+      },
+    });
+    groupHosts.set(group, host);
+  }
+
+  return host;
+}
+
+/**
+ * @internal Renders a resolved view for `RoutesView` and `<Outlet />`. No
+ * `key` is needed: the component type differs for every view and every group.
+ */
+export function renderView(view: RouteView) {
+  const group = view[layoutGroup];
+
+  return group ? h(groupHost(group), { routeView: view }) : h(viewHost(view));
+}
 
 interface CreateRoutesViewProps {
   routes: RouteView[];
@@ -66,12 +124,7 @@ export const createRoutesView = (props: CreateRoutesViewProps) => {
           return otherwise ? h(otherwise) : null;
         }
 
-        const group = view[layoutGroup];
-
-        return h(RouteRenderer, {
-          routeView: view,
-          key: group?.token ?? routes.indexOf(view),
-        });
+        return renderView(view);
       };
     },
   });

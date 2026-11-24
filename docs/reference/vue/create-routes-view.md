@@ -17,6 +17,11 @@ When several routes are active, selection happens in two stages:
    `routes` array.
    :::
 
+Every view renders through its own host component, named after the view
+component. A switch between two views always remounts the page, also when both
+views use one component. A view passed as a bare `defineAsyncComponent` result
+gets the host name `AsyncComponentWrapper`.
+
 ### Example
 
 ```ts

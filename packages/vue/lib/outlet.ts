@@ -1,7 +1,7 @@
-import { defineComponent, h, inject } from 'vue';
+import { defineComponent, inject } from 'vue';
 import { OutletInjectionKey } from './context';
 import { useOpenedViews } from './use-opened-views';
-import { RouteRenderer } from './create-routes-view';
+import { renderView } from './create-routes-view';
 
 /**
  * @description Renders nested child routes of the currently opened route.
@@ -30,14 +30,7 @@ export const Outlet = defineComponent({
     return () => {
       const view = openedViews.value.at(-1);
 
-      if (!view) {
-        return null;
-      }
-
-      return h(RouteRenderer, {
-        routeView: view,
-        key: children.indexOf(view),
-      });
+      return view ? renderView(view) : null;
     };
   },
 });
