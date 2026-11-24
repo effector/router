@@ -2,6 +2,7 @@ import { defineComponent, h, type PropType } from 'vue';
 import type { QueryInput, Route, RouteOpenedPayload } from '@effector/router';
 import { useLinkTo } from './use-link';
 
+// `@__PURE__`: see router-provider.ts.
 /**
  * @description Navigates user to provided route on click. Behaves like an
  * `<a>` element but uses `to` / `params` instead of `href`.
@@ -14,7 +15,7 @@ import { useLinkTo } from './use-link';
  * // <Link :to="routes.editPost" :params="{ id: post.id }">Edit post</Link>
  * ```
  */
-export const Link = defineComponent({
+export const Link = /* @__PURE__ */ defineComponent({
   name: 'Link',
   inheritAttrs: false,
   props: {
