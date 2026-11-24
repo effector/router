@@ -20,8 +20,8 @@ catalogs:
       version: 3.5.29
   peer:
     effector:
-      specifier: '>=23'
-      version: 23.4.4
+      specifier: '>=23.5.0'
+      version: 23.5.1
     effector-react:
       specifier: '>=23'
       version: 23.3.0
@@ -100,17 +100,17 @@ importers:
         specifier: ^2.4.6
         version: 2.4.11(@vue/compiler-dom@3.5.29)(@vue/server-renderer@3.5.29(vue@3.5.29(typescript@5.8.2)))(vue@3.5.29(typescript@5.8.2))
       effector:
-        specifier: ^23.4.4
-        version: 23.4.4
+        specifier: ^23.5.1
+        version: 23.5.1
       effector-react:
         specifier: ^23.3.0
-        version: 23.3.0(effector@23.4.4)(react@19.2.4)
+        version: 23.3.0(effector@23.5.1)(react@19.2.4)
       effector-solid:
         specifier: ^0.23.0
-        version: 0.23.0(effector@23.4.4)(solid-js@1.9.14)
+        version: 0.23.0(effector@23.5.1)(solid-js@1.9.14)
       effector-vue:
         specifier: ^23.1.1
-        version: 23.1.1(@vue/reactivity@3.5.29)(@vue/runtime-core@3.5.29)(effector@23.4.4)(vue@3.5.29(typescript@5.8.2))
+        version: 23.1.1(@vue/reactivity@3.5.29)(@vue/runtime-core@3.5.29)(effector@23.5.1)(vue@3.5.29(typescript@5.8.2))
       eslint:
         specifier: 10.0.2
         version: 10.0.2(jiti@2.6.1)
@@ -134,7 +134,7 @@ importers:
         version: 2.6.1
       patronum:
         specifier: ^2.3.0
-        version: 2.3.0(effector@23.4.4)
+        version: 2.3.0(effector@23.5.1)
       prettier:
         specifier: 3.9.5
         version: 3.9.5
@@ -227,11 +227,11 @@ importers:
         specifier: workspace:*
         version: link:../../packages/solid
       effector:
-        specifier: ^23.4.4
-        version: 23.4.4
+        specifier: ^23.5.1
+        version: 23.5.1
       effector-solid:
         specifier: ^0.23.0
-        version: 0.23.0(effector@23.4.4)(solid-js@1.9.14)
+        version: 0.23.0(effector@23.5.1)(solid-js@1.9.14)
       history:
         specifier: 5.3.0
         version: 5.3.0
@@ -262,13 +262,10 @@ importers:
         version: link:../paths
       effector:
         specifier: catalog:peer
-        version: 23.4.4
-      effector-action:
-        specifier: '>=1.2.2'
-        version: 1.2.2(effector@23.4.4)(patronum@2.3.0(effector@23.4.4))
+        version: 23.5.1
       patronum:
         specifier: '>=2.2'
-        version: 2.3.0(effector@23.4.4)
+        version: 2.3.0(effector@23.5.1)
       query-string:
         specifier: ^9.1.1
         version: 9.3.1
@@ -285,10 +282,10 @@ importers:
         version: link:../core
       effector:
         specifier: catalog:peer
-        version: 23.4.4
+        version: 23.5.1
       effector-react:
         specifier: catalog:peer
-        version: 23.3.0(effector@23.4.4)(react@19.2.4)
+        version: 23.3.0(effector@23.5.1)(react@19.2.4)
       query-string:
         specifier: ^9.1.1
         version: 9.3.1
@@ -318,10 +315,10 @@ importers:
         version: 7.8.4(@react-navigation/native@7.1.33(react-native@0.84.1(@babel/core@7.29.6)(@types/react@19.2.14)(react@19.2.4))(react@19.2.4))(react-native-gesture-handler@2.30.0(react-native@0.84.1(@babel/core@7.29.6)(@types/react@19.2.14)(react@19.2.4))(react@19.2.4))(react-native-safe-area-context@5.7.0(react-native@0.84.1(@babel/core@7.29.6)(@types/react@19.2.14)(react@19.2.4))(react@19.2.4))(react-native-screens@4.24.0(react-native@0.84.1(@babel/core@7.29.6)(@types/react@19.2.14)(react@19.2.4))(react@19.2.4))(react-native@0.84.1(@babel/core@7.29.6)(@types/react@19.2.14)(react@19.2.4))(react@19.2.4)
       effector:
         specifier: catalog:peer
-        version: 23.4.4
+        version: 23.5.1
       effector-react:
         specifier: catalog:peer
-        version: 23.3.0(effector@23.4.4)(react@19.2.4)
+        version: 23.3.0(effector@23.5.1)(react@19.2.4)
       react:
         specifier: catalog:peer
         version: 19.2.4
@@ -335,11 +332,11 @@ importers:
         specifier: workspace:^
         version: link:../core
       effector:
-        specifier: '>=23'
-        version: 23.4.4
+        specifier: '>=23.5.0'
+        version: 23.5.1
       effector-solid:
         specifier: '>=0.23'
-        version: 0.23.0(effector@23.4.4)(solid-js@1.9.14)
+        version: 0.23.0(effector@23.5.1)(solid-js@1.9.14)
       query-string:
         specifier: ^9.1.1
         version: 9.3.1
@@ -354,10 +351,10 @@ importers:
         version: link:../core
       effector:
         specifier: catalog:peer
-        version: 23.4.4
+        version: 23.5.1
       effector-vue:
         specifier: '>=23'
-        version: 23.1.1(@vue/reactivity@3.5.29)(@vue/runtime-core@3.5.29)(effector@23.4.4)(vue@3.5.29(typescript@5.8.2))
+        version: 23.1.1(@vue/reactivity@3.5.29)(@vue/runtime-core@3.5.29)(effector@23.5.1)(vue@3.5.29(typescript@5.8.2))
       query-string:
         specifier: 'catalog:'
         version: 9.3.1
@@ -3253,12 +3250,6 @@ packages:
   ee-first@1.1.1:
     resolution: {integrity: sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==}
 
-  effector-action@1.2.2:
-    resolution: {integrity: sha512-gX1MeRoLJawqzvQWSxHio87sEoORm23kV5+gBTzpQDLnZcgc5GUOiPNpiSpgBMFRRhSyi1d5ggh7bH+UYWlQcQ==}
-    peerDependencies:
-      effector: '>=23'
-      patronum: '>=2.1.0'
-
   effector-react@23.3.0:
     resolution: {integrity: sha512-QR0+x1EnbiWhO80Yc0GVF+I9xCYoxBm3t+QLB5Wg+1uY1Q1BrSWDmKvJaJJZ/+9BU4RAr25yS5J2EkdWnicu8g==}
     engines: {node: '>=11.0.0'}
@@ -3282,8 +3273,8 @@ packages:
       effector: ^23.0.0
       vue: '*'
 
-  effector@23.4.4:
-    resolution: {integrity: sha512-QkZboRN28K/iwxigDhlJcI3ux3aNbt8kYGGH/GkqWG0OlGeyuBhb7PdM89Iu+ogV8Lmz16xIlwnXR2UNWI6psg==}
+  effector@23.5.1:
+    resolution: {integrity: sha512-QklgDt4NU62uhJo2suyOCADYczlX14vVj3ResBRfk4L7ERh8Fv/pS5AkgyhjwhW5VbFqCz5gHpKLr6zjM1BFGw==}
     engines: {node: '>=11.0.0'}
 
   electron-to-chromium@1.5.399:
@@ -8497,30 +8488,25 @@ snapshots:
 
   ee-first@1.1.1: {}
 
-  effector-action@1.2.2(effector@23.4.4)(patronum@2.3.0(effector@23.4.4)):
+  effector-react@23.3.0(effector@23.5.1)(react@19.2.4):
     dependencies:
-      effector: 23.4.4
-      patronum: 2.3.0(effector@23.4.4)
-
-  effector-react@23.3.0(effector@23.4.4)(react@19.2.4):
-    dependencies:
-      effector: 23.4.4
+      effector: 23.5.1
       react: 19.2.4
       use-sync-external-store: 1.6.0(react@19.2.4)
 
-  effector-solid@0.23.0(effector@23.4.4)(solid-js@1.9.14):
+  effector-solid@0.23.0(effector@23.5.1)(solid-js@1.9.14):
     dependencies:
-      effector: 23.4.4
+      effector: 23.5.1
       solid-js: 1.9.14
 
-  effector-vue@23.1.1(@vue/reactivity@3.5.29)(@vue/runtime-core@3.5.29)(effector@23.4.4)(vue@3.5.29(typescript@5.8.2)):
+  effector-vue@23.1.1(@vue/reactivity@3.5.29)(@vue/runtime-core@3.5.29)(effector@23.5.1)(vue@3.5.29(typescript@5.8.2)):
     dependencies:
       '@vue/reactivity': 3.5.29
       '@vue/runtime-core': 3.5.29
-      effector: 23.4.4
+      effector: 23.5.1
       vue: 3.5.29(typescript@5.8.2)
 
-  effector@23.4.4: {}
+  effector@23.5.1: {}
 
   electron-to-chromium@1.5.399: {}
 
@@ -9710,9 +9696,9 @@ snapshots:
 
   pathe@2.0.3: {}
 
-  patronum@2.3.0(effector@23.4.4):
+  patronum@2.3.0(effector@23.5.1):
     dependencies:
-      effector: 23.4.4
+      effector: 23.5.1
 
   perfect-debounce@1.0.0: {}
 

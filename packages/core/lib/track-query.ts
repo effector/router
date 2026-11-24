@@ -82,7 +82,9 @@ export function trackQueryFactory({
     sample({
       clock: evaluation,
       filter: ({ ready, result }) => ready && result?.success === true,
-      fn: ({ result }) => result!.data,
+      // `filter` lets only a successful parse through, but sample does not
+      // narrow `fn` from it, and `data` of a failed parse would be undefined.
+      fn: ({ result }) => (result as z.ZodSafeParseSuccess<z.output<T>>).data,
       target: [entered, changeEntered.prepend(() => true)],
     });
 

@@ -48,6 +48,7 @@ export function getHistoryBlockCoordinator(
   let unblock: (() => void) | null = null;
   let bypassDepth = 0;
   let pending: PendingTransition | null = null;
+  let stopAwaitingRetry: (() => void) | null = null;
   const subscribers = new Map<number, Subscriber>();
 
   const removePhysicalBlocker = () => {
@@ -76,6 +77,31 @@ export function getHistoryBlockCoordinator(
     }
   };
 
+  const stopWaitingForRetry = () => {
+    const stop = stopAwaitingRetry;
+    stopAwaitingRetry = null;
+    stop?.();
+  };
+
+  /**
+   * History v5 re-applies a blocked POP with `history.go(delta)`. Browser and hash histories
+   * deliver the resulting `popstate` asynchronously — after `go()` has returned — so the physical
+   * blocker must stay off until that POP actually lands. Otherwise the blocker intercepts its own
+   * retry as a fresh native navigation, reverts it and asks again: Back loops forever.
+   * Memory history applies `go()` synchronously, so the POP lands inside `retry()` itself.
+   */
+  const awaitRetriedPop = () => {
+    stopWaitingForRetry();
+    stopAwaitingRetry = history.listen(({ action }) => {
+      if ((action as string) !== 'POP') {
+        return;
+      }
+
+      stopWaitingForRetry();
+      subscribePhysicalBlocker();
+    });
+  };
+
   const retryWhenReady = () => {
     if (!pending || pending.waiting.size > 0) {
       return;
@@ -83,6 +109,7 @@ export function getHistoryBlockCoordinator(
 
     const { transition } = pending;
     pending = null;
+    awaitRetriedPop();
     runWithoutBlocking(() => transition.retry());
   };
 
@@ -123,7 +150,12 @@ export function getHistoryBlockCoordinator(
   };
 
   function subscribePhysicalBlocker() {
-    if (unblock || bypassDepth > 0 || subscribers.size === 0) {
+    if (
+      unblock ||
+      bypassDepth > 0 ||
+      stopAwaitingRetry ||
+      subscribers.size === 0
+    ) {
       return;
     }
 
@@ -149,6 +181,7 @@ export function getHistoryBlockCoordinator(
 
       if (subscribers.size === 0) {
         pending = null;
+        stopWaitingForRetry();
         removePhysicalBlocker();
       }
     };

@@ -58,7 +58,7 @@
     "query-string": "^9.1.1"
   },
   "peerDependencies": {
-    "effector": ">=23",
+    "effector": ">=23.5.0",
     "effector-solid": ">=0.23",
     "solid-js": "^1.9.0"
   }

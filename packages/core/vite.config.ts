@@ -17,7 +17,6 @@ export default defineConfig({
       external: [
         'effector',
         'patronum',
-        'effector-action',
         '@effector/router-paths',
         'query-string',
       ],
