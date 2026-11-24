@@ -132,4 +132,19 @@ export interface UseLinkReturn<T extends object | void = void> {
   build: (params?: T, query?: QueryInput) => string;
   /** Returns its payload, as an Effector event does. */
   onOpen: (payload: RouteOpenPayload<T>) => RouteOpenPayload<T>;
+  /** URL built from `params` and `query` passed to `useLink`. */
+  href: Readonly<Ref<string>>;
+  /**
+   * The route is opened and its params contain the params passed to
+   * `useLink`. Stays `true` while a child route is opened.
+   */
+  isActive: Readonly<Ref<boolean>>;
+  /** `isActive`, and the route is the last one matched by the current path. */
+  isExactActive: Readonly<Ref<boolean>>;
+  /**
+   * Opens the route with `params` and `query` passed to `useLink`. With a
+   * click event it leaves modified, non-primary, prevented, download,
+   * non-`_self` and cross-origin clicks to the browser.
+   */
+  navigate: (event?: MouseEvent) => void;
 }

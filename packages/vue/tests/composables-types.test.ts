@@ -49,6 +49,10 @@ test('useLink returns a builder and a bound event', () => {
     onOpen: (
       payload: RouteOpenPayload<{ id: string }>,
     ) => RouteOpenPayload<{ id: string }>;
+    href: Readonly<Ref<string>>;
+    isActive: Readonly<Ref<boolean>>;
+    isExactActive: Readonly<Ref<boolean>>;
+    navigate: (event?: MouseEvent) => void;
   }>();
 });
 

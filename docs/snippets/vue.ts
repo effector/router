@@ -4,6 +4,7 @@ import {
   createRouterPlugin,
   createRoutesView,
   LayoutOutlet,
+  useIsOpened,
   useLink,
   withLayout,
   type RouteViewSlotProps,
@@ -49,4 +50,13 @@ export function vuePreload(): Promise<void> {
 export function vueQuickStart() {
   const link = useLink(home);
   return link.build();
+}
+
+const user = createRoute({ path: '/users/:id' });
+
+export function vueReactiveLink(props: { id: string }) {
+  const { href, isActive, navigate } = useLink(user, () => ({ id: props.id }));
+  const isUserOpened = useIsOpened(() => user);
+
+  return { href, isActive, navigate, isUserOpened };
 }

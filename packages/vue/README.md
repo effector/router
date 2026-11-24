@@ -115,11 +115,14 @@ import { routes } from '@shared/routing';
   The exported generic `LinkProps<Params>` conditionally requires params in
   TypeScript; Vue templates may need an explicit annotation for that check.
   Standard anchor attributes and `onClick` are forwarded.
+  `useLink(to, params?, query?)` accepts values, refs and getters and also
+  returns `href`, `isActive`, `isExactActive` and `navigate`.
 - `withLayout` — share a layout across routes. Views returned by one call share
   a private group identity, so the layout stays mounted while siblings switch.
 - `LayoutOutlet` renders the page of a `withLayout` group inside its layout,
   with the same scoped slot `{ Component, view }`.
 - `Outlet`, `useRouter`, `useIsOpened`, `useOpenedViews` — composition helpers.
+  `useIsOpened` accepts a route, a ref or a getter.
   `Outlet` recursively provides selected child views, so nested trees can be
   rendered without a depth limit.
 - `RouterInjectionKey` — the raw Vue injection key, for advanced `provide` use.

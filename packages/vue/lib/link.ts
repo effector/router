@@ -36,7 +36,12 @@ export const Link = /* @__PURE__ */ defineComponent({
     },
   },
   setup(props, { slots, attrs }) {
-    const link = useLinkTo(() => props.to);
+    const link = useLinkTo<any>(
+      () => props.to,
+      () => props.params,
+      () => props.query,
+      () => props.replace,
+    );
 
     const handleClick = (event: MouseEvent) => {
       callClickListeners(props.onClick, event);
