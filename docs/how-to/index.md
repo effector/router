@@ -7,6 +7,7 @@ title: How-to guides
 Task-oriented guides for specific problems.
 
 - [Route records in Vue](/how-to/vue-route-records)
+- [KeepAlive and Transition in Vue](/how-to/vue-keep-alive-and-transition)
 
 More guides are planned. See also the
 [tutorial](/tutorials/build-your-first-router) for a complete walkthrough, or

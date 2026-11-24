@@ -175,6 +175,10 @@ export default defineConfig({
               text: 'Route records in Vue',
               link: '/how-to/vue-route-records',
             },
+            {
+              text: 'KeepAlive and Transition in Vue',
+              link: '/how-to/vue-keep-alive-and-transition',
+            },
           ],
         },
       ],
