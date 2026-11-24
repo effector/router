@@ -4,10 +4,17 @@ import {
   provide,
   type Component,
   type PropType,
+  type SlotsType,
+  type VNode,
 } from 'vue';
 import { OutletInjectionKey } from './context';
 import { useOpenedViews } from './use-opened-views';
-import { layoutGroup, type LayoutGroup, type RouteView } from './types';
+import {
+  layoutGroup,
+  type LayoutGroup,
+  type RouteView,
+  type RouteViewSlotProps,
+} from './types';
 
 // A page or layout component may be a function or an options object. The name
 // is read the way Vue reads it, with `||` because an arrow function has ''.
@@ -52,7 +59,10 @@ function viewHost(view: RouteView): Component {
 /**
  * @internal The host of one `withLayout` group. Its views share this
  * component, so the layout stays mounted while the page inside it changes.
- * Test: "a group layout under Outlet stays mounted while its pages switch".
+ * The host takes the name of the layout: the slot of `RoutesView` hands out
+ * this host for a grouped view, and `KeepAlive include` matches it by name.
+ * Tests: "a group layout under Outlet stays mounted while its pages switch",
+ * "KeepAlive include matches a group host by the name of its layout".
  */
 function groupHost(group: LayoutGroup): Component {
   let host = groupHosts.get(group);
@@ -91,6 +101,35 @@ export function renderView(view: RouteView) {
   return group ? h(groupHost(group), { routeView: view }) : h(viewHost(view));
 }
 
+/**
+ * @internal The `slots` option of `RoutesView` and `<Outlet />`. Vue reads it
+ * only as a type: it declares the default slot and its props for templates
+ * and TSX. The function form keeps the slot argument required.
+ * Test: "RoutesView and Outlet declare the default slot".
+ */
+export const routeViewSlots = Object as SlotsType<{
+  default?: (props: RouteViewSlotProps) => VNode[];
+}>;
+
+/**
+ * @internal Hands the view to the default slot, or returns it when there is
+ * no slot. A slot that yields one vnode gives that vnode as the root, the way
+ * `RouterView` of vue-router does: a render function that returns an array
+ * gets a fragment root, and attributes passed to the component are dropped.
+ * Test: "a slot with one root keeps the attributes of RoutesView".
+ */
+export function renderViewSlot(
+  slot: ((props: RouteViewSlotProps) => VNode[]) | undefined,
+  Component: VNode | null,
+  view: RouteView | null,
+) {
+  if (!slot) return Component;
+
+  const nodes = slot({ Component, view });
+
+  return nodes.length === 1 ? nodes[0] : nodes;
+}
+
 interface CreateRoutesViewProps {
   routes: RouteView[];
   otherwise?: Component;
@@ -114,17 +153,19 @@ export const createRoutesView = (props: CreateRoutesViewProps) => {
 
   return defineComponent({
     name: 'RoutesView',
-    setup() {
+    slots: routeViewSlots,
+    setup(_, { slots }) {
       const openedViews = useOpenedViews(routes);
 
       return () => {
-        const view = openedViews.value.at(-1);
+        const view = openedViews.value.at(-1) ?? null;
+        const Component = view
+          ? renderView(view)
+          : otherwise
+            ? h(otherwise)
+            : null;
 
-        if (!view) {
-          return otherwise ? h(otherwise) : null;
-        }
-
-        return renderView(view);
+        return renderViewSlot(slots.default, Component, view);
       };
     },
   });

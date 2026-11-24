@@ -13,6 +13,7 @@ import type {
   Component,
   HydrationStrategy,
   Ref,
+  VNode,
 } from 'vue';
 
 type RouteViewTarget = Pick<Route<any>, '$isOpened'>;
@@ -31,6 +32,18 @@ export interface RouteView {
   view: Component;
   children?: RouteView[];
   [layoutGroup]?: LayoutGroup;
+}
+
+/** What the default slot of `RoutesView` and `<Outlet />` receives. */
+export interface RouteViewSlotProps {
+  /**
+   * Vnode of the current view, for `<component :is="Component" />`. For a view
+   * of a `withLayout` group it is the layout with the page inside. `null` when
+   * there is nothing to render.
+   */
+  Component: VNode | null;
+  /** The current view. `null` for `otherwise` and when nothing is opened. */
+  view: RouteView | null;
 }
 
 /** What `createLazyRouteView` returns. */

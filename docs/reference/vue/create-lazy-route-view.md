@@ -114,5 +114,9 @@ export const ProfileScreen = createLazyRouteView({
 Without `name` the view is named `LazyRouteView`, or `LazyRouteViewWithLayout`
 when it has a `layout`.
 
+Under `KeepAlive` Vue does not call `onActivated` of the page on its first
+mount after the chunk loads. It calls the hook on every later activation, and
+on the first mount after `preload()`.
+
 [`defineAsyncComponent`]: https://vuejs.org/api/general.html#defineasynccomponent
 [`withLayout`]: /vue/with-layout

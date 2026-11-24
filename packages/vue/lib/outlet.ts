@@ -1,7 +1,11 @@
 import { defineComponent, inject } from 'vue';
 import { OutletInjectionKey } from './context';
 import { useOpenedViews } from './use-opened-views';
-import { renderView } from './create-routes-view';
+import {
+  renderView,
+  renderViewSlot,
+  routeViewSlots,
+} from './create-routes-view';
 
 // `@__PURE__`: see router-provider.ts.
 /**
@@ -24,14 +28,19 @@ import { renderView } from './create-routes-view';
  */
 export const Outlet = /* @__PURE__ */ defineComponent({
   name: 'Outlet',
-  setup() {
+  slots: routeViewSlots,
+  setup(_, { slots }) {
     const children = inject(OutletInjectionKey, []);
     const openedViews = useOpenedViews(children);
 
     return () => {
-      const view = openedViews.value.at(-1);
+      const view = openedViews.value.at(-1) ?? null;
 
-      return view ? renderView(view) : null;
+      return renderViewSlot(
+        slots.default,
+        view ? renderView(view) : null,
+        view,
+      );
     };
   },
 });

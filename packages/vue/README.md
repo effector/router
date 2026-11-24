@@ -103,6 +103,8 @@ import { routes } from '@shared/routing';
   `suspensible` (default `false`) and `hydrate`.
   Both functions take `name`, the component name for `KeepAlive include`.
 - `createRoutesView` — render the currently opened route, with an `otherwise` fallback.
+  `RoutesView` and `Outlet` accept a default scoped slot with `{ Component, view }`
+  for `KeepAlive` and `Transition`.
 - Selection is declarative: active parents are suppressed by active children and
   the last declared remaining view wins.
 - `Link`, `useLink` — declarative and imperative navigation.
