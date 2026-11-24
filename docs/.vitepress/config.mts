@@ -169,7 +169,13 @@ export default defineConfig({
       '/how-to/': [
         {
           text: 'How-to guides',
-          items: [{ text: 'Overview', link: '/how-to/' }],
+          items: [
+            { text: 'Overview', link: '/how-to/' },
+            {
+              text: 'Route records in Vue',
+              link: '/how-to/vue-route-records',
+            },
+          ],
         },
       ],
       '/explanation/': [
