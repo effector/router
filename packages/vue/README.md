@@ -15,6 +15,8 @@ all driven by Effector state. **Only the latest Vue 3 (`^3.5`) is supported.**
 npm install @effector/router-vue @effector/router effector effector-vue vue
 ```
 
+`effector-vue` 23.3.0 or newer is required.
+
 ## Quick start
 
 ```ts
