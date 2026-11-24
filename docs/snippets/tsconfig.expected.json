@@ -1,4 +1,4 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["./expected-errors.tsx"]
+  "include": ["./expected-errors.tsx", "./expected-errors-vue.tsx"]
 }

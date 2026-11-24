@@ -12,11 +12,16 @@ Only an ordinary primary-button, same-origin `_self` click is intercepted.
 Modified or secondary clicks, downloads, cross-origin URLs, non-`_self` targets,
 and a user `preventDefault()` keep native anchor behavior.
 
-`LinkProps<Params>` is exported for typed script usage and conditionally requires
-`params` when `Params` contains required route keys. Vue template inference may
-not preserve that conditional generic through a component template; annotate
-the props in TypeScript when compile-time enforcement is needed. Standard
-anchor attributes and `onClick` are forwarded to the rendered anchor.
+`Link` infers `params` from the route in `to`. In TSX and in SFC templates
+checked by `vue-tsc`, a missing `params` is a type error for a route with a
+required param, and a wrong `params` is a type error for any route. A route
+with only optional params, such as `/tags/:tag?`, needs no `params`, and a
+route without params takes none. `h(Link, ...)` cannot check `params`, because
+`h()` does not infer the type parameter of a component.
+
+`LinkPropsOf<typeof route>` and `LinkProps<Params>` are exported for typed
+script usage, and `LinkComponent` is the type of `Link`. Standard anchor
+attributes and `onClick` are forwarded to the rendered anchor.
 
 When a wrapper component and its parent both listen to `click`, Vue merges the
 listeners. `Link` runs them in order and then checks `preventDefault()`. A
@@ -33,7 +38,7 @@ A new `to` updates `href` and the route opened on click.
 #### `params`
 
 - `type`: `T`
-- `required`: if the route has params: `yes`, otherwise: `no`
+- `required`: if the route has a required param: `yes`, otherwise: `no`
 
 #### `activeClass`, `exactActiveClass`
 

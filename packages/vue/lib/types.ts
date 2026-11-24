@@ -11,7 +11,9 @@ import type {
   AnchorHTMLAttributes,
   AsyncComponentOptions,
   Component,
+  ComponentPublicInstance,
   HydrationStrategy,
+  PublicProps,
   Ref,
   VNode,
 } from 'vue';
@@ -110,6 +112,53 @@ type BaseLinkProps<Params extends object | void = void> = {
   exactActiveClass?: string;
 } & AnchorProps &
   OpenPayloadBase;
+
+type RouteParams<R> = R extends Route<infer Params> ? Params : never;
+
+/**
+ * Props of `Link` for the route type `R`. `params` is required when the route
+ * has a required param. It is optional when the route has no params or only
+ * optional ones, such as `/tags/:tag?`: `{} extends Params` holds exactly
+ * when no key of `Params` is required. 0.1.0 never required `params`, so such
+ * links keep compiling.
+ * Test: "Link infers params from the route in TSX".
+ */
+export type LinkPropsOf<R extends Route<any>> = Omit<
+  BaseLinkProps<any>,
+  'to'
+> & { to: R } & ([RouteParams<R>] extends [
+    Record<string, never> | void | undefined,
+  ]
+    ? { params?: RouteParams<R> }
+    : {} extends RouteParams<R>
+      ? { params?: RouteParams<R> }
+      : { params: RouteParams<R> });
+
+/**
+ * The type of `Link`: a component whose props depend on the route in `to`.
+ *
+ * `defineComponent` cannot express this, so the type is written by hand and
+ * `Link` is cast to it. The React binding types its `Link` the same way
+ * (`ForwardedLink`), and `RouterLink` of vue-router is typed by a hand-written
+ * constructor as well.
+ *
+ * - The type parameter is the route, not its params. `h()` reads a generic
+ *   component with the type parameter replaced by its constraint, and
+ *   `Route<any>` accepts every `h(Link, ...)` call. `h()` cannot check
+ *   `params`.
+ * - `$props` is written out: TSX and SFC templates infer `R` from it.
+ * - `$slots` declares the default slot for templates and TSX.
+ * Tests: "Link infers params from the route in TSX", "h(Link) calls of 0.1.0
+ * keep compiling", "Link declares the default slot".
+ */
+export interface LinkComponent {
+  new <R extends Route<any>>(
+    props: LinkPropsOf<R> & PublicProps,
+  ): ComponentPublicInstance & {
+    $props: LinkPropsOf<R> & PublicProps;
+    $slots: { default?: (props: LinkSlotProps) => VNode[] };
+  };
+}
 
 /** What the default slot of `Link` receives. */
 export interface LinkSlotProps {

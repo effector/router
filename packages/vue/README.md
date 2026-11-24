@@ -112,8 +112,8 @@ import { routes } from '@shared/routing';
   current query, explicit query replaces it, and `{}` clears it.
   Only ordinary primary-button, same-origin `_self` clicks are intercepted;
   modified, secondary, download, and non-`_self` clicks remain native.
-  The exported generic `LinkProps<Params>` conditionally requires params in
-  TypeScript; Vue templates may need an explicit annotation for that check.
+  `Link` infers `params` from the route in `to`: TSX and SFC templates under
+  `vue-tsc` report a missing or wrong `params`. `h(Link, ...)` cannot check it.
   Standard anchor attributes and `onClick` are forwarded.
   `Link` takes `activeClass` and `exactActiveClass`, sets `aria-current="page"`
   on an exact match and gives `{ href, isActive, isExactActive, navigate }` to

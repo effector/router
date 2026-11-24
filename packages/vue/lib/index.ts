@@ -14,7 +14,9 @@ export { useOpenedViews } from './use-opened-views';
 export { withLayout } from './with-layout';
 export type { RouterPluginOptions } from './create-router-plugin';
 export type {
+  LinkComponent,
   LinkProps,
+  LinkPropsOf,
   LinkSlotProps,
   CreateLazyRouteViewProps,
   CreateRouteViewProps,

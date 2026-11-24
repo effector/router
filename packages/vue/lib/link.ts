@@ -6,23 +6,11 @@ import {
   type VNode,
 } from 'vue';
 import type { QueryInput, Route } from '@effector/router';
-import type { LinkSlotProps } from './types';
+import type { LinkComponent, LinkSlotProps } from './types';
 import { useLinkTo } from './use-link';
 
 // `@__PURE__`: see router-provider.ts.
-/**
- * @description Navigates user to provided route on click. Behaves like an
- * `<a>` element but uses `to` / `params` instead of `href`.
- * @link https://router.effector.dev/vue/link.html
- * @example ```ts
- * import { Link } from '@effector/router-vue';
- * import { routes } from '@shared/routing';
- *
- * // <Link :to="routes.settings">Settings</Link>
- * // <Link :to="routes.editPost" :params="{ id: post.id }">Edit post</Link>
- * ```
- */
-export const Link = /* @__PURE__ */ defineComponent({
+const LinkImpl = /* @__PURE__ */ defineComponent({
   name: 'Link',
   inheritAttrs: false,
   props: {
@@ -44,9 +32,9 @@ export const Link = /* @__PURE__ */ defineComponent({
       default: undefined,
     },
   },
-  // Read by Vue only as a type: the default slot and its props. The function
-  // form keeps the slot argument required.
-  // Test: "Link declares the default slot".
+  // Read by Vue only as a type. It checks the argument of `slots.default` in
+  // the render below against `LinkSlotProps`. The public type of the slot is
+  // `$slots` of `LinkComponent`.
   slots: Object as SlotsType<{
     default?: (props: LinkSlotProps) => VNode[];
   }>,
@@ -125,6 +113,22 @@ export const Link = /* @__PURE__ */ defineComponent({
     };
   },
 });
+
+/**
+ * @description Navigates user to provided route on click. Behaves like an
+ * `<a>` element but uses `to` / `params` instead of `href`. In TSX and in SFC
+ * templates `params` is checked against the route in `to`.
+ * @link https://router.effector.dev/vue/link.html
+ * @example ```ts
+ * import { Link } from '@effector/router-vue';
+ * import { routes } from '@shared/routing';
+ *
+ * // <Link :to="routes.settings">Settings</Link>
+ * // <Link :to="routes.editPost" :params="{ id: post.id }">Edit post</Link>
+ * ```
+ */
+// The cast changes only the type: see `LinkComponent`.
+export const Link = LinkImpl as unknown as LinkComponent;
 
 // A click listener is a function or, after Vue merged several of them, an
 // array that may nest. The Solid binding does the same for its two listener
