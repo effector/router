@@ -1,19 +1,15 @@
 import { flushPromises, mount } from '@vue/test-utils';
-import type { Plugin } from 'vue';
 import { allSettled, fork } from 'effector';
-import { createRequire } from 'node:module';
+import { EffectorScopePlugin } from 'effector-vue/composition';
 import { expect, test } from 'vitest';
 import { createVueQuickStart } from '../../../docs/quick-starts/vue';
 
 test('Vue quick start renders initial route and one navigation', async () => {
   const quickStart = createVueQuickStart();
   const scope = fork();
-  const { EffectorScopePlugin } = createRequire(import.meta.url)(
-    'effector-vue',
-  ) as { EffectorScopePlugin: (config: { scope: typeof scope }) => object };
   const view = mount(quickStart.RoutesView, {
     global: {
-      plugins: [EffectorScopePlugin({ scope }) as unknown as Plugin],
+      plugins: [EffectorScopePlugin({ scope })],
     },
   });
 

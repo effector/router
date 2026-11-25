@@ -1,6 +1,7 @@
 import { inject } from 'vue';
 import { useUnit } from 'effector-vue/composition';
 import { RouterInjectionKey } from './context';
+import type { UseRouterReturn } from './types';
 
 /**
  * @description Get the raw router instance from the provider
@@ -23,6 +24,6 @@ export function useRouterContext() {
  * @returns Reactive router units (path, query, activeRoutes, ...)
  * @link https://router.effector.dev/vue/use-router.html
  */
-export function useRouter() {
+export function useRouter(): UseRouterReturn {
   return useUnit(useRouterContext());
 }

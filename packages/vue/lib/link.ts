@@ -1,20 +1,16 @@
-import { defineComponent, h, type PropType } from 'vue';
-import type { QueryInput, Route, RouteOpenedPayload } from '@effector/router';
-import { useLink } from './use-link';
+import {
+  defineComponent,
+  h,
+  type PropType,
+  type SlotsType,
+  type VNode,
+} from 'vue';
+import type { QueryInput, Route } from '@effector/router';
+import type { LinkComponent, LinkSlotProps } from './types';
+import { useLinkTo } from './use-link';
 
-/**
- * @description Navigates user to provided route on click. Behaves like an
- * `<a>` element but uses `to` / `params` instead of `href`.
- * @link https://router.effector.dev/vue/link.html
- * @example ```ts
- * import { Link } from '@effector/router-vue';
- * import { routes } from '@shared/routing';
- *
- * // <Link :to="routes.settings">Settings</Link>
- * // <Link :to="routes.editPost" :params="{ id: post.id }">Edit post</Link>
- * ```
- */
-export const Link = defineComponent({
+// `@__PURE__`: see router-provider.ts.
+const LinkImpl = /* @__PURE__ */ defineComponent({
   name: 'Link',
   inheritAttrs: false,
   props: {
@@ -26,16 +22,32 @@ export const Link = defineComponent({
     },
     query: { type: Object as PropType<QueryInput>, default: undefined },
     target: { type: String as PropType<string>, default: undefined },
+    activeClass: { type: String as PropType<string>, default: undefined },
+    exactActiveClass: { type: String as PropType<string>, default: undefined },
+    // Vue merges the click listeners of a wrapper and of its parent into an
+    // array, so the prop accepts a function and an array.
+    // Test: "runs the click listeners of a wrapper and of its parent".
     onClick: {
-      type: Function as PropType<(event: MouseEvent) => void>,
+      type: [Function, Array] as PropType<(event: MouseEvent) => void>,
       default: undefined,
     },
   },
+  // Read by Vue only as a type. It checks the argument of `slots.default` in
+  // the render below against `LinkSlotProps`. The public type of the slot is
+  // `$slots` of `LinkComponent`.
+  slots: Object as SlotsType<{
+    default?: (props: LinkSlotProps) => VNode[];
+  }>,
   setup(props, { slots, attrs }) {
-    const link = useLink(props.to);
+    const link = useLinkTo<any>(
+      () => props.to,
+      () => props.params,
+      () => props.query,
+      () => props.replace,
+    );
 
     const handleClick = (event: MouseEvent) => {
-      props.onClick?.(event);
+      callClickListeners(props.onClick, event);
 
       // allow user to prevent navigation
       if (event.defaultPrevented) return;
@@ -59,23 +71,88 @@ export const Link = defineComponent({
 
       event.preventDefault();
 
-      link.onOpen({
-        params: props.params ?? {},
-        replace: props.replace,
-        query: props.query,
-      } as RouteOpenedPayload<any>);
+      link.navigate();
     };
 
-    return () =>
-      h(
+    return () => {
+      const href = link.href.value;
+      const isActive = link.isActive.value;
+      const isExactActive = link.isExactActive.value;
+      const anchor: Record<string, unknown> = {};
+
+      // Set before `attrs`, so `aria-current` passed to the link wins.
+      // Test: "aria-current passed to the link wins".
+      if (isExactActive) anchor['aria-current'] = 'page';
+
+      Object.assign(anchor, attrs, {
+        target: props.target,
+        href,
+        onClick: handleClick,
+      });
+
+      const classes = [
+        isActive && props.activeClass,
+        isExactActive && props.exactActiveClass,
+      ].filter(Boolean);
+
+      // `class` is set only when there is a class to add: a server render
+      // prints `class=""` for a `class` key without a value.
+      // Test: "a link without classes renders no class attribute".
+      if (classes.length > 0) anchor.class = [attrs.class, classes];
+
+      return h(
         'a',
-        {
-          ...attrs,
-          target: props.target,
-          href: link.build(props.params ?? undefined, props.query),
-          onClick: handleClick,
-        },
-        slots.default?.(),
+        anchor,
+        slots.default?.({
+          href,
+          isActive,
+          isExactActive,
+          navigate: link.navigate,
+        }),
       );
+    };
   },
 });
+
+/**
+ * @description Navigates user to provided route on click. Behaves like an
+ * `<a>` element but uses `to` / `params` instead of `href`. In TSX and in SFC
+ * templates `params` is checked against the route in `to`.
+ * @link https://router.effector.dev/vue/link.html
+ * @example ```ts
+ * import { Link } from '@effector/router-vue';
+ * import { routes } from '@shared/routing';
+ *
+ * // <Link :to="routes.settings">Settings</Link>
+ * // <Link :to="routes.editPost" :params="{ id: post.id }">Edit post</Link>
+ * ```
+ */
+// The cast changes only the type: see `LinkComponent`.
+export const Link = LinkImpl as unknown as LinkComponent;
+
+// A click listener is a function or, after Vue merged several of them, an
+// array that may nest. The Solid binding does the same for its two listener
+// forms (`callClickHandler`).
+// After `stopImmediatePropagation()` in one listener the rest are skipped, as
+// on a native element: Vue wraps the method the same way for an array of
+// listeners (`patchStopImmediatePropagation` in @vue/runtime-dom).
+// Test: "stopImmediatePropagation in a listener skips the listeners after it".
+function callClickListeners(listener: unknown, event: MouseEvent) {
+  const stop = event.stopImmediatePropagation.bind(event);
+  let stopped = false;
+
+  event.stopImmediatePropagation = () => {
+    stop();
+    stopped = true;
+  };
+
+  const call = (item: unknown) => {
+    if (Array.isArray(item)) {
+      item.forEach(call);
+    } else if (typeof item === 'function' && !stopped) {
+      item(event);
+    }
+  };
+
+  call(listener);
+}

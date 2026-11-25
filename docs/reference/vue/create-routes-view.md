@@ -17,6 +17,11 @@ When several routes are active, selection happens in two stages:
    `routes` array.
    :::
 
+Every view renders through its own host component, named after the view
+component. A switch between two views always remounts the page, also when both
+views use one component. A view passed as a bare `defineAsyncComponent` result
+gets the host name `AsyncComponentWrapper`.
+
 ### Example
 
 ```ts
@@ -37,3 +42,41 @@ export const RoutesView = createRoutesView({
   </RouterProvider>
 </template>
 ```
+
+### Scoped slot
+
+`RoutesView` accepts a default scoped slot. Without a slot it renders the view
+itself, as before.
+
+| Slot prop   | Type                | Value                                                              |
+| ----------- | ------------------- | ------------------------------------------------------------------ |
+| `Component` | `VNode \| null`     | Vnode of the current view, for `<component :is="Component" />`.    |
+| `view`      | `RouteView \| null` | The current view. `null` for `otherwise` and when nothing is open. |
+
+`Component` for a view of a [`withLayout`](/vue/with-layout) group is the
+layout with the page inside. With no opened view it is the `otherwise` vnode,
+or `null` when there is no `otherwise`. The type `RouteViewSlotProps` is
+exported.
+
+```vue
+<template>
+  <RoutesView v-slot="{ Component }">
+    <KeepAlive include="FeedPage">
+      <component :is="Component" />
+    </KeepAlive>
+  </RoutesView>
+</template>
+```
+
+`KeepAlive include` matches a view by the name of its component, or by `name`
+passed to `createRouteView` or `createLazyRouteView`. A view of a `withLayout`
+group is matched by the name of the layout component: the cached entry is the
+layout together with its page.
+
+A slot with one root node receives the attributes passed to `RoutesView`.
+
+On a navigation between two path routes the first route closes before the
+second opens. In between the slot receives `otherwise` or `null`.
+
+In 0.1.0 slot content passed to `RoutesView` was ignored. Now it replaces the
+view.

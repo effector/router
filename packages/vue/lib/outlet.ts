@@ -1,8 +1,13 @@
-import { defineComponent, h, inject } from 'vue';
+import { defineComponent, inject } from 'vue';
 import { OutletInjectionKey } from './context';
 import { useOpenedViews } from './use-opened-views';
-import { RouteRenderer } from './create-routes-view';
+import {
+  renderView,
+  renderViewSlot,
+  routeViewSlots,
+} from './create-routes-view';
 
+// `@__PURE__`: see router-provider.ts.
 /**
  * @description Renders nested child routes of the currently opened route.
  * Place it inside a view whose `RouteView` was created with `children`.
@@ -21,23 +26,21 @@ import { RouteRenderer } from './create-routes-view';
  * });
  * ```
  */
-export const Outlet = defineComponent({
+export const Outlet = /* @__PURE__ */ defineComponent({
   name: 'Outlet',
-  setup() {
+  slots: routeViewSlots,
+  setup(_, { slots }) {
     const children = inject(OutletInjectionKey, []);
     const openedViews = useOpenedViews(children);
 
     return () => {
-      const view = openedViews.value.at(-1);
+      const view = openedViews.value.at(-1) ?? null;
 
-      if (!view) {
-        return null;
-      }
-
-      return h(RouteRenderer, {
-        routeView: view,
-        key: children.indexOf(view),
-      });
+      return renderViewSlot(
+        slots.default,
+        view ? renderView(view) : null,
+        view,
+      );
     };
   },
 });

@@ -5,16 +5,19 @@ only inside `<RouterProvider>`.
 
 ## Return value
 
-`useRouter()` binds the router's Effector unit shape with `useUnit` and returns:
+`useRouter()` binds the router's Effector unit shape with `useUnit` and returns
+`UseRouterReturn`:
 
-| Property       | Vue value                | Description                     |
-| -------------- | ------------------------ | ------------------------------- |
-| `path`         | `Readonly<Ref<string>>`  | Current path                    |
-| `query`        | `Readonly<Ref<Query>>`   | Current query                   |
-| `activeRoutes` | `Readonly<Ref<Route[]>>` | Currently active routes         |
-| `onBack`       | `() => void`             | Navigate back                   |
-| `onForward`    | `() => void`             | Navigate forward                |
-| `onNavigate`   | `(payload) => void`      | Navigate to a path/query target |
+| Property       | Vue value                       | Description                           |
+| -------------- | ------------------------------- | ------------------------------------- |
+| `path`         | `Readonly<Ref<string \| null>>` | Current path, `null` before a history |
+| `query`        | `Readonly<Ref<Query>>`          | Current query                         |
+| `activeRoutes` | `Readonly<Ref<Route<any>[]>>`   | Currently active routes               |
+| `onBack`       | `() => void`                    | Navigate back                         |
+| `onForward`    | `() => void`                    | Navigate forward                      |
+| `onNavigate`   | `(payload) => payload`          | Navigate to a path/query target       |
+
+`UseRouterReturn` is exported from the package.
 
 Stores become readonly Vue refs. Read them with `.value` in script code; Vue
 automatically unwraps them in templates. Events become callable functions.

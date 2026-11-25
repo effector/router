@@ -21,6 +21,8 @@ This package is a **draft (β)**. Only the latest Vue 3 (`^3.5`) is supported.
 npm install @effector/router-vue @effector/router effector effector-vue vue
 ```
 
+`effector-vue` 23.3.0 or newer is required.
+
 ## Key Concepts
 
 ### Route Views
@@ -46,6 +48,9 @@ Provide the router to your Vue tree:
 </template>
 ```
 
+[`createRouterPlugin`](/vue/create-router-plugin) provides the router to the
+whole app instead: `app.use(createRouterPlugin({ router }))`.
+
 Inside the provider, use [`useRouter`](/vue/use-router) for reactive router
 units. Use [`useRouterContext`](/vue/use-router) when you need the raw router
 instance.
@@ -56,9 +61,13 @@ Reactivity and Effector `Scope` are handled by `effector-vue`. Register its scop
 plugin at the app root when you need a forked scope:
 
 ```ts
-import { EffectorScopePlugin } from 'effector-vue';
+import { EffectorScopePlugin } from 'effector-vue/composition';
 
 app.use(EffectorScopePlugin({ scope }));
 ```
+
+With `forceScope: true` a component that runs without a scope throws instead of
+reading the global state. `forceScope` works since `effector-vue` 23.3.0. The
+`effector-vue/composition` export of the plugin exists since 23.2.0.
 
 [`Link`]: /vue/link

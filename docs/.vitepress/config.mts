@@ -57,8 +57,10 @@ const reactItems = [
 
 const vueItems = [
   { text: 'RouterProvider', link: '/vue/router-provider' },
+  { text: 'createRouterPlugin', link: '/vue/create-router-plugin' },
   { text: 'RouterInjectionKey', link: '/vue/router-injection-key' },
   { text: 'Outlet', link: '/vue/outlet' },
+  { text: 'LayoutOutlet', link: '/vue/layout-outlet' },
   { text: 'Link', link: '/vue/link' },
   { text: 'createRouteView', link: '/vue/create-route-view' },
   { text: 'createRoutesView', link: '/vue/create-routes-view' },
@@ -167,7 +169,17 @@ export default defineConfig({
       '/how-to/': [
         {
           text: 'How-to guides',
-          items: [{ text: 'Overview', link: '/how-to/' }],
+          items: [
+            { text: 'Overview', link: '/how-to/' },
+            {
+              text: 'Route records in Vue',
+              link: '/how-to/vue-route-records',
+            },
+            {
+              text: 'KeepAlive and Transition in Vue',
+              link: '/how-to/vue-keep-alive-and-transition',
+            },
+          ],
         },
       ],
       '/explanation/': [

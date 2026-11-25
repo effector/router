@@ -92,6 +92,13 @@ for (const file of markdownFiles(docsRoot)) {
   const links = /!?\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
   for (const match of content.matchAll(links))
     checkLink(file, match[1], 'Markdown link');
+  // A code block imported from a file: `<<< @/snippets/file.ts`, where `@`
+  // is the docs root.
+  for (const match of content.matchAll(/^<<<\s+@\/([^\s{#[]+)/gm)) {
+    if (!fs.existsSync(path.join(docsRoot, match[1]))) {
+      errors.push(`${file}: missing code import ${match[1]}`);
+    }
+  }
 }
 
 for (const directory of [

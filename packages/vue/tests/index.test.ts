@@ -1,4 +1,5 @@
 import { allSettled, fork, type Scope } from 'effector';
+import { inspectGraph } from 'effector/inspect';
 import { describe, expect, test, vi } from 'vitest';
 import {
   createRoute,
@@ -8,8 +9,8 @@ import {
 } from '@effector/router';
 import { createMemoryHistory } from 'history';
 import { flushPromises, mount } from '@vue/test-utils';
-import { defineComponent, h, onMounted, onUnmounted, type Plugin } from 'vue';
-import { createRequire } from 'node:module';
+import { defineComponent, h, onMounted, onUnmounted, ref } from 'vue';
+import { EffectorScopePlugin } from 'effector-vue/composition';
 import {
   createLazyRouteView,
   createRouteView,
@@ -19,15 +20,6 @@ import {
   RouterProvider,
   withLayout,
 } from '../lib';
-
-// effector-vue@23.1.1's native ESM entry imports a Vue 2-style default export,
-// which Vitest cannot load with Vue 3. The package's CJS entry exposes the same
-// public factory and lets this test exercise the documented plugin setup.
-const { EffectorScopePlugin } = createRequire(import.meta.url)(
-  'effector-vue',
-) as {
-  EffectorScopePlugin: (config: { scope: Scope }) => Plugin;
-};
 
 function mountRoutes(
   router: Router,
@@ -81,6 +73,46 @@ describe('vue bindings', () => {
     const wrapper = mountRoutes(router, scope, RoutesView);
 
     await allSettled(first.open, { scope, params: undefined });
+    await allSettled(second.open, { scope, params: undefined });
+    await flushPromises();
+
+    expect(wrapper.text()).toBe('second');
+  });
+
+  test('creates no stores when a routes view mounts', async () => {
+    const first = createRoute();
+    const second = createRoute();
+    const scope = fork();
+    const router = createRouter({ routes: [] });
+    const RoutesView = createRoutesView({
+      routes: [
+        createRouteView({
+          route: first,
+          view: { render: () => h('p', 'first') },
+        }),
+        createRouteView({
+          route: second,
+          view: { render: () => h('p', 'second') },
+        }),
+      ],
+    });
+    const stores: string[] = [];
+    const inspection = inspectGraph({
+      fn: (declaration) => {
+        if (declaration.type === 'unit' && declaration.kind === 'store') {
+          stores.push(declaration.id);
+        }
+      },
+    });
+
+    for (let i = 0; i < 3; i++) {
+      mountRoutes(router, scope, RoutesView).unmount();
+    }
+    inspection.unsubscribe();
+
+    expect(stores).toEqual([]);
+
+    const wrapper = mountRoutes(router, scope, RoutesView);
     await allSettled(second.open, { scope, params: undefined });
     await flushPromises();
 
@@ -408,6 +440,53 @@ describe('vue bindings', () => {
     expect(scope.getState(route2.$isOpened)).toBeTruthy();
     expect(scope.getState(route2.$params)).toStrictEqual({ id: '123' });
     expect(scope.getState(router.$query)).toStrictEqual({ tab: 'details' });
+  });
+
+  test('link follows a changed `to`', async () => {
+    const home = createRoute({ path: '/home' });
+    const first = createRoute({ path: '/first' });
+    const second = createRoute({ path: '/second/:id' });
+    const scope = fork();
+    const router = createRouter({ routes: [home, first, second] });
+
+    await allSettled(router.setHistory, {
+      scope,
+      params: historyAdapter(createMemoryHistory()),
+    });
+
+    const target = ref<'first' | 'second'>('first');
+    const RoutesView = createRoutesView({
+      routes: [
+        {
+          route: home,
+          view: () =>
+            target.value === 'first'
+              ? h(Link, { to: first, id: 'link' }, () => 'go')
+              : h(
+                  Link,
+                  { to: second, params: { id: '7' }, id: 'link' },
+                  () => 'go',
+                ),
+        },
+      ],
+    });
+    const wrapper = mountRoutes(router, scope, RoutesView);
+
+    await allSettled(home.open, { scope, params: undefined });
+    await flushPromises();
+    expect(wrapper.find('#link').attributes('href')).toBe('/first');
+
+    target.value = 'second';
+    await flushPromises();
+    expect(wrapper.find('#link').attributes('href')).toBe('/second/7');
+
+    await wrapper.find('#link').trigger('click');
+    await allSettled(scope);
+    await flushPromises();
+
+    expect(scope.getState(first.$isOpened)).toBe(false);
+    expect(scope.getState(second.$isOpened)).toBe(true);
+    expect(scope.getState(second.$params)).toStrictEqual({ id: '7' });
   });
 
   test('href and route.open share effective query semantics', async () => {

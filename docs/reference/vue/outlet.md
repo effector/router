@@ -32,3 +32,20 @@ import { Outlet } from '@effector/router-vue';
 
 `Outlet` is recursive: every selected child provides its own `children` to the
 next outlet, with no depth limit. When no child is active it renders nothing.
+
+### Scoped slot
+
+`Outlet` accepts the same default scoped slot as
+[`RoutesView`](/vue/create-routes-view#scoped-slot): `Component` is the vnode
+of the selected child view and `view` is its `RouteView`. Both are `null` when
+no child is active. Without a slot `Outlet` renders the child itself.
+
+```vue
+<template>
+  <Outlet v-slot="{ Component }">
+    <KeepAlive>
+      <component :is="Component" />
+    </KeepAlive>
+  </Outlet>
+</template>
+```

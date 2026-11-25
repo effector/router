@@ -28,6 +28,7 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -59,7 +60,7 @@
   },
   "peerDependencies": {
     "effector": "catalog:peer",
-    "effector-vue": ">=23",
+    "effector-vue": ">=23.3.0",
     "vue": "^3.5.0"
   }
 }

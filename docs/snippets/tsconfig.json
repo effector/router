@@ -20,6 +20,7 @@
     "./react-native.tsx",
     "./tutorials/build-your-first-router.tsx",
     "./explanation/routes-and-query.ts",
+    "./how-to/vue-route-records/**/*.ts",
     "../quick-starts/core.ts",
     "../quick-starts/react.tsx",
     "../quick-starts/vue.ts",

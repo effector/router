@@ -22,16 +22,21 @@ import type { CreateRouteViewProps, RouteView } from './types';
 export function createRouteView<T extends object | void = void>(
   props: CreateRouteViewProps<T>,
 ): RouteView {
-  const { route, view, layout, children } = props;
+  const { route, view, layout, children, name } = props;
 
-  const wrapped = layout
-    ? defineComponent({
-        name: 'RouteViewWithLayout',
-        setup() {
-          return () => h(layout, null, { default: () => h(view) });
-        },
-      })
-    : view;
+  // `name` needs a wrapper as well: the name of `view` itself may be absent
+  // or, for an async component, unknown before it loads.
+  // Test: "createRouteView name is matched by KeepAlive include".
+  const wrapped =
+    layout || name
+      ? defineComponent({
+          name: name ?? 'RouteViewWithLayout',
+          setup() {
+            return () =>
+              layout ? h(layout, null, { default: () => h(view) }) : h(view);
+          },
+        })
+      : view;
 
   return { route, view: wrapped, children };
 }

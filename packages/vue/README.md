@@ -15,6 +15,8 @@ all driven by Effector state. **Only the latest Vue 3 (`^3.5`) is supported.**
 npm install @effector/router-vue @effector/router effector effector-vue vue
 ```
 
+`effector-vue` 23.3.0 or newer is required.
+
 ## Quick start
 
 ```ts
@@ -91,10 +93,18 @@ import { routes } from '@shared/routing';
 ## API
 
 - `RouterProvider` — provide the router to the tree (via `provide`/`inject`).
+- `createRouterPlugin({ router })` returns a Vue plugin that provides the router
+  to the whole app. It attaches no history and registers no components.
 - `createRouteView` / `createLazyRouteView` — bind a route to a component (with optional lazy loading).
-- Lazy importers start when their view renders; preload is an application-owned
-  Effect and never a recursive `route.open()` call.
+- Lazy importers start when their view renders or when the application calls
+  `preload()` of the lazy view, for example from an Effect; preload is never a
+  recursive `route.open()` call.
+  `createLazyRouteView` also takes `error`, `onError`, `timeout`, `delay`,
+  `suspensible` (default `false`) and `hydrate`.
+  Both functions take `name`, the component name for `KeepAlive include`.
 - `createRoutesView` — render the currently opened route, with an `otherwise` fallback.
+  `RoutesView` and `Outlet` accept a default scoped slot with `{ Component, view }`
+  for `KeepAlive` and `Transition`.
 - Selection is declarative: active parents are suppressed by active children and
   the last declared remaining view wins.
 - `Link`, `useLink` — declarative and imperative navigation.
@@ -102,12 +112,20 @@ import { routes } from '@shared/routing';
   current query, explicit query replaces it, and `{}` clears it.
   Only ordinary primary-button, same-origin `_self` clicks are intercepted;
   modified, secondary, download, and non-`_self` clicks remain native.
-  The exported generic `LinkProps<Params>` conditionally requires params in
-  TypeScript; Vue templates may need an explicit annotation for that check.
+  `Link` infers `params` from the route in `to`: TSX and SFC templates under
+  `vue-tsc` report a missing or wrong `params`. `h(Link, ...)` cannot check it.
   Standard anchor attributes and `onClick` are forwarded.
+  `Link` takes `activeClass` and `exactActiveClass`, sets `aria-current="page"`
+  on an exact match and gives `{ href, isActive, isExactActive, navigate }` to
+  its default slot.
+  `useLink(to, params?, query?)` accepts values, refs and getters and also
+  returns `href`, `isActive`, `isExactActive` and `navigate`.
 - `withLayout` — share a layout across routes. Views returned by one call share
   a private group identity, so the layout stays mounted while siblings switch.
+- `LayoutOutlet` renders the page of a `withLayout` group inside its layout,
+  with the same scoped slot `{ Component, view }`.
 - `Outlet`, `useRouter`, `useIsOpened`, `useOpenedViews` — composition helpers.
+  `useIsOpened` accepts a route, a ref or a getter.
   `Outlet` recursively provides selected child views, so nested trees can be
   rendered without a depth limit.
 - `RouterInjectionKey` — the raw Vue injection key, for advanced `provide` use.
@@ -118,10 +136,14 @@ Reactivity and Effector `Scope` handling are provided by `effector-vue`. Install
 its scope plugin in your app (or tests) to run inside a forked scope:
 
 ```ts
-import { EffectorScopePlugin } from 'effector-vue';
+import { EffectorScopePlugin } from 'effector-vue/composition';
 
 app.use(EffectorScopePlugin({ scope }));
 ```
+
+With `forceScope: true` a component that runs without a scope throws instead of
+reading the global state. `forceScope` works since `effector-vue` 23.3.0. The
+`effector-vue/composition` export of the plugin exists since 23.2.0.
 
 ## Documentation
 
